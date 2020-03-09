@@ -93,7 +93,8 @@ The following resources might be helpful:
 
 1. This [open source book](https://astaxie.gitbooks.io/build-web-application-with-golang/content/en/), which explains how to build a go web server from fundamentals.  Note that there is way more information in this link than you'll need, but it's a great overview.  Some of the snippets in Chapter 3 might be especially useful.
 1. This [blog post](https://www.ardanlabs.com/blog/2017/02/package-oriented-design.html) explains a popular method of organizing projects, which is quite similar to the one your TA demonstrated in-class!
-1. This [exploration of Kubernetes source](https://developer.ibm.com/opentech/2017/06/21/tour-kubernetes-source-code-part-one-kubectl-api-server/), which your TA found on the day he was writing this doc, is really cool, and gives you an intimate sense of how the project works.
+1. ~~This [exploration of Kubernetes source](https://developer.ibm.com/opentech/2017/06/21/tour-kubernetes-source-code-part-one-kubectl-api-server/), which your TA found on the day he was writing this doc, is really cool, and gives you an intimate sense of how the project works.~~
+1. Since the above link doesn't work anymore, if you want to learn about Kubernetes, use [this link](https://jvns.ca/blog/2017/06/04/learning-about-kubernetes/).
 1. This [example travis script](https://gist.github.com/y0ssar1an/df2dab474520c4086926f672c52db139) for those of you who want to play around with automated builds and tests using Travis!
 1. For leveraging contexts, check out [this blog post](https://blog.golang.org/context), which goes over the subject way better than I could!!
 1. This might be a bit late to slide in, but [this talk](https://blog.golang.org/advanced-go-concurrency-patterns) on concurrency patterns is great.a
