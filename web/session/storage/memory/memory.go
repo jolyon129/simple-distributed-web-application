@@ -1,28 +1,29 @@
 package memory
 
-
 import (
 	"container/list"
 	"sync"
 	"time"
-	"zl2501-final-project/web/auth"
+	"zl2501-final-project/web/session"
+	"zl2501-final-project/web/session/storage"
 )
 
 var pder = &Provider{list: list.New()}
 
-type SessionStore struct {
+// MemSessStore implement the session interface
+type MemSessStore struct {
 	sid          string                      // unique session id
 	timeAccessed time.Time                   // last access time
 	value        map[interface{}]interface{} // session value stored inside
 }
 
-func (st *SessionStore) Set(key, value interface{}) error {
+func (st *MemSessStore) Set(key, value interface{}) error {
 	st.value[key] = value
 	pder.SessionUpdate(st.sid)
 	return nil
 }
 
-func (st *SessionStore) Get(key interface{}) interface{} {
+func (st *MemSessStore) Get(key interface{}) interface{} {
 	pder.SessionUpdate(st.sid)
 	if v, ok := st.value[key]; ok {
 		return v
@@ -32,35 +33,36 @@ func (st *SessionStore) Get(key interface{}) interface{} {
 	return nil
 }
 
-func (st *SessionStore) Delete(key interface{}) error {
+func (st *MemSessStore) Delete(key interface{}) error {
 	delete(st.value, key)
 	pder.SessionUpdate(st.sid)
 	return nil
 }
 
-func (st *SessionStore) SessionID() string {
+func (st *MemSessStore) SessionID() string {
 	return st.sid
 }
 
+// Implement Provider interface
 type Provider struct {
 	lock     sync.Mutex               // lock
 	sessions map[string]*list.Element // save in memory
 	list     *list.List               // gc
 }
 
-func (pder *Provider) SessionInit(sid string) (session.Session, error) {
+func (pder *Provider) SessionInit(sid string) (storage.SessionStore, error) {
 	pder.lock.Lock()
 	defer pder.lock.Unlock()
 	v := make(map[interface{}]interface{}, 0)
-	newsess := &SessionStore{sid: sid, timeAccessed: time.Now(), value: v}
+	newsess := &MemSessStore{sid: sid, timeAccessed: time.Now(), value: v}
 	element := pder.list.PushBack(newsess)
 	pder.sessions[sid] = element
 	return newsess, nil
 }
 
-func (pder *Provider) SessionRead(sid string) (session.Session, error) {
+func (pder *Provider) SessionRead(sid string) (storage.SessionStore, error) {
 	if element, ok := pder.sessions[sid]; ok {
-		return element.Value.(*SessionStore), nil
+		return element.Value.(*MemSessStore), nil
 	} else {
 		sess, err := pder.SessionInit(sid)
 		return sess, err
@@ -86,9 +88,9 @@ func (pder *Provider) SessionGC(maxlifetime int64) {
 		if element == nil {
 			break
 		}
-		if (element.Value.(*SessionStore).timeAccessed.Unix() + maxlifetime) < time.Now().Unix() {
+		if (element.Value.(*MemSessStore).timeAccessed.Unix() + maxlifetime) < time.Now().Unix() {
 			pder.list.Remove(element)
-			delete(pder.sessions, element.Value.(*SessionStore).sid)
+			delete(pder.sessions, element.Value.(*MemSessStore).sid)
 		} else {
 			break
 		}
@@ -99,7 +101,7 @@ func (pder *Provider) SessionUpdate(sid string) error {
 	pder.lock.Lock()
 	defer pder.lock.Unlock()
 	if element, ok := pder.sessions[sid]; ok {
-		element.Value.(*SessionStore).timeAccessed = time.Now()
+		element.Value.(*MemSessStore).timeAccessed = time.Now()
 		pder.list.MoveToFront(element)
 		return nil
 	}
@@ -108,5 +110,5 @@ func (pder *Provider) SessionUpdate(sid string) error {
 
 func init() {
 	pder.sessions = make(map[string]*list.Element, 0)
-	auth.Register("memory", pder)
+	session.Register("memory", pder)
 }
