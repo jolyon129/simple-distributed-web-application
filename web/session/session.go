@@ -12,16 +12,12 @@ import (
 	"zl2501-final-project/web/session/storage"
 )
 
-
-
 var provides = make(map[string]storage.ProviderInterface)
-
-
 
 // global session manager
 type Manager struct {
-	cookieName  string            //private cookiename
-	lock        sync.Mutex        // protects session
+	cookieName  string                    //private cookiename
+	lock        sync.Mutex                // protects session
 	provider    storage.ProviderInterface // A bridge to represent the underlying structure of session
 	maxlifetime int64
 }
@@ -55,7 +51,10 @@ func (manager *Manager) sessionId() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (session storage.SessionStore) {
+// Read sessionId from cookie.
+// If not exist, create a new sessionId and inject into cookie.
+// If exist, reuse the same session
+func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (session storage.SessionStoreInterface) {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 	cookie, err := r.Cookie(manager.cookieName)
@@ -72,7 +71,7 @@ func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (se
 }
 
 // Manually terminate the session and ask clients to overwrite the corresponding cookie
-func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request){
+func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(manager.cookieName)
 	if err != nil || cookie.Value == "" {
 		return
@@ -85,8 +84,6 @@ func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request){
 		http.SetCookie(w, &cookie)
 	}
 }
-
-
 
 // A background thread to periodically do garbage collection for expired sessions
 func (manager *Manager) GC() {

@@ -1,4 +1,6 @@
 package auth
 
-// Session Manager
-
+type Credentials struct {
+	Password string
+	Username string
+}

@@ -50,7 +50,7 @@ type Provider struct {
 	list     *list.List               // gc
 }
 
-func (pder *Provider) SessionInit(sid string) (storage.SessionStore, error) {
+func (pder *Provider) SessionInit(sid string) (storage.SessionStoreInterface, error) {
 	pder.lock.Lock()
 	defer pder.lock.Unlock()
 	v := make(map[interface{}]interface{}, 0)
@@ -60,7 +60,7 @@ func (pder *Provider) SessionInit(sid string) (storage.SessionStore, error) {
 	return newsess, nil
 }
 
-func (pder *Provider) SessionRead(sid string) (storage.SessionStore, error) {
+func (pder *Provider) SessionRead(sid string) (storage.SessionStoreInterface, error) {
 	if element, ok := pder.sessions[sid]; ok {
 		return element.Value.(*MemSessStore), nil
 	} else {
