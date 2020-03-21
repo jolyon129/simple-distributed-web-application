@@ -44,8 +44,8 @@ type PostStorageInterface interface {
 
 var drivers = make(map[string]*Manager)
 
-func RegisterDriver(name string, models *Manager) {
-	drivers[name] = models
+func RegisterDriver(name string, m *Manager) {
+	drivers[name] = m
 }
 
 func NewManager(name string) *Manager {
@@ -53,6 +53,7 @@ func NewManager(name string) *Manager {
 	return m
 }
 
+// A storage manager. The is the entry point for the storage package.
 type Manager struct {
 	UserStorage UserStorageInterface
 	PostStorage PostStorageInterface

@@ -12,14 +12,16 @@ func init() {
 	var memUserStore storage.UserStorageInterface
 	memPostStore = &MemPostStore{postMap: make(map[uint]*storage.PostEntity), pkCounter: 100}
 	memUserStore = &MemUserStore{
-		userMap:   make(map[uint]*storage.UserEntity),
-		users:     list.New(),
-		pkCounter: 100,
+		userMap:     make(map[uint]*storage.UserEntity),
+		users:       list.New(),
+		userNameSet: make(map[string]bool),
+		pkCounter:   100,
 	}
 	memModels := storage.Manager{
 		UserStorage: memUserStore,
 		PostStorage: memPostStore,
 	}
+	// Register the implementation of storage manager.
 	storage.RegisterDriver("memory", &memModels)
 }
 
@@ -42,8 +44,6 @@ type MemPostStore struct {
 }
 
 func (m *MemUserStore) getNewPK() uint {
-	m.Lock()
-	defer m.Unlock()
 	m.pkCounter++
 	return m.pkCounter
 }
@@ -58,7 +58,7 @@ func (m *MemPostStore) getNewPK() uint {
 func (m *MemUserStore) Create(user *storage.UserEntity) (uint, *storage.MyStorageError) {
 	m.Lock()
 	defer m.Unlock()
-	if _, ok := m.userNameSet[user.UserName]; !ok {
+	if _, ok := m.userNameSet[user.UserName]; ok {
 		return 0, &storage.MyStorageError{Message: "Duplicate UserStorage Names!"}
 	}
 	pk := m.getNewPK()
@@ -69,6 +69,7 @@ func (m *MemUserStore) Create(user *storage.UserEntity) (uint, *storage.MyStorag
 		Posts:    list.New(),
 	}
 	m.userMap[pk] = &newUser
+	m.userNameSet[user.UserName] = true
 	m.users.PushBack(&newUser)
 	return pk, nil
 }
@@ -81,6 +82,10 @@ func (m *MemUserStore) Delete(ID uint) *storage.MyStorageError {
 		for e := m.users.Front(); e != nil; e = e.Next() {
 			u := e.Value.(storage.UserEntity)
 			if u.ID == ID {
+				name := u.UserName
+				id := u.ID
+				delete(m.userNameSet, name)
+				delete(m.userMap, id)
 				m.users.Remove(e)
 			}
 		}

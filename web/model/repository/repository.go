@@ -4,13 +4,10 @@ import (
 	"container/list"
 	"log"
 	"zl2501-final-project/web/model/storage"
-	_ "zl2501-final-project/web/model/storage/memory"
 )
 
-var storageManager = storage.NewManager("memory")
-
 type UserRepo struct {
-	storage storage.UserStorageInterface
+	Storage storage.UserStorageInterface
 }
 
 type UserInfo struct {
@@ -27,7 +24,7 @@ type PostInfo struct {
 // Finish operations for repos!
 
 func (userRepo *UserRepo) CreateNewUser(u *UserInfo) (uint, error) {
-	ID, err := userRepo.storage.Create(&storage.UserEntity{
+	ID, err := userRepo.Storage.Create(&storage.UserEntity{
 		ID:       0,
 		UserName: u.UserName,
 		Password: u.Password,
@@ -41,7 +38,7 @@ func (userRepo *UserRepo) CreateNewUser(u *UserInfo) (uint, error) {
 }
 
 func (userRepo *UserRepo) SelectByName(name string) *storage.UserEntity {
-	l := userRepo.storage.FindAll()
+	l := userRepo.Storage.FindAll()
 	var next *list.Element
 	for e := l.Front(); e != nil; e = next {
 		u := e.Value.(storage.UserEntity)
@@ -58,8 +55,3 @@ func (userRepo *UserRepo) FindAll() *list.List {
 }
 
 //func (UserRepo *UserRepo)
-
-func GetUserRepo() *UserRepo {
-	userRepo := UserRepo{storage: storageManager.UserStorage}
-	return &userRepo
-}

@@ -12,15 +12,26 @@ import (
 	"zl2501-final-project/web/session/storage"
 )
 
-var provides = make(map[string]storage.ProviderInterface)
+// provides stores the implementation of manager
+var provides = make(map[string]ProviderInterface)
 
+// This is a singleton and used across the application.
 var GlobalSessionManager *Manager
+
+// Provider interface in order to represent the
+// underlying structure of the session manager
+type ProviderInterface interface {
+	SessionInit(sid string) (storage.SessionStoreInterface, error)
+	SessionRead(sid string) (storage.SessionStoreInterface, error)
+	SessionDestroy(sid string) error
+	SessionGC(maxLifeTime int64)
+}
 
 // global session manager
 type Manager struct {
-	cookieName  string                    //private cookiename
-	mu          sync.Mutex                // protects session
-	provider    storage.ProviderInterface // A bridge to represent the underlying structure of session
+	cookieName  string            //private cookiename
+	mu          sync.Mutex        // protects session
+	provider    ProviderInterface // A bridge to represent the underlying structure of session
 	maxlifetime int64
 }
 
@@ -30,14 +41,17 @@ func GetManagerSingleton(provideName string) (*Manager, error) {
 		if !ok {
 			return nil, fmt.Errorf("session: unknown provide %q (forgotten import?)", provideName)
 		}
-		return &Manager{provider: provider, cookieName: CookieName, maxlifetime: MaxLifeTime}, nil
+		GlobalSessionManager = &Manager{provider: provider, cookieName: CookieName, maxlifetime: MaxLifeTime}
+		// Spawn another thread for garbage collection
+		go GlobalSessionManager.GC()
+		return GlobalSessionManager, nil
 	} else {
 		return GlobalSessionManager, nil
 	}
 }
 
-// Register makes a session provider available by the provided name.
-func Register(name string, provider storage.ProviderInterface) {
+// Register makes a session manager provider available by the provided name.
+func Register(name string, provider ProviderInterface) {
 	if provider == nil {
 		panic("session: Register provider is nil")
 	}
@@ -47,6 +61,7 @@ func Register(name string, provider storage.ProviderInterface) {
 	provides[name] = provider
 }
 
+// Generate the unique ID for a session
 func (manager *Manager) sessionId() string {
 	b := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, b); err != nil {
@@ -91,8 +106,8 @@ func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request) {
 
 // A background thread to periodically do garbage collection for expired sessions
 func (manager *Manager) GC() {
-	manager.mu.Lock()
-	defer manager.mu.Unlock()
-	manager.provider.SessionGC(manager.maxlifetime)
-	time.AfterFunc(time.Duration(manager.maxlifetime), func() { manager.GC() })
+	//manager.mu.Lock()
+	//defer manager.mu.Unlock()
+	//manager.provider.SessionGC(manager.maxlifetime)
+	//time.AfterFunc(time.Duration(manager.maxlifetime), func() { manager.GC() })
 }

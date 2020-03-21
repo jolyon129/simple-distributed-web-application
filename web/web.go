@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"zl2501-final-project/web/controller"
 	"zl2501-final-project/web/session"
 	_ "zl2501-final-project/web/session/storage/memory"
 )
@@ -19,7 +20,6 @@ func init() {
 	log.SetFlags(log.Ltime | log.Llongfile)
 	log.Println("init started")
 	globalSessions, _ = session.GetManagerSingleton("memory")
-	go globalSessions.GC() // Spawn the garbage collection service when importing
 }
 
 func StartService() {
@@ -28,8 +28,8 @@ func StartService() {
 	//go globalSessions.GC()
 	http.HandleFunc("/", sayHello) // set router
 	http.HandleFunc("/login", login)
-	http.HandleFunc("/signup", signUp)
-	http.HandleFunc("/home", home)
+	http.HandleFunc("/signup", controller.SignUp)
+	http.HandleFunc("/home", controller.Home)
 	err := http.ListenAndServe(":9090", nil) // set listen port
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
@@ -68,35 +68,31 @@ func sayHello(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, nil)
 }
 
-type homeUser struct {
-	Name string
-}
+//func home(w http.ResponseWriter, r *http.Request) {
+//	if r.Method == "GET" {
+//		sess := globalSessions.SessionStart(w, r)
+//		t, _ := template.ParseFiles("template/home.html")
+//		w.Header().Set("Content-Type", "text/html")
+//		user := homeUser{Name: sess.Get("username").([]string)[0]}
+//		log.Println(user.Name)
+//		t.Execute(w, user)
+//	}
+//}
 
-func home(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		sess := globalSessions.SessionStart(w, r)
-		t, _ := template.ParseFiles("template/home.html")
-		w.Header().Set("Content-Type", "text/html")
-		user := homeUser{Name: sess.Get("username").([]string)[0]}
-		log.Println(user.Name)
-		t.Execute(w, user)
-	}
-}
-
-func signUp(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		t, _ := template.ParseFiles("template/signup.html")
-		w.Header().Set("Content-Type", "text/html")
-		t.Execute(w, nil)
-	} else {
-		r.ParseForm()
-		log.Println("username:", r.Form["username"])
-		log.Println("password:", r.Form["password"])
-		sess := globalSessions.SessionStart(w, r)
-		sess.Set("username", r.Form["username"])
-		http.Redirect(w, r, "/home", 302)
-	}
-}
+//func signUp(w http.ResponseWriter, r *http.Request) {
+//	if r.Method == "GET" {
+//		t, _ := template.ParseFiles("template/signup.html")
+//		w.Header().Set("Content-Type", "text/html")
+//		t.Execute(w, nil)
+//	} else {
+//		r.ParseForm()
+//		log.Println("username:", r.Form["username"])
+//		log.Println("password:", r.Form["password"])
+//		sess := globalSessions.SessionStart(w, r)
+//		sess.Set("username", r.Form["username"])
+//		http.Redirect(w, r, "/home", 302)
+//	}
+//}
 func login(w http.ResponseWriter, r *http.Request) {
 	sess := globalSessions.SessionStart(w, r)
 	fmt.Println("method:", r.Method) //get request method

@@ -13,5 +13,3 @@ func main() {
 	}
 	web.StartService()
 }
-
-// Then, initialize the session manager
