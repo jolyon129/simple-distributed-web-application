@@ -27,10 +27,10 @@ func init() {
 
 type MemUserStore struct {
 	sync.Mutex
-	userMap     map[uint]*storage.UserEntity
-	users       *list.List
-	userNameSet map[string]bool
-	pkCounter   uint
+	userMap     map[uint]*storage.UserEntity // Map index to entity/record
+	users       *list.List                   // A list of user records, like a table.
+	userNameSet map[string]bool              // A set of username. Used as a fast approach to avoid duplicate names
+	pkCounter   uint                         // Primary Key Counter
 }
 
 func (m *MemUserStore) FindAll() *list.List {

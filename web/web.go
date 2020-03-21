@@ -5,8 +5,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"time"
+	"zl2501-final-project/web/auth"
 	"zl2501-final-project/web/controller"
+	"zl2501-final-project/web/logger"
 	"zl2501-final-project/web/session"
 	_ "zl2501-final-project/web/session/storage/memory"
 )
@@ -15,22 +16,35 @@ var globalSessions *session.Manager
 
 // Then, initialize the session manager
 func init() {
-	// Set logger
-	log.SetPrefix("LOG: ")
+	// Set global logger
+	log.SetPrefix("GlobalLogger: ")
 	log.SetFlags(log.Ltime | log.Llongfile)
 	log.Println("init started")
 	globalSessions, _ = session.GetManagerSingleton("memory")
+}
+
+// Adapter Pattern for middleware handlers.
+// Ref:
+// "https://medium.com/@matryer/writing-middleware-in-golang-and-how-go-makes-it-so-much-fun-4375c1246e81"
+type Adapter func(http.Handler) http.Handler
+
+func Adapt(h http.Handler, adapters ...Adapter) http.Handler {
+	for _, adapter := range adapters {
+		h = adapter(h)
+	}
+	return h
 }
 
 func StartService() {
 	//session.Register("memory",nil)
 	//globalSessions,_ = session.NewManager("memory","gosessionid",3600)
 	//go globalSessions.GC()
-	http.HandleFunc("/", sayHello) // set router
-	http.HandleFunc("/login", login)
-	http.HandleFunc("/signup", controller.SignUp)
-	http.HandleFunc("/home", controller.Home)
-	err := http.ListenAndServe(":9090", nil) // set listen port
+	mux := http.NewServeMux()
+	mux.Handle("/", http.HandlerFunc(controller.GoIndex)) // set router
+	mux.Handle("/login", http.HandlerFunc(login))
+	mux.Handle("/signup", http.HandlerFunc(controller.SignUp))
+	mux.Handle("/home", auth.CheckAuth(http.HandlerFunc(controller.Home)))
+	err := http.ListenAndServe(":9090", logger.LogRequests(mux)) //
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	} else {
@@ -38,61 +52,13 @@ func StartService() {
 	}
 }
 
-func count(w http.ResponseWriter, r *http.Request) {
-	sess := globalSessions.SessionStart(w, r)
-	createtime := sess.Get("createtime")
-	if createtime == nil {
-		sess.Set("createtime", time.Now().Unix())
-	} else if (createtime.(int64) + 360) < (time.Now().Unix()) {
-		globalSessions.SessionDestroy(w, r)
-		sess = globalSessions.SessionStart(w, r)
+func Middleware(h http.Handler, middleware ...func(http.Handler) http.Handler) http.Handler {
+	for _, mw := range middleware {
+		h = mw(h)
 	}
-	ct := sess.Get("countnum")
-	if ct == nil {
-		sess.Set("countnum", 1)
-	} else {
-		sess.Set("countnum", (ct.(int) + 1))
-	}
-	t, _ := template.ParseFiles("count.gtpl")
-	w.Header().Set("Content-Type", "text/html")
-	t.Execute(w, sess.Get("countnum"))
+	return h
 }
 
-func sayHello(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()       // parse arguments, you have to call this by yourself
-	fmt.Println(r.Form) // print form information in server side
-	fmt.Println("path", r.URL.Path)
-	fmt.Println("scheme", r.URL.Scheme)
-	fmt.Println(r.Form["url_long"])
-	t, _ := template.ParseFiles("template/index.html")
-	t.Execute(w, nil)
-}
-
-//func home(w http.ResponseWriter, r *http.Request) {
-//	if r.Method == "GET" {
-//		sess := globalSessions.SessionStart(w, r)
-//		t, _ := template.ParseFiles("template/home.html")
-//		w.Header().Set("Content-Type", "text/html")
-//		user := homeUser{Name: sess.Get("username").([]string)[0]}
-//		log.Println(user.Name)
-//		t.Execute(w, user)
-//	}
-//}
-
-//func signUp(w http.ResponseWriter, r *http.Request) {
-//	if r.Method == "GET" {
-//		t, _ := template.ParseFiles("template/signup.html")
-//		w.Header().Set("Content-Type", "text/html")
-//		t.Execute(w, nil)
-//	} else {
-//		r.ParseForm()
-//		log.Println("username:", r.Form["username"])
-//		log.Println("password:", r.Form["password"])
-//		sess := globalSessions.SessionStart(w, r)
-//		sess.Set("username", r.Form["username"])
-//		http.Redirect(w, r, "/home", 302)
-//	}
-//}
 func login(w http.ResponseWriter, r *http.Request) {
 	sess := globalSessions.SessionStart(w, r)
 	fmt.Println("method:", r.Method) //get request method

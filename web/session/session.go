@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -22,6 +23,8 @@ var GlobalSessionManager *Manager
 // underlying structure of the session manager
 type ProviderInterface interface {
 	SessionInit(sid string) (storage.SessionStoreInterface, error)
+	// Read session through ssid.
+	// If not existed, return (nil, error)
 	SessionRead(sid string) (storage.SessionStoreInterface, error)
 	SessionDestroy(sid string) error
 	SessionGC(maxLifeTime int64)
@@ -70,23 +73,45 @@ func (manager *Manager) sessionId() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-// Read sessionId from cookie.
+// Read sessionId from cookie If existed.
 // If not exist, create a new sessionId and inject into cookie.
-// If exist, reuse the same session
+// If exist and the sessionId is valid, reuse the same session. Otherwise, create a new one.
 func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (session storage.SessionStoreInterface) {
 	manager.mu.Lock()
 	defer manager.mu.Unlock()
 	cookie, err := r.Cookie(manager.cookieName)
 	if err != nil || cookie.Value == "" { // If no cookie, a new session
+		log.Println(err)
 		sid := manager.sessionId()
 		session, _ = manager.provider.SessionInit(sid)
-		cookie := http.Cookie{Name: manager.cookieName, Value: url.QueryEscape(sid), Path: "/", HttpOnly: true, MaxAge: int(manager.maxlifetime)}
+		cookie := http.Cookie{Name: manager.cookieName, Value: url.QueryEscape(sid), Path: "/",
+			HttpOnly: true, MaxAge: int(manager.maxlifetime)}
 		http.SetCookie(w, &cookie)
 	} else { // Read session from cookie
 		sid, _ := url.QueryUnescape(cookie.Value)
-		session, _ = manager.provider.SessionRead(sid)
+		if sess, err := manager.provider.SessionRead(sid); err != nil {
+			log.Println(err)
+			return sess
+		} else {
+			session, _ = manager.provider.SessionInit(sid)
+		}
 	}
 	return
+}
+
+// Check weather the request has a session.
+func (manager *Manager) SessionAuth(r *http.Request) bool {
+	cookie, err := r.Cookie(manager.cookieName)
+	if err != nil || cookie.Value == "" {
+		return false
+	} else {
+		sid, _ := url.QueryUnescape(cookie.Value)
+		if _, err := manager.provider.SessionRead(sid); err != nil {
+			return false
+		} else {
+			return true
+		}
+	}
 }
 
 // Manually terminate the session and ask clients to overwrite the corresponding cookie
@@ -106,8 +131,8 @@ func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request) {
 
 // A background thread to periodically do garbage collection for expired sessions
 func (manager *Manager) GC() {
-	//manager.mu.Lock()
-	//defer manager.mu.Unlock()
-	//manager.provider.SessionGC(manager.maxlifetime)
-	//time.AfterFunc(time.Duration(manager.maxlifetime), func() { manager.GC() })
+	manager.mu.Lock()
+	defer manager.mu.Unlock()
+	manager.provider.SessionGC(manager.maxlifetime)
+	time.AfterFunc(time.Duration(manager.maxlifetime), func() { manager.GC() })
 }

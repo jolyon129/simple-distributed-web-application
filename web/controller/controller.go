@@ -52,3 +52,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		t.Execute(w, user)
 	}
 }
+func GoIndex(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("template/index.html")
+	t.Execute(w, nil)
+}

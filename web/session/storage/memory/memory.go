@@ -2,6 +2,7 @@ package memory
 
 import (
 	"container/list"
+	"fmt"
 	"sync"
 	"time"
 	"zl2501-final-project/web/session"
@@ -43,11 +44,12 @@ func (st *MemSessStore) SessionID() string {
 	return st.sid
 }
 
-// Implement Provider interface
+// Implement Provider interface.
+// Use LRU to store the sessions
 type Provider struct {
 	lock     sync.Mutex               // lock
 	sessions map[string]*list.Element // save in memory
-	list     *list.List               // gc
+	list     *list.List               // LRU
 }
 
 func (pder *Provider) SessionInit(sid string) (storage.SessionStoreInterface, error) {
@@ -64,10 +66,8 @@ func (pder *Provider) SessionRead(sid string) (storage.SessionStoreInterface, er
 	if element, ok := pder.sessions[sid]; ok {
 		return element.Value.(*MemSessStore), nil
 	} else {
-		sess, err := pder.SessionInit(sid)
-		return sess, err
+		return nil, fmt.Errorf("the session Id: %s is not existed", sid)
 	}
-	return nil, nil
 }
 
 func (pder *Provider) SessionDestroy(sid string) error {
@@ -79,6 +79,7 @@ func (pder *Provider) SessionDestroy(sid string) error {
 	return nil
 }
 
+// Periodically check the list in Session Store and delete the expired sessions.
 func (pder *Provider) SessionGC(maxlifetime int64) {
 	pder.lock.Lock()
 	defer pder.lock.Unlock()
