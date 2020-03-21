@@ -14,17 +14,29 @@ import (
 
 var provides = make(map[string]storage.ProviderInterface)
 
+var GlobalSessionManager *Manager
+
 // global session manager
 type Manager struct {
 	cookieName  string                    //private cookiename
-	lock        sync.Mutex                // protects session
+	mu          sync.Mutex                // protects session
 	provider    storage.ProviderInterface // A bridge to represent the underlying structure of session
 	maxlifetime int64
 }
 
+func GetManagerSingleton(provideName string) (*Manager, error) {
+	if GlobalSessionManager == nil {
+		provider, ok := provides[provideName]
+		if !ok {
+			return nil, fmt.Errorf("session: unknown provide %q (forgotten import?)", provideName)
+		}
+		return &Manager{provider: provider, cookieName: CookieName, maxlifetime: MaxLifeTime}, nil
+	} else {
+		return GlobalSessionManager, nil
+	}
+}
+
 // Register makes a session provider available by the provided name.
-// If a Register is called twice with the same name or if the driver is nil,
-// it panics.
 func Register(name string, provider storage.ProviderInterface) {
 	if provider == nil {
 		panic("session: Register provider is nil")
@@ -33,14 +45,6 @@ func Register(name string, provider storage.ProviderInterface) {
 		panic("session: Register called twice for provider " + name)
 	}
 	provides[name] = provider
-}
-
-func NewManager(provideName, cookieName string, maxlifetime int64) (*Manager, error) {
-	provider, ok := provides[provideName]
-	if !ok {
-		return nil, fmt.Errorf("session: unknown provide %q (forgotten import?)", provideName)
-	}
-	return &Manager{provider: provider, cookieName: cookieName, maxlifetime: maxlifetime}, nil
 }
 
 func (manager *Manager) sessionId() string {
@@ -55,8 +59,8 @@ func (manager *Manager) sessionId() string {
 // If not exist, create a new sessionId and inject into cookie.
 // If exist, reuse the same session
 func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (session storage.SessionStoreInterface) {
-	manager.lock.Lock()
-	defer manager.lock.Unlock()
+	manager.mu.Lock()
+	defer manager.mu.Unlock()
 	cookie, err := r.Cookie(manager.cookieName)
 	if err != nil || cookie.Value == "" { // If no cookie, a new session
 		sid := manager.sessionId()
@@ -76,8 +80,8 @@ func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request) {
 	if err != nil || cookie.Value == "" {
 		return
 	} else {
-		manager.lock.Lock()
-		defer manager.lock.Unlock()
+		manager.mu.Lock()
+		defer manager.mu.Unlock()
 		manager.provider.SessionDestroy(cookie.Value)
 		expiration := time.Now()
 		cookie := http.Cookie{Name: manager.cookieName, Path: "/", HttpOnly: true, Expires: expiration, MaxAge: -1}
@@ -87,8 +91,8 @@ func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request) {
 
 // A background thread to periodically do garbage collection for expired sessions
 func (manager *Manager) GC() {
-	manager.lock.Lock()
-	defer manager.lock.Unlock()
+	manager.mu.Lock()
+	defer manager.mu.Unlock()
 	manager.provider.SessionGC(manager.maxlifetime)
 	time.AfterFunc(time.Duration(manager.maxlifetime), func() { manager.GC() })
 }

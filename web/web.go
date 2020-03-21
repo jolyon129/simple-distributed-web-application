@@ -18,7 +18,7 @@ func init() {
 	log.SetPrefix("LOG: ")
 	log.SetFlags(log.Ltime | log.Llongfile)
 	log.Println("init started")
-	globalSessions, _ = session.NewManager("memory", "gosessionid", 3600)
+	globalSessions, _ = session.GetManagerSingleton("memory")
 	go globalSessions.GC() // Spawn the garbage collection service when importing
 }
 
