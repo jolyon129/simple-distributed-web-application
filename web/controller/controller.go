@@ -53,6 +53,15 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func GoIndex(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("template/index.html")
-	t.Execute(w, nil)
+	if globalSessions.SessionAuth(r) {
+		http.Redirect(w, r, "/home", 302)
+	} else {
+		t, _ := template.ParseFiles("template/index.html")
+		t.Execute(w, nil)
+	}
+}
+
+func LogOut(w http.ResponseWriter, r *http.Request) {
+	globalSessions.SessionDestroy(w, r)
+	http.Redirect(w, r, "/index", 302)
 }

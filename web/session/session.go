@@ -22,10 +22,10 @@ var GlobalSessionManager *Manager
 // Provider interface in order to represent the
 // underlying structure of the session manager
 type ProviderInterface interface {
-	SessionInit(sid string) (storage.SessionStoreInterface, error)
+	SessionInit(sid string) (storage.SessionStorageInterface, error)
 	// Read session through ssid.
 	// If not existed, return (nil, error)
-	SessionRead(sid string) (storage.SessionStoreInterface, error)
+	SessionRead(sid string) (storage.SessionStorageInterface, error)
 	SessionDestroy(sid string) error
 	SessionGC(maxLifeTime int64)
 }
@@ -76,30 +76,35 @@ func (manager *Manager) sessionId() string {
 // Read sessionId from cookie If existed.
 // If not exist, create a new sessionId and inject into cookie.
 // If exist and the sessionId is valid, reuse the same session. Otherwise, create a new one.
-func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) (session storage.SessionStoreInterface) {
+func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) storage.SessionStorageInterface {
 	manager.mu.Lock()
 	defer manager.mu.Unlock()
 	cookie, err := r.Cookie(manager.cookieName)
 	if err != nil || cookie.Value == "" { // If no cookie, a new session
-		log.Println(err)
 		sid := manager.sessionId()
-		session, _ = manager.provider.SessionInit(sid)
+		session, _ := manager.provider.SessionInit(sid)
 		cookie := http.Cookie{Name: manager.cookieName, Value: url.QueryEscape(sid), Path: "/",
 			HttpOnly: true, MaxAge: int(manager.maxlifetime)}
 		http.SetCookie(w, &cookie)
+		return session
 	} else { // Read session from cookie
-		sid, _ := url.QueryUnescape(cookie.Value)
-		if sess, err := manager.provider.SessionRead(sid); err != nil {
+		oldsid, _ := url.QueryUnescape(cookie.Value)
+		oldSess, err := manager.provider.SessionRead(oldsid)
+		if err != nil {
 			log.Println(err)
-			return sess
+			newsid := manager.sessionId()
+			newsess, _ := manager.provider.SessionInit(newsid)
+			cookie := http.Cookie{Name: manager.cookieName, Value: url.QueryEscape(newsid), Path: "/",
+				HttpOnly: true, MaxAge: int(manager.maxlifetime)}
+			http.SetCookie(w, &cookie)
+			return newsess
 		} else {
-			session, _ = manager.provider.SessionInit(sid)
+			return oldSess
 		}
 	}
-	return
 }
 
-// Check weather the request has a session.
+// Check whether the request has an authenticated session.
 func (manager *Manager) SessionAuth(r *http.Request) bool {
 	cookie, err := r.Cookie(manager.cookieName)
 	if err != nil || cookie.Value == "" {
@@ -107,6 +112,7 @@ func (manager *Manager) SessionAuth(r *http.Request) bool {
 	} else {
 		sid, _ := url.QueryUnescape(cookie.Value)
 		if _, err := manager.provider.SessionRead(sid); err != nil {
+			log.Println(err)
 			return false
 		} else {
 			return true

@@ -40,11 +40,14 @@ func StartService() {
 	//globalSessions,_ = session.NewManager("memory","gosessionid",3600)
 	//go globalSessions.GC()
 	mux := http.NewServeMux()
+
 	mux.Handle("/", http.HandlerFunc(controller.GoIndex)) // set router
 	mux.Handle("/login", http.HandlerFunc(login))
 	mux.Handle("/signup", http.HandlerFunc(controller.SignUp))
-	mux.Handle("/home", auth.CheckAuth(http.HandlerFunc(controller.Home)))
-	err := http.ListenAndServe(":9090", logger.LogRequests(mux)) //
+	mux.Handle("/home", MiddlewareAdapt(http.HandlerFunc(controller.Home), auth.CheckAuth))
+	mux.Handle("/logout", http.HandlerFunc(controller.LogOut))
+
+	err := http.ListenAndServe(":9090", logger.LogRequests(mux))
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	} else {
@@ -52,7 +55,9 @@ func StartService() {
 	}
 }
 
-func Middleware(h http.Handler, middleware ...func(http.Handler) http.Handler) http.Handler {
+//type HandlerWrapper func(handler http.Handler) http.Handler
+
+func MiddlewareAdapt(h http.Handler, middleware ...func(http.Handler) http.Handler) http.Handler {
 	for _, mw := range middleware {
 		h = mw(h)
 	}

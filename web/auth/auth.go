@@ -17,25 +17,16 @@ func init() {
 	globalSessions, _ = session.GetManagerSingleton("memory")
 }
 
-// This is a middleware handler for checking auth
-type authMiddleware struct {
-	handler http.Handler
-}
-
-func (a *authMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//session := globalSessions
-	ok := globalSessions.SessionAuth(r)
-	if ok {
-		a.handler.ServeHTTP(w, r)
-	} else {
-		log.Println("The request is not authenticated. Redirect to index.")
-		http.Redirect(w, r, "/", 302) // Go the index
-	}
-}
-
-// Check weather this request is authenticated
-func CheckAuth(handlerToWrap http.Handler) *authMiddleware {
-	return &authMiddleware{
-		handler: handlerToWrap,
-	}
+// This is a middleware handler used to check weather this request is authenticated.
+// If not, redirect to the index.
+func CheckAuth(handlerToWrap http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ok := globalSessions.SessionAuth(r)
+		if ok {
+			handlerToWrap.ServeHTTP(w, r)
+		} else {
+			log.Printf("Request:%s %s is not authenticated. Redirect to index.", r.Method, r.URL.Path)
+			http.Redirect(w, r, "/", 302) // Go the index
+		}
+	})
 }

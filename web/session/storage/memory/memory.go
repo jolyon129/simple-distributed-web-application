@@ -52,7 +52,7 @@ type Provider struct {
 	list     *list.List               // LRU
 }
 
-func (pder *Provider) SessionInit(sid string) (storage.SessionStoreInterface, error) {
+func (pder *Provider) SessionInit(sid string) (storage.SessionStorageInterface, error) {
 	pder.lock.Lock()
 	defer pder.lock.Unlock()
 	v := make(map[interface{}]interface{}, 0)
@@ -62,8 +62,9 @@ func (pder *Provider) SessionInit(sid string) (storage.SessionStoreInterface, er
 	return newsess, nil
 }
 
-func (pder *Provider) SessionRead(sid string) (storage.SessionStoreInterface, error) {
+func (pder *Provider) SessionRead(sid string) (storage.SessionStorageInterface, error) {
 	if element, ok := pder.sessions[sid]; ok {
+		//pder.SessionUpdate(sid)
 		return element.Value.(*MemSessStore), nil
 	} else {
 		return nil, fmt.Errorf("the session Id: %s is not existed", sid)
