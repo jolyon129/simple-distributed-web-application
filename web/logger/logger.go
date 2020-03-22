@@ -1,3 +1,4 @@
+// Package logger provides the LogRequests middleware.
 package logger
 
 import (
@@ -5,7 +6,15 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"zl2501-final-project/web/controller"
+	"zl2501-final-project/web/session/sessmanager"
 )
+
+var globalSessions *sessmanager.Manager
+
+func init() {
+	globalSessions, _ = sessmanager.GetManagerSingleton("memory")
+}
 
 // logRequestsMiddleware is a middleware handler which implement the handler interface
 type logRequestsMiddleware struct {
@@ -16,7 +25,14 @@ type logRequestsMiddleware struct {
 func (l *logRequestsMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	l.handler.ServeHTTP(w, r)
-	l.logger.Printf("%s %s %v", r.Method, r.URL.Path, time.Since(start))
+	if globalSessions.SessionAuth(r) {
+		session := globalSessions.SessionStart(w, r)
+		uname := session.Get(controller.UserName)
+		l.logger.Printf("Request:%s %s, Time: %v, User:%s", r.Method, r.URL.Path, time.Since(start), uname)
+	} else {
+		l.logger.Printf("Request:%s %s, Time: %v, User not logged in", r.Method, r.URL.Path, time.Since(start))
+	}
+
 }
 
 func LogRequests(handlerToWrap http.Handler) *logRequestsMiddleware {

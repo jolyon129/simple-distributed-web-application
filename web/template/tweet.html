@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tweet</title>
+</head>
+<body>
+<h1>What do you want to tweet?{{.Name}}</h1>
+<form action="/tweet" method="post" id="tweetform">
+    <textarea rows="4" cols="50" name="comment" form="tweetform">
+Enter text here...</textarea>
+</form>
+</body>
+</html>

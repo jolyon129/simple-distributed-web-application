@@ -1,4 +1,5 @@
-package session
+// Package manager provides the session manager to manage all sessions.
+package sessmanager
 
 import (
 	"crypto/rand"
@@ -10,37 +11,26 @@ import (
 	"net/url"
 	"sync"
 	"time"
+	"zl2501-final-project/web/session"
 	"zl2501-final-project/web/session/storage"
+	_ "zl2501-final-project/web/session/storage/memory" // Use memory implementation of session
 )
-
-// provides stores the implementation of manager
-var provides = make(map[string]ProviderInterface)
 
 // This is a singleton and used across the application.
 var GlobalSessionManager *Manager
 
-// Provider interface in order to represent the
-// underlying structure of the session manager
-type ProviderInterface interface {
-	SessionInit(sid string) (storage.SessionStorageInterface, error)
-	// Read session through ssid.
-	// If not existed, return (nil, error)
-	SessionRead(sid string) (storage.SessionStorageInterface, error)
-	SessionDestroy(sid string) error
-	SessionGC(maxLifeTime int64)
-}
-
 // global session manager
 type Manager struct {
-	cookieName  string            //private cookiename
-	mu          sync.Mutex        // protects session
-	provider    ProviderInterface // A bridge to represent the underlying structure of session
+	cookieName  string                    //private cookiename
+	mu          sync.Mutex                // protects session
+	provider    session.ProviderInterface // A bridge to represent the underlying structure of session
 	maxlifetime int64
 }
 
+// Get the singleton of manager
 func GetManagerSingleton(provideName string) (*Manager, error) {
 	if GlobalSessionManager == nil {
-		provider, ok := provides[provideName]
+		provider, ok := session.GetProvider("memory")
 		if !ok {
 			return nil, fmt.Errorf("session: unknown provide %q (forgotten import?)", provideName)
 		}
@@ -51,17 +41,6 @@ func GetManagerSingleton(provideName string) (*Manager, error) {
 	} else {
 		return GlobalSessionManager, nil
 	}
-}
-
-// Register makes a session manager provider available by the provided name.
-func Register(name string, provider ProviderInterface) {
-	if provider == nil {
-		panic("session: Register provider is nil")
-	}
-	if _, dup := provides[name]; dup {
-		panic("session: Register called twice for provider " + name)
-	}
-	provides[name] = provider
 }
 
 // Generate the unique ID for a session
@@ -104,7 +83,8 @@ func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) sto
 	}
 }
 
-// Check whether the request has an authenticated session.
+// Check whether the request has an authenticated session by looking at the cookies
+// and check if the session is expired.
 func (manager *Manager) SessionAuth(r *http.Request) bool {
 	cookie, err := r.Cookie(manager.cookieName)
 	if err != nil || cookie.Value == "" {

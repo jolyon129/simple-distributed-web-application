@@ -3,18 +3,17 @@ package auth
 import (
 	"log"
 	"net/http"
-	"zl2501-final-project/web/session"
-	_ "zl2501-final-project/web/session/storage/memory"
+	"zl2501-final-project/web/session/sessmanager"
 )
 
 //TODO:
 // the functionality of Encrypt and store the private key
 // in database(memory)
 
-var globalSessions *session.Manager
+var globalSessions *sessmanager.Manager
 
 func init() {
-	globalSessions, _ = session.GetManagerSingleton("memory")
+	globalSessions, _ = sessmanager.GetManagerSingleton(sessmanager.ProviderName)
 }
 
 // This is a middleware handler used to check weather this request is authenticated.

@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"zl2501-final-project/web/model"
 	"zl2501-final-project/web/model/repository"
-	"zl2501-final-project/web/session"
-	_ "zl2501-final-project/web/session/storage/memory"
+	"zl2501-final-project/web/session/sessmanager"
 )
 
-var globalSessions *session.Manager
+var globalSessions *sessmanager.Manager
 
 func init() {
-	globalSessions, _ = session.GetManagerSingleton("memory")
+	globalSessions, _ = sessmanager.GetManagerSingleton(sessmanager.ProviderName)
 }
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
@@ -33,8 +32,8 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			Password: hash,
 		})
 		sess := globalSessions.SessionStart(w, r)
-		sess.Set("userName", userName)
-		sess.Set("userId", uId)
+		sess.Set(UserName, userName)
+		sess.Set(UserId, uId)
 		http.Redirect(w, r, "/home", 302)
 	}
 }
@@ -46,18 +45,24 @@ type homeView struct {
 func Home(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		sess := globalSessions.SessionStart(w, r)
+		uname := sess.Get(UserName).(string)
+		//log.Println("THe user name in session is:",uname)
 		t, _ := template.ParseFiles("template/home.html")
 		w.Header().Set("Content-Type", "text/html")
-		user := homeView{Name: sess.Get("userName").(string)}
+		user := homeView{Name: uname}
 		log.Println(user.Name)
 		t.Execute(w, user)
 	}
 }
+
+// Go to index page if not logged in.
+// If already logged in(session is valid), go to /home instead.
 func GoIndex(w http.ResponseWriter, r *http.Request) {
 	if globalSessions.SessionAuth(r) {
 		http.Redirect(w, r, "/home", 302)
 	} else {
 		t, _ := template.ParseFiles("template/index.html")
+		log.Println("Indexindex")
 		t.Execute(w, nil)
 	}
 }
@@ -91,8 +96,19 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		sess := globalSessions.SessionStart(w, r)
-		sess.Set("userName", userName)
+		sess.Set(UserName, userName)
+		sess.Set(UserId, user.ID)
 		http.Redirect(w, r, "/home", 302)
+
+	}
+}
+
+func Tweet(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("template/tweet.html")
+		w.Header().Set("Content-Type", "text/html")
+		_ = t.Execute(w, nil)
+	} else {
 
 	}
 }

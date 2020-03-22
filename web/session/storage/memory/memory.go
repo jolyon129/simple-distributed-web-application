@@ -112,5 +112,5 @@ func (pder *Provider) SessionUpdate(sid string) error {
 
 func init() {
 	pder.sessions = make(map[string]*list.Element, 0)
-	session.Register("memory", pder)
+	session.RegisterProvider("memory", pder)
 }
