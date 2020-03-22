@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"zl2501-final-project/web/constant"
 	"zl2501-final-project/web/model"
 	"zl2501-final-project/web/model/repository"
 	"zl2501-final-project/web/session/sessmanager"
@@ -27,14 +28,19 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		log.Println("password:", r.Form["password"])
 		userRepo := model.GetUserRepo()
 		hash, _ := EncodePassword(password)
-		uId, _ := userRepo.CreateNewUser(&repository.UserInfo{
+		uId, error := userRepo.CreateNewUser(&repository.UserInfo{
 			UserName: userName,
 			Password: hash,
 		})
-		sess := globalSessions.SessionStart(w, r)
-		sess.Set(UserName, userName)
-		sess.Set(UserId, uId)
-		http.Redirect(w, r, "/home", 302)
+		if error != nil {
+			println(error)
+			http.Redirect(w, r, "/signup", 302)
+		} else {
+			sess := globalSessions.SessionStart(w, r)
+			sess.Set(constant.UserName, userName)
+			sess.Set(constant.UserId, uId)
+			http.Redirect(w, r, "/home", 302)
+		}
 	}
 }
 
@@ -45,7 +51,7 @@ type homeView struct {
 func Home(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		sess := globalSessions.SessionStart(w, r)
-		uname := sess.Get(UserName).(string)
+		uname := sess.Get(constant.UserName).(string)
 		//log.Println("THe user name in session is:",uname)
 		t, _ := template.ParseFiles("template/home.html")
 		w.Header().Set("Content-Type", "text/html")
@@ -62,14 +68,13 @@ func GoIndex(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/home", 302)
 	} else {
 		t, _ := template.ParseFiles("template/index.html")
-		log.Println("Indexindex")
 		t.Execute(w, nil)
 	}
 }
 
 func LogOut(w http.ResponseWriter, r *http.Request) {
 	globalSessions.SessionDestroy(w, r)
-	http.Redirect(w, r, "/index", 302)
+	http.Redirect(w, r, "/", 302)
 }
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
@@ -96,8 +101,8 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		sess := globalSessions.SessionStart(w, r)
-		sess.Set(UserName, userName)
-		sess.Set(UserId, user.ID)
+		sess.Set(constant.UserName, userName)
+		sess.Set(constant.UserId, user.ID)
 		http.Redirect(w, r, "/home", 302)
 
 	}

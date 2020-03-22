@@ -37,7 +37,7 @@ func StartService() {
 	//globalSessions,_ = session.NewManager("memory","gosessionid",3600)
 	//go globalSessions.GC()
 	mux := http.NewServeMux()
-	mux.Handle("/index", http.HandlerFunc(controller.GoIndex)) // set router
+	mux.Handle("/", http.HandlerFunc(controller.GoIndex)) // set router
 	mux.Handle("/login", http.HandlerFunc(controller.LogIn))
 	mux.Handle("/signup", http.HandlerFunc(controller.SignUp))
 	mux.Handle("/home", MiddlewareAdapt(http.HandlerFunc(controller.Home), auth.CheckAuth))
@@ -60,8 +60,4 @@ func MiddlewareAdapt(h http.Handler, middleware ...func(http.Handler) http.Handl
 		h = mw(h)
 	}
 	return h
-}
-
-func addPredefinedUser() {
-	//userRepo := model.GetUserRepo()
 }

@@ -92,7 +92,7 @@ func (manager *Manager) SessionAuth(r *http.Request) bool {
 	} else {
 		sid, _ := url.QueryUnescape(cookie.Value)
 		if _, err := manager.provider.SessionRead(sid); err != nil {
-			log.Println(err)
+			//log.Println(err)
 			return false
 		} else {
 			return true

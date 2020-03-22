@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"time"
-	"zl2501-final-project/web/controller"
+	"zl2501-final-project/web/constant"
 	"zl2501-final-project/web/session/sessmanager"
 )
 
@@ -27,7 +27,7 @@ func (l *logRequestsMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request
 	l.handler.ServeHTTP(w, r)
 	if globalSessions.SessionAuth(r) {
 		session := globalSessions.SessionStart(w, r)
-		uname := session.Get(controller.UserName)
+		uname := session.Get(constant.UserName)
 		l.logger.Printf("Request:%s %s, Time: %v, User:%s", r.Method, r.URL.Path, time.Since(start), uname)
 	} else {
 		l.logger.Printf("Request:%s %s, Time: %v, User not logged in", r.Method, r.URL.Path, time.Since(start))
