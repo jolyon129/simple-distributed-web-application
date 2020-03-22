@@ -7,8 +7,14 @@ import (
 )
 
 var storageManager = storage.NewManager("memory")
+var userRepo *repository.UserRepo
 
+// Get the singleton of user repository
 func GetUserRepo() *repository.UserRepo {
-	userRepo := repository.UserRepo{Storage: storageManager.UserStorage}
-	return &userRepo
+	if userRepo == nil {
+		userRepo = &repository.UserRepo{Storage: storageManager.UserStorage}
+		return userRepo
+	} else {
+		return userRepo
+	}
 }

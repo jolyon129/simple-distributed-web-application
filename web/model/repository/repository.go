@@ -41,9 +41,9 @@ func (userRepo *UserRepo) SelectByName(name string) *storage.UserEntity {
 	l := userRepo.Storage.FindAll()
 	var next *list.Element
 	for e := l.Front(); e != nil; e = next {
-		u := e.Value.(storage.UserEntity)
+		u := e.Value.(*storage.UserEntity)
 		if u.UserName == name {
-			return &u
+			return u
 		}
 		next = e.Next()
 	}

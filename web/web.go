@@ -1,8 +1,6 @@
 package web
 
 import (
-	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"zl2501-final-project/web/auth"
@@ -40,9 +38,8 @@ func StartService() {
 	//globalSessions,_ = session.NewManager("memory","gosessionid",3600)
 	//go globalSessions.GC()
 	mux := http.NewServeMux()
-
 	mux.Handle("/", http.HandlerFunc(controller.GoIndex)) // set router
-	mux.Handle("/login", http.HandlerFunc(login))
+	mux.Handle("/login", http.HandlerFunc(controller.LogIn))
 	mux.Handle("/signup", http.HandlerFunc(controller.SignUp))
 	mux.Handle("/home", MiddlewareAdapt(http.HandlerFunc(controller.Home), auth.CheckAuth))
 	mux.Handle("/logout", http.HandlerFunc(controller.LogOut))
@@ -62,21 +59,4 @@ func MiddlewareAdapt(h http.Handler, middleware ...func(http.Handler) http.Handl
 		h = mw(h)
 	}
 	return h
-}
-
-func login(w http.ResponseWriter, r *http.Request) {
-	sess := globalSessions.SessionStart(w, r)
-	fmt.Println("method:", r.Method) //get request method
-	if r.Method == "GET" {
-		t, _ := template.ParseFiles("template/login.html")
-		w.Header().Set("Content-Type", "text/html")
-		t.Execute(w, nil)
-	} else {
-		r.ParseForm()
-		// logic part of log in
-		fmt.Println("username:", r.Form["username"])
-		fmt.Println("password:", r.Form["password"])
-		sess.Set("username", r.Form["username"])
-		http.Redirect(w, r, "/home", 302)
-	}
 }
