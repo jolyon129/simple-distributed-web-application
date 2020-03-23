@@ -8,6 +8,7 @@ import (
 
 var storageManager = storage.NewManager("memory")
 var userRepo *repository.UserRepo
+var postRepo *repository.PostRepo
 
 // Get the singleton of user repository
 func GetUserRepo() *repository.UserRepo {
@@ -16,5 +17,15 @@ func GetUserRepo() *repository.UserRepo {
 		return userRepo
 	} else {
 		return userRepo
+	}
+}
+
+// Get the singleton of post repository
+func GetPostRepo() *repository.PostRepo {
+	if postRepo == nil {
+		postRepo = &repository.PostRepo{Storage: storageManager.PostStorage}
+		return postRepo
+	} else {
+		return postRepo
 	}
 }

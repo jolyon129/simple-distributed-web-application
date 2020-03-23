@@ -15,14 +15,6 @@ type UserInfo struct {
 	Password string
 }
 
-type PostInfo struct {
-	UserName string
-	content  string
-}
-
-//TODO:
-// Finish operations for repos!
-
 func (userRepo *UserRepo) CreateNewUser(u *UserInfo) (uint, error) {
 	ID, err := userRepo.Storage.Create(&storage.UserEntity{
 		ID:       0,
@@ -30,7 +22,7 @@ func (userRepo *UserRepo) CreateNewUser(u *UserInfo) (uint, error) {
 		Password: u.Password,
 	})
 	if err != nil {
-		log.Print(err)
+		log.Println(err)
 		return 0, err
 	} else {
 		return ID, nil
@@ -50,8 +42,18 @@ func (userRepo *UserRepo) SelectByName(name string) *storage.UserEntity {
 	return nil
 }
 
-func (userRepo *UserRepo) FindAll() *list.List {
-	return userRepo.FindAll()
+// Add the tweet id into the user
+func (u *UserRepo) AddTweetToUser(uId uint, pId uint) bool {
+	userE, err := u.Storage.Read(uId)
+	if err != nil {
+		log.Println(err)
+		return false
+	} else {
+		userE.Posts.PushBack(pId)
+		u.Storage.Update(uId, &storage.UserEntity{
+			Password: userE.Password,
+			Posts:    userE.Posts,
+		})
+		return true
+	}
 }
-
-//func (UserRepo *UserRepo)

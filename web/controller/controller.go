@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -44,8 +45,14 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type tweet struct {
+	Content string
+	Created string
+}
+
 type homeView struct {
-	Name string
+	Name   string
+	Tweets []tweet
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
@@ -55,9 +62,20 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		//log.Println("THe user name in session is:",uname)
 		t, _ := template.ParseFiles("template/home.html")
 		w.Header().Set("Content-Type", "text/html")
-		user := homeView{Name: uname}
-		log.Println(user.Name)
-		t.Execute(w, user)
+		view := homeView{Name: uname, Tweets: make([]tweet, 0)}
+		userRepo := model.GetUserRepo()
+		postRepo := model.GetPostRepo()
+		usrE := userRepo.SelectByName(uname)
+		for e := usrE.Posts.Back(); e != nil; e = e.Prev() { // Add the tweets into view
+			pId := e.Value.(uint)
+			postE := postRepo.SelectById(pId)
+			view.Tweets = append(view.Tweets, tweet{
+				Content: postE.Content,
+				Created: postE.CreatedTime.Format(constant.TimeFormat),
+			})
+		}
+		log.Println(view.Tweets)
+		t.Execute(w, view)
 	}
 }
 
@@ -94,10 +112,12 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		if user == nil {
 			log.Println("User does not exist.")
 			http.Redirect(w, r, "/login", 302)
+			return
 		} else {
 			if e := ComparePassword(user.Password, password); e != nil {
 				log.Println("Wrong password.")
 				http.Redirect(w, r, "/login", 302)
+				return
 			}
 		}
 		sess := globalSessions.SessionStart(w, r)
@@ -114,6 +134,19 @@ func Tweet(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		_ = t.Execute(w, nil)
 	} else {
-
+		r.ParseForm()
+		sess := globalSessions.SessionStart(w, r)
+		userRepo := model.GetUserRepo()
+		postRepo := model.GetPostRepo()
+		content := r.Form["content"][0]
+		log.Println(content)
+		uId := sess.Get(constant.UserId).(uint)
+		pId, _ := postRepo.CreateNewPost(repository.PostInfo{
+			UserID:  uId,
+			Content: content,
+		})
+		userRepo.AddTweetToUser(uId, pId)
+		http.Redirect(w, r, "/home", 302)
+		fmt.Fprintf(w, "You just tweeted!") // write data to response
 	}
 }

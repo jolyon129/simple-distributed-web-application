@@ -5,8 +5,17 @@
     <title>Home Page</title>
 </head>
 <body>
-<h1>Welcome, {{.Name}}</h1>
-<p><a href="/tweet">Tweet!</a></p>
-<p><a href="/logout">Log Out</a></p>
+<h1>Twitter Clone App</h1>
+<h2>Welcome, {{.Name}}</h2>
+<p><a href="/tweet">Tweet!</a> <a href="/logout">Log Out</a></p>
+<p><b>My Tweets:</b></p>
+<div>
+{{range $i, $t := .Tweets}}
+    <p>{{$t.Content}}</p>
+    <p>{{$t.Created}}</p>
+    <hr>
+{{end}}
+
+</div>
 </body>
 </html>

@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"time"
 	"zl2501-final-project/web"
 	"zl2501-final-project/web/controller"
 	"zl2501-final-project/web/model"
@@ -14,15 +15,27 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	addPredefinedUsers()
+	addDefaultData()
 	web.StartService()
 }
 
-func addPredefinedUsers() {
+func addDefaultData() {
 	userRepo := model.GetUserRepo()
 	hash, _ := controller.EncodePassword("123")
-	userRepo.CreateNewUser(&repository.UserInfo{
+	uId, _ := userRepo.CreateNewUser(&repository.UserInfo{
 		UserName: "zl2501",
 		Password: hash,
 	})
+	postRepo := model.GetPostRepo()
+	pid1, _ := postRepo.CreateNewPost(repository.PostInfo{
+		UserID:  uId,
+		Content: "This is my first tweet!",
+	})
+	userRepo.AddTweetToUser(uId, pid1)
+	time.Sleep(2 * time.Second)
+	pid2, _ := postRepo.CreateNewPost(repository.PostInfo{
+		UserID:  uId,
+		Content: "I really hope this coronavirus can end soon! No more quarantine!",
+	})
+	userRepo.AddTweetToUser(uId, pid2)
 }

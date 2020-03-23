@@ -14,9 +14,10 @@ type UserEntity struct {
 }
 
 type PostEntity struct {
-	ID         uint
-	Content    string
-	CreateTime time.Time
+	ID          uint
+	UserID      uint
+	Content     string
+	CreatedTime time.Time
 }
 
 type MyStorageError struct {
@@ -30,16 +31,18 @@ func (e *MyStorageError) Error() string {
 type UserStorageInterface interface {
 	Create(user *UserEntity) (uint, *MyStorageError)
 	Delete(ID uint) *MyStorageError
+	// Ready by user ID
 	Read(ID uint) (*UserEntity, *MyStorageError)
-	//Update(ID uint, user *UserEntity) (uint,*MyStorageError)
+	Update(ID uint, user *UserEntity) (uint, *MyStorageError)
 	FindAll() *list.List
 }
 
 type PostStorageInterface interface {
 	Create(post *PostEntity) (uint, *MyStorageError)
-	Delete(ID uint) *MyStorageError
-	Read(ID uint) (*PostEntity, *MyStorageError)
+	//Delete(ID uint) *MyStorageError
+	Read(ID uint) (PostEntity, *MyStorageError)
 	//Update(ID uint, post *PostEntity) (uint,*MyStorageError)
+
 }
 
 var drivers = make(map[string]*Manager)

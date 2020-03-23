@@ -5,10 +5,12 @@
     <title>Tweet</title>
 </head>
 <body>
-<h1>What do you want to tweet?{{.Name}}</h1>
+<h1>Twitter Clone App</h1>
+<h2>What do you want to tweet?{{.Name}}</h2>
 <form action="/tweet" method="post" id="tweetform">
-    <textarea rows="4" cols="50" name="comment" form="tweetform">
+    <textarea rows="4" cols="50" name="content" form="tweetform">
 Enter text here...</textarea>
+    <input type="submit" value="Tweet!">
 </form>
 </body>
 </html>
