@@ -43,6 +43,7 @@ func StartService() {
 	mux.Handle("/home", MiddlewareAdapt(http.HandlerFunc(controller.Home), auth.CheckAuth))
 	mux.Handle("/logout", http.HandlerFunc(controller.LogOut))
 	mux.Handle("/tweet", MiddlewareAdapt(http.HandlerFunc(controller.Tweet), auth.CheckAuth))
+	mux.Handle("/users",MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers),auth.CheckAuth))
 	err := http.ListenAndServe(":9090", logger.LogRequests(mux))
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

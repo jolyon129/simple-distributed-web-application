@@ -9,7 +9,8 @@ type UserEntity struct {
 	ID        uint // The DB will fill this field
 	UserName  string
 	Password  string
-	followers *list.List
+	Follower  *list.List
+	Following *list.List
 	Posts     *list.List
 }
 

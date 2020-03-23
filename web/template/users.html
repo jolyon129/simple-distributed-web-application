@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Lists</title>
+</head>
+<h1>User Lists</h1>
+<body>
+{{range $i, $u := .UserList}}
+    <div><span>{{$u.Name}}</span>
+        <span>
+            {{if $u.Followed}}<a href="/unfollow">unfollow</a>
+            {{else}}<a href="/follow">follow</a>
+            {{end}}
+        </span>
+    </div>
+{{end}}
+</body>
+</html>

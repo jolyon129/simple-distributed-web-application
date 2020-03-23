@@ -118,7 +118,7 @@ func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request) {
 // A background thread to periodically do garbage collection for expired sessions
 func (manager *Manager) GC() {
 	manager.mu.Lock()
-	defer manager.mu.Unlock()
 	manager.provider.SessionGC(manager.maxlifetime)
+	manager.mu.Unlock()
 	time.AfterFunc(time.Duration(manager.maxlifetime), func() { manager.GC() })
 }

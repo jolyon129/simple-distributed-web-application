@@ -74,7 +74,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 				Created: postE.CreatedTime.Format(constant.TimeFormat),
 			})
 		}
-		log.Println(view.Tweets)
+		//log.Println(view.Tweets)
 		t.Execute(w, view)
 	}
 }
@@ -148,5 +148,44 @@ func Tweet(w http.ResponseWriter, r *http.Request) {
 		userRepo.AddTweetToUser(uId, pId)
 		http.Redirect(w, r, "/home", 302)
 		fmt.Fprintf(w, "You just tweeted!") // write data to response
+	}
+}
+
+type user struct {
+	Name string
+	Followed bool
+}
+type viewUserView struct {
+	UserList [] user
+}
+
+// View all users in the system.
+// So that the user can follow others
+func ViewUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		sess := globalSessions.SessionStart(w, r)
+		myUid := sess.Get(constant.UserId).(uint)
+		userRepo := model.GetUserRepo()
+		allUsers := userRepo.FindAllUsers()
+		newUserList := make([]user, 0)
+		myUserE := userRepo.SelectById(myUid)
+		myFollowingMap := make(map[uint]bool)
+		for e:=myUserE.Following.Front();e!=nil;e=e.Next(){
+			myFollowingMap[e.Value.(uint)] =true
+		}
+		for _, value := range allUsers {
+			if _, ok:=myFollowingMap[value.ID];ok{
+				newUserList = append(newUserList, user{Name: value.UserName,Followed:true})
+			}else{
+				newUserList = append(newUserList, user{Name: value.UserName,Followed:false})
+			}
+		}
+		view := viewUserView{
+			UserList: newUserList,
+		}
+		log.Println(view.UserList)
+		t, _ := template.ParseFiles("template/users.html")
+		w.Header().Set("Content-Type", "text/html")
+		t.Execute(w, view)
 	}
 }

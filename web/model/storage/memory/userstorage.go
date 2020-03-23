@@ -38,17 +38,22 @@ func (m *MemUserStore) getNewPK() uint {
 	return m.pkCounter
 }
 
-// Update can only modified the password and the post list.
-// Take O(#post) time.
+// Update can only modified the password and the post, the following and the follower list.
+// Take O(#post+#following+#follower) time.
 func (m *MemUserStore) Update(ID uint, user *storage.UserEntity) (uint, *storage.MyStorageError) {
 	m.Lock()
 	defer m.Unlock()
 	userEntity := m.userMap[ID]
 	userEntity.Password = user.Password
 	newPostList := list.New()
-	// Copy the post list
-	copyPostList(newPostList, user.Posts)
-	userEntity.Posts = newPostList // Change the pointer in the userEntity
+	newFollowingList := list.New()
+	newFollowerList := list.New()
+	copyUintList(newPostList, user.Posts) // Copy the post list
+	copyUintList(newFollowingList,userEntity.Following)
+	copyUintList(newFollowerList,userEntity.Follower)
+	userEntity.Posts = newPostList        // Change the pointer in the userEntity
+	userEntity.Follower = newFollowerList
+	userEntity.Following = newFollowingList
 	return ID, nil
 }
 
@@ -60,10 +65,12 @@ func (m *MemUserStore) Create(user *storage.UserEntity) (uint, *storage.MyStorag
 	}
 	pk := m.getNewPK()
 	newUser := storage.UserEntity{
-		ID:       pk,
-		UserName: user.UserName,
-		Password: user.Password,
-		Posts:    list.New(),
+		ID:        pk,
+		UserName:  user.UserName,
+		Password:  user.Password,
+		Posts:     list.New(),
+		Following: list.New(),
+		Follower:  list.New(),
 	}
 	m.userMap[pk] = &newUser
 	m.userNameSet[user.UserName] = true
@@ -94,7 +101,6 @@ func (m *MemUserStore) Delete(ID uint) *storage.MyStorageError {
 func (m *MemUserStore) Read(ID uint) (*storage.UserEntity, *storage.MyStorageError) {
 	m.Lock()
 	defer m.Unlock()
-
 	if _, ok := m.userMap[ID]; !ok {
 		return nil, &storage.MyStorageError{Message: "Non-exist ID"}
 	} else {
@@ -106,21 +112,8 @@ func (m *MemUserStore) Read(ID uint) (*storage.UserEntity, *storage.MyStorageErr
 	}
 }
 
-//func (m *MemUserStore) Update(ID uint, user *storage.UserEntity) (uint, *storage.MyStorageError) {
-//	if _, ok := m.userMap[ID]; !ok {
-//		return 0, &storage.MyStorageError{Message: "Non-exist ID"}
-//	} else {
-//		m.userMap[ID] = &storage.UserEntity{
-//			ID:       ID,
-//			UserName: user.UserName,
-//			Password: user.Password,
-//			Posts:    user.Posts,
-//		}
-//		return ID, nil
-//	}
-//}
-
-func copyPostList(dst *list.List, src *list.List) {
+// Copy a list of uint
+func copyUintList(dst *list.List, src *list.List) {
 	for e := src.Front(); e != nil; e = e.Next() {
 		pId := e.Value.(uint)
 		dst.PushBack(pId)
@@ -129,7 +122,11 @@ func copyPostList(dst *list.List, src *list.List) {
 
 func copyUserEntity(dst *storage.UserEntity, src *storage.UserEntity) {
 	dst.Posts = list.New()
-	copyPostList(dst.Posts, src.Posts)
+	dst.Following = list.New()
+	dst.Follower = list.New()
+	copyUintList(dst.Posts, src.Posts)
+	copyUintList(dst.Follower, src.Follower)
+	copyUintList(dst.Following, src.Following)
 	dst.Password = src.Password
 	dst.UserName = src.UserName
 	dst.ID = src.ID
