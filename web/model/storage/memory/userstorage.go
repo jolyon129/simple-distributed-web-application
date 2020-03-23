@@ -40,18 +40,18 @@ func (m *MemUserStore) getNewPK() uint {
 
 // Update can only modified the password and the post, the following and the follower list.
 // Take O(#post+#following+#follower) time.
-func (m *MemUserStore) Update(ID uint, user *storage.UserEntity) (uint, *storage.MyStorageError) {
+func (m *MemUserStore) Update(ID uint, newUserE *storage.UserEntity) (uint, *storage.MyStorageError) {
 	m.Lock()
 	defer m.Unlock()
 	userEntity := m.userMap[ID]
-	userEntity.Password = user.Password
+	userEntity.Password = newUserE.Password
 	newPostList := list.New()
 	newFollowingList := list.New()
 	newFollowerList := list.New()
-	copyUintList(newPostList, user.Posts) // Copy the post list
-	copyUintList(newFollowingList,userEntity.Following)
-	copyUintList(newFollowerList,userEntity.Follower)
-	userEntity.Posts = newPostList        // Change the pointer in the userEntity
+	copyUintList(newPostList, newUserE.Posts) // Copy the post list
+	copyUintList(newFollowingList, newUserE.Following)
+	copyUintList(newFollowerList, newUserE.Follower)
+	userEntity.Posts = newPostList // Change the pointer in the userEntity
 	userEntity.Follower = newFollowerList
 	userEntity.Following = newFollowingList
 	return ID, nil
@@ -114,6 +114,12 @@ func (m *MemUserStore) Read(ID uint) (*storage.UserEntity, *storage.MyStorageErr
 
 // Copy a list of uint
 func copyUintList(dst *list.List, src *list.List) {
+	if dst == nil {
+		dst = list.New()
+	}
+	if src == nil {
+		src = list.New()
+	}
 	for e := src.Front(); e != nil; e = e.Next() {
 		pId := e.Value.(uint)
 		dst.PushBack(pId)

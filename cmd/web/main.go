@@ -48,10 +48,11 @@ func addDefaultData() {
 		Content: "Gotta give him a new blanket when I back home. #NationalPuppyDay #Westie",
 	})
 	userRepo.AddTweetToUser(uId2, pid3)
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 	pid4, _ := postRepo.CreateNewPost(repository.PostInfo{
 		UserID:  uId2,
 		Content: "BTW, this is Sakuragi. 3 year’s old. And his name is from a Japanese anime. ",
 	})
 	userRepo.AddTweetToUser(uId2, pid4)
+	userRepo.StartFollowing(uId, uId2)
 }

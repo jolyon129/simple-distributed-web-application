@@ -43,8 +43,8 @@ func (userRepo *UserRepo) SelectByName(name string) *storage.UserEntity {
 }
 
 func (userRepo *UserRepo) SelectById(uid uint) *storage.UserEntity {
-	uE, err:=userRepo.Storage.Read(uid)
-	if err!=nil{
+	uE, err := userRepo.Storage.Read(uid)
+	if err != nil {
 		println(err)
 	}
 	return uE
@@ -58,10 +58,7 @@ func (u *UserRepo) AddTweetToUser(uId uint, pId uint) bool {
 		return false
 	} else {
 		userE.Posts.PushBack(pId)
-		u.Storage.Update(uId, &storage.UserEntity{
-			Password: userE.Password,
-			Posts:    userE.Posts,
-		})
+		u.Storage.Update(uId, userE)
 		return true
 	}
 }
@@ -84,7 +81,7 @@ func (u *UserRepo) CheckWhetherFollow(srcId uint, targetId uint) bool {
 		log.Println(err)
 		return false
 	}
-	if _, err := u.Storage.Read(targetId); err!=nil{
+	if _, err := u.Storage.Read(targetId); err != nil {
 		return false
 	}
 	fl := srcUserE.Follower
@@ -95,5 +92,55 @@ func (u *UserRepo) CheckWhetherFollow(srcId uint, targetId uint) bool {
 		}
 	}
 	return false
+}
 
+// User srcId starts to follow targetId.
+func (u *UserRepo) StartFollowing(srcId uint, targetId uint) bool {
+	srcUser, err1 := u.Storage.Read(srcId)
+	targetUser, err2 := u.Storage.Read(targetId)
+	if err1 == nil && err2 == nil {
+		if srcUser.ID == targetUser.ID {
+			return false
+		}
+		srcUser.Following.PushBack(targetId)
+		targetUser.Follower.PushBack(srcId)
+		u.Storage.Update(srcId, srcUser)
+		u.Storage.Update(targetId, targetUser)
+		return true
+	} else {
+		log.Println(err1)
+		log.Println(err2)
+		return false
+	}
+}
+
+// srcId stop following targetId.
+// targetId remove the follower srcId.
+func (u *UserRepo) StopFollowing(srcId uint, targetId uint) bool {
+	srcUser, err1 := u.Storage.Read(srcId)
+	targetUser, err2 := u.Storage.Read(targetId)
+	if err1 == nil && err2 == nil {
+		if srcUser.ID == targetUser.ID {
+			return false
+		}
+		for e := srcUser.Following.Front(); e != nil; e = e.Next() {
+			v := e.Value.(uint)
+			if v == targetId {
+				srcUser.Following.Remove(e) // srcId stop following targetId
+			}
+		}
+		for e := targetUser.Follower.Front(); e != nil; e = e.Next() {
+			v := e.Value.(uint)
+			if v == targetId {
+				srcUser.Follower.Remove(e) // targetId remove the follower srcId
+			}
+		}
+		u.Storage.Update(srcId, srcUser)
+		u.Storage.Update(targetId, targetUser)
+		return true
+	} else {
+		log.Println(err1)
+		log.Println(err2)
+		return false
+	}
 }

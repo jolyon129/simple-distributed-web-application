@@ -11,7 +11,7 @@ type UserEntity struct {
 	Password  string
 	Follower  *list.List
 	Following *list.List
-	Posts     *list.List
+	Posts     *list.List // The oldest comes first
 }
 
 type PostEntity struct {
@@ -32,7 +32,8 @@ func (e *MyStorageError) Error() string {
 type UserStorageInterface interface {
 	Create(user *UserEntity) (uint, *MyStorageError)
 	Delete(ID uint) *MyStorageError
-	// Ready by user ID
+	// Read by user ID.
+	// Return a copy of user entity.
 	Read(ID uint) (*UserEntity, *MyStorageError)
 	Update(ID uint, user *UserEntity) (uint, *MyStorageError)
 	FindAll() *list.List
@@ -41,6 +42,8 @@ type UserStorageInterface interface {
 type PostStorageInterface interface {
 	Create(post *PostEntity) (uint, *MyStorageError)
 	//Delete(ID uint) *MyStorageError
+	// Read by post ID
+	// Return a copy of post entity
 	Read(ID uint) (PostEntity, *MyStorageError)
 	//Update(ID uint, post *PostEntity) (uint,*MyStorageError)
 

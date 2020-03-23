@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <title>User Lists</title>
 </head>
-<h1>User Lists</h1>
+<h1>Twitter Clone App</h1>
+<h2>User List</h2>
+<h3><a href="/home">Home</a></h3>
 <body>
 {{range $i, $u := .UserList}}
     <div><span>{{$u.Name}}</span>
         <span>
-            {{if $u.Followed}}<a href="/unfollow">unfollow</a>
-            {{else}}<a href="/follow">follow</a>
+            {{if $u.Followed}}<a href="/unfollow?userId={{$u.Id}}">unfollow</a>
+            {{else}}<a href="/follow?userId={{$u.Id}}">follow</a>
             {{end}}
         </span>
     </div>

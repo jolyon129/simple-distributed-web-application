@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 	"zl2501-final-project/web/constant"
 	"zl2501-final-project/web/model"
 	"zl2501-final-project/web/model/repository"
@@ -42,40 +42,6 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			sess.Set(constant.UserId, uId)
 			http.Redirect(w, r, "/home", 302)
 		}
-	}
-}
-
-type tweet struct {
-	Content string
-	Created string
-}
-
-type homeView struct {
-	Name   string
-	Tweets []tweet
-}
-
-func Home(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		sess := globalSessions.SessionStart(w, r)
-		uname := sess.Get(constant.UserName).(string)
-		//log.Println("THe user name in session is:",uname)
-		t, _ := template.ParseFiles("template/home.html")
-		w.Header().Set("Content-Type", "text/html")
-		view := homeView{Name: uname, Tweets: make([]tweet, 0)}
-		userRepo := model.GetUserRepo()
-		postRepo := model.GetPostRepo()
-		usrE := userRepo.SelectByName(uname)
-		for e := usrE.Posts.Back(); e != nil; e = e.Prev() { // Add the tweets into view
-			pId := e.Value.(uint)
-			postE := postRepo.SelectById(pId)
-			view.Tweets = append(view.Tweets, tweet{
-				Content: postE.Content,
-				Created: postE.CreatedTime.Format(constant.TimeFormat),
-			})
-		}
-		//log.Println(view.Tweets)
-		t.Execute(w, view)
 	}
 }
 
@@ -147,16 +113,16 @@ func Tweet(w http.ResponseWriter, r *http.Request) {
 		})
 		userRepo.AddTweetToUser(uId, pId)
 		http.Redirect(w, r, "/home", 302)
-		fmt.Fprintf(w, "You just tweeted!") // write data to response
 	}
 }
 
 type user struct {
-	Name string
+	Name     string
+	Id       string
 	Followed bool
 }
 type viewUserView struct {
-	UserList [] user
+	UserList []user
 }
 
 // View all users in the system.
@@ -170,14 +136,21 @@ func ViewUsers(w http.ResponseWriter, r *http.Request) {
 		newUserList := make([]user, 0)
 		myUserE := userRepo.SelectById(myUid)
 		myFollowingMap := make(map[uint]bool)
-		for e:=myUserE.Following.Front();e!=nil;e=e.Next(){
-			myFollowingMap[e.Value.(uint)] =true
+		for e := myUserE.Following.Front(); e != nil; e = e.Next() {
+			myFollowingMap[e.Value.(uint)] = true
 		}
 		for _, value := range allUsers {
-			if _, ok:=myFollowingMap[value.ID];ok{
-				newUserList = append(newUserList, user{Name: value.UserName,Followed:true})
-			}else{
-				newUserList = append(newUserList, user{Name: value.UserName,Followed:false})
+			if value.ID == myUid { // Exclude myself
+				continue
+			}
+			if _, ok := myFollowingMap[value.ID]; ok {
+				newUserList = append(newUserList, user{Name: value.UserName,
+					Followed: true,
+					Id:       strconv.Itoa(int(value.ID))})
+			} else {
+				newUserList = append(newUserList, user{Name: value.UserName,
+					Followed: false,
+					Id:       strconv.Itoa(int(value.ID))})
 			}
 		}
 		view := viewUserView{
@@ -187,5 +160,45 @@ func ViewUsers(w http.ResponseWriter, r *http.Request) {
 		t, _ := template.ParseFiles("template/users.html")
 		w.Header().Set("Content-Type", "text/html")
 		t.Execute(w, view)
+	}
+}
+
+func Follow(w http.ResponseWriter, r *http.Request) {
+	param := r.URL.Query()
+	val, ok := param[constant.UserId]
+	if !ok { // If no `userId` in url
+		log.Println("No user id to follow!")
+	} else {
+		uId32, err := strconv.ParseUint(val[0], 10, 32)
+		if err != nil {
+			log.Println("Wrong user id!")
+		}
+		uId := uint(uId32)
+		sess := globalSessions.SessionStart(w, r)
+		myUid := sess.Get(constant.UserId).(uint)
+		uRepo := model.GetUserRepo()
+		uRepo.StartFollowing(myUid, uId)
+		http.Redirect(w, r, "/users", 302)
+	}
+}
+
+func Unfollow(w http.ResponseWriter, r *http.Request) {
+	param := r.URL.Query()
+	val, ok := param[constant.UserId]
+	if !ok { // If no `userId` in url
+		log.Println("No user id to unfollow!")
+		http.Redirect(w, r, "/users", 302)
+	} else {
+		uId32, err := strconv.ParseUint(val[0], 10, 32)
+		if err != nil {
+			log.Println("Wrong user id!")
+			http.Redirect(w, r, "/users", 302)
+		}
+		targetId := uint(uId32)
+		sess := globalSessions.SessionStart(w, r)
+		myUid := sess.Get(constant.UserId).(uint)
+		uRepo := model.GetUserRepo()
+		uRepo.StopFollowing(myUid, targetId)
+		http.Redirect(w, r, "/users", 302)
 	}
 }

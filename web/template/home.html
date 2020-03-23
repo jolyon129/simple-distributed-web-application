@@ -10,11 +10,20 @@
 <p><a href="/users">View All Users</a> </p>
 <p><a href="/tweet">Tweet!</a></p>
 <p><a href="/logout">Log Out</a></p>
+<div>
+    <p><b>Feed:</b></p>
+    {{range $i, $t := .Feed}}
+        <p>{{$t.Content}}</p>
+        <p><a href="/user/{{$t.UserId}}">{{$t.CreatedBy}}</a> {{$t.CreatedAt}} </p>
+        <hr>
+    {{end}}
+
+</div>
 <p><b>My Tweets:</b></p>
 <div>
-{{range $i, $t := .Tweets}}
+{{range $i, $t := .MyTweets}}
     <p>{{$t.Content}}</p>
-    <p>{{$t.Created}}</p>
+    <p><a href="/user/{{$t.UserId}}">{{$t.CreatedBy}}</a> {{$t.CreatedAt}} </p>
     <hr>
 {{end}}
 
