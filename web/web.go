@@ -44,7 +44,7 @@ func StartService() {
 	mux.Handle("/logout", http.HandlerFunc(controller.LogOut))
 	mux.Handle("/tweet", MiddlewareAdapt(http.HandlerFunc(controller.Tweet), auth.CheckAuth))
 	mux.Handle("/users", MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers), auth.CheckAuth))
-	mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers), auth.CheckAuth))
+	mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.User), auth.CheckAuth))
 	mux.Handle("/follow", MiddlewareAdapt(http.HandlerFunc(controller.Follow), auth.CheckAuth))
 	mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow), auth.CheckAuth))
 	err := http.ListenAndServe(":9090", logger.LogRequests(mux))

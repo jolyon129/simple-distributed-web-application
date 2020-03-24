@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"html"
 	"html/template"
 	"log"
 	"net/http"
+	"path"
 	"strconv"
 	"zl2501-final-project/web/constant"
 	"zl2501-final-project/web/model"
@@ -200,5 +202,45 @@ func Unfollow(w http.ResponseWriter, r *http.Request) {
 		uRepo := model.GetUserRepo()
 		uRepo.StopFollowing(myUid, targetId)
 		http.Redirect(w, r, "/users", 302)
+	}
+}
+
+type userView struct {
+	Name     string
+	MyTweets []tweet
+}
+
+func User(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		uidstr := path.Base(html.UnescapeString(r.URL.Path))
+		uid, err := strconv.ParseUint(uidstr, 10, 32)
+		if err != nil {
+			log.Println("Illegal userid")
+			http.Redirect(w, r, "/users", 302)
+			return
+		}
+		uiduint := uint(uid)
+		uE := model.GetUserRepo().SelectById(uiduint)
+		if uE == nil {
+			log.Println("Illegal userid")
+			http.Redirect(w, r, "/users", 302)
+			return
+		}
+		posts := make([]tweet, 0)
+		for e := uE.Posts.Back(); e != nil; e = e.Prev() {
+			pid := e.Value.(uint)
+			p := model.GetPostRepo().SelectById(pid)
+			posts = append(posts, tweet{
+				Content:   p.Content,
+				CreatedAt: p.CreatedTime.Format(constant.TimeFormat),
+				CreatedBy: uE.UserName,
+				UserId:    int(uE.ID),
+			})
+		}
+		t, _ := template.ParseFiles("template/user.html")
+		t.Execute(w, userView{
+			Name:     uE.UserName,
+			MyTweets: posts,
+		})
 	}
 }
