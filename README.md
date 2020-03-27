@@ -8,7 +8,7 @@ The development of this project is divided into 3 stages!
 
 The stages are split up as follows:
 
-1. A monolithic web application, with all logic and persistence happening on process.  This process exposes a simple social media website.
+1. A monolithic web application, with all logic and persistence happening on process.  This process exposes a simple sochttptestial media website.
 1. The monolithic web application is now split into several services, with a *stateless* web server and *at least one* backend service, which persists data and communicates with the stateless web server via gRPC.
 1. The backend service(s) are now stateless, persisting their state in a raft, replicated data store.
 

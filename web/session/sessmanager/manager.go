@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -54,7 +53,8 @@ func (manager *Manager) sessionId() string {
 
 // Read sessionId from cookie If existed.
 // If not exist, create a new sessionId and inject into cookie.
-// If exist and the sessionId is valid, reuse the same session. Otherwise, create a new one.
+// If exist and the sessionId is valid, reuse the same session.
+// Otherwise, create a new one.
 func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) storage.SessionStorageInterface {
 	manager.mu.Lock()
 	defer manager.mu.Unlock()
@@ -69,8 +69,8 @@ func (manager *Manager) SessionStart(w http.ResponseWriter, r *http.Request) sto
 	} else { // Read session from cookie
 		oldsid, _ := url.QueryUnescape(cookie.Value)
 		oldSess, err := manager.provider.SessionRead(oldsid)
-		if err != nil {
-			log.Println(err)
+		if err != nil { // Old Session Id is illegal(Expired or non-existed)
+			//log.Println(err)
 			newsid := manager.sessionId()
 			newsess, _ := manager.provider.SessionInit(newsid)
 			cookie := http.Cookie{Name: manager.cookieName, Value: url.QueryEscape(newsid), Path: "/",

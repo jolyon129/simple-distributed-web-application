@@ -36,7 +36,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			Password: hash,
 		})
 		if error != nil {
-			println(error)
+			log.Println(error)
 			http.Redirect(w, r, "/signup", 302)
 		} else {
 			sess := globalSessions.SessionStart(w, r)
