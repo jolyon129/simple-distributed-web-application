@@ -8,7 +8,7 @@ language: go
 # LINTER_VERSION is the version of golangci-lint. See current releases
 # here:
 #   https://github.com/golangci/golangci-lint/releases
-#env: GO111MODULE=on GOFLAGS='-mod vendor'
+env: GO111MODULE=on GOFLAGS='-mod vendor'
 
 # You don't need to test on very old versions of the Go compiler. It's the user's
 # responsibility to keep their compiler up to date.
@@ -33,9 +33,12 @@ notifications:
 # build and immediately stop. It's sorta like having set -e enabled in bash.
 # We can download and extract the golangci-lint binary in one (long) command.
 before_script:
-  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $GOPATH/bin v1.23.1
+#  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $GOPATH/bin v1.23.1
   - export TRAVIS_REPO_OWNER=${TRAVIS_REPO_SLUG%/*}
   - export TRAVIS_REPO_NAME=${TRAVIS_REPO_SLUG#*/}
+  - git clone https://github.com/${TRAVIS_REPO_SLUG}.git $GOPATH/src/$TRAVIS_REPO_NAME
+  - cd $GOPATH/src/$TRAVIS_REPO_NAME
+  - go mod vendor # Download the dependency into the vendor folder
 
 
 # script always runs to completion (set +e). If we have linter issues AND a
@@ -43,6 +46,4 @@ before_script:
 # .golangci.yml file at the top level of your repo.
 script:
 #  - golangci-lint run       # run a bunch of code checkers/linters in parallel
-  - git clone https://github.com/${TRAVIS_REPO_SLUG}.git $GOPATH/src/$TRAVIS_REPO_NAME
-  - cd $GOPATH/src/$TRAVIS_REPO_NAME
   - go test -v -race ./web/...  # Run all the tests with the race detector enabled
