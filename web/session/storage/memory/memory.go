@@ -31,7 +31,6 @@ func (st *MemSessStore) Get(key interface{}) interface{} {
 	} else {
 		return nil
 	}
-	return nil
 }
 
 func (st *MemSessStore) Delete(key interface{}) error {
