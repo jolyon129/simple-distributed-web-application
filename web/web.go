@@ -20,18 +20,6 @@ func init() {
 	globalSessions, _ = sessmanager.GetManagerSingleton("memory")
 }
 
-// Adapter Pattern for middleware handlers.
-// Ref:
-// "https://medium.com/@matryer/writing-middleware-in-golang-and-how-go-makes-it-so-much-fun-4375c1246e81"
-type Adapter func(http.Handler) http.Handler
-
-func Adapt(h http.Handler, adapters ...Adapter) http.Handler {
-	for _, adapter := range adapters {
-		h = adapter(h)
-	}
-	return h
-}
-
 func StartService() {
 	//session.RegisterProvider("memory",nil)
 	//globalSessions,_ = session.NewManager("memory","gosessionid",3600)

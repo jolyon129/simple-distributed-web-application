@@ -27,6 +27,11 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		userName := r.Form["username"][0]
 		password := r.Form["password"][0]
+		if len(userName) == 0 || len(password) == 0 {
+			log.Println("Illegal user name or password")
+			http.Redirect(w, r, "/signup", 302)
+			return
+		}
 		log.Println("username:", r.Form["username"])
 		log.Println("password:", r.Form["password"])
 		userRepo := model.GetUserRepo()
@@ -74,6 +79,11 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		userName := r.Form["username"][0]
 		password := r.Form["password"][0]
+		if len(userName) == 0 || len(password) == 0 {
+			log.Println("Illegal user name or password")
+			http.Redirect(w, r, "/login", 302)
+			return
+		}
 		log.Println("username:", r.Form["username"][0])
 		log.Println("password:", r.Form["password"][0])
 		user := userRepo.SelectByName(userName)
@@ -145,12 +155,12 @@ func ViewUsers(w http.ResponseWriter, r *http.Request) {
 			if value.ID == myUid { // Exclude myself
 				continue
 			}
-			if _, ok := myFollowingMap[value.ID]; ok {
+			if _, ok := myFollowingMap[value.ID]; ok { // Mark as followed
 				newUserList = append(newUserList, user{Name: value.UserName,
 					Followed: true,
 					Id:       strconv.Itoa(int(value.ID))})
 			} else {
-				newUserList = append(newUserList, user{Name: value.UserName,
+				newUserList = append(newUserList, user{Name: value.UserName, // Mark as not followed
 					Followed: false,
 					Id:       strconv.Itoa(int(value.ID))})
 			}
