@@ -146,24 +146,22 @@ func ViewUsers(w http.ResponseWriter, r *http.Request) {
 		userRepo := model.GetUserRepo()
 		allUsers := userRepo.FindAllUsers()
 		newUserList := make([]user, 0)
-		myUserE := userRepo.SelectById(myUid)
-		myFollowingMap := make(map[uint]bool)
-		for e := myUserE.Following.Front(); e != nil; e = e.Next() {
-			myFollowingMap[e.Value.(uint)] = true
-		}
 		for _, value := range allUsers {
 			if value.ID == myUid { // Exclude myself
 				continue
 			}
-			if _, ok := myFollowingMap[value.ID]; ok { // Mark as followed
-				newUserList = append(newUserList, user{Name: value.UserName,
-					Followed: true,
-					Id:       strconv.Itoa(int(value.ID))})
-			} else {
-				newUserList = append(newUserList, user{Name: value.UserName, // Mark as not followed
-					Followed: false,
-					Id:       strconv.Itoa(int(value.ID))})
-			}
+			newUserList = append(newUserList, user{Name: value.UserName,
+				Followed: userRepo.CheckWhetherFollowing(myUid,value.ID),
+				Id:       strconv.Itoa(int(value.ID))})
+			//if _, ok := myFollowingMap[value.ID]; ok { // Mark as followed
+			//	newUserList = append(newUserList, user{Name: value.UserName,
+			//		Followed: true,
+			//		Id:       strconv.Itoa(int(value.ID))})
+			//} else {
+			//	newUserList = append(newUserList, user{Name: value.UserName, // Mark as not followed
+			//		Followed: false,
+			//		Id:       strconv.Itoa(int(value.ID))})
+			//}
 		}
 		view := viewUserView{
 			UserList: newUserList,
