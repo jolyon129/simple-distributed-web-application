@@ -16,15 +16,20 @@ type MemSessStore struct {
 	sid          string                      // unique session id
 	timeAccessed time.Time                   // last access time
 	value        map[interface{}]interface{} // session value stored inside
+	sync.Mutex
 }
 
 func (st *MemSessStore) Set(key, value interface{}) error {
+	st.Lock()
+	defer st.Unlock()
 	st.value[key] = value
 	pder.SessionUpdate(st.sid)
 	return nil
 }
 
 func (st *MemSessStore) Get(key interface{}) interface{} {
+	st.Lock()
+	defer st.Unlock()
 	pder.SessionUpdate(st.sid)
 	if v, ok := st.value[key]; ok {
 		return v
@@ -34,12 +39,16 @@ func (st *MemSessStore) Get(key interface{}) interface{} {
 }
 
 func (st *MemSessStore) Delete(key interface{}) error {
+	st.Lock()
+	defer st.Unlock()
 	delete(st.value, key)
 	pder.SessionUpdate(st.sid)
 	return nil
 }
 
 func (st *MemSessStore) SessionID() string {
+	st.Lock()
+	defer st.Unlock()
 	return st.sid
 }
 

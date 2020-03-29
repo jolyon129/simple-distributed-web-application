@@ -36,7 +36,7 @@ before_script:
 #  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $GOPATH/bin v1.23.1
   - export TRAVIS_REPO_OWNER=${TRAVIS_REPO_SLUG%/*}
   - export TRAVIS_REPO_NAME=${TRAVIS_REPO_SLUG#*/}
-  - git clone https://github.com/${TRAVIS_REPO_SLUG}.git $GOPATH/src/$TRAVIS_REPO_NAME
+  - cd $GOPATH/src && mv $TRAVIS_REPO_OWNER/$TRAVIS_REPO_NAME . # Change the working directory to /zl2501-final-project
   - cd $GOPATH/src/$TRAVIS_REPO_NAME  # A workaround to get into the right working directory
 
 

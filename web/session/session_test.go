@@ -7,19 +7,19 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"zl2501-final-project/web/session/sessmanager"
 )
 
 var _ = Describe("Session Manager", func() {
-	var manager *sessmanager.Manager
 	var fakeSessId string
 	BeforeEach(func() {
 		fakeSessId = "1j28v6loBj65ypDacf5VJxRDXDcDRU8y1RkdXNOu4qo%3D"
-		manager, _ = sessmanager.GetManagerSingleton("memory")
-
 	})
 	Describe("Call Manager.SessionStart to start a session", func() {
-		PContext("When a request without cookie", func() {
+		var manager *sessmanager.Manager
+		manager, _ = sessmanager.GetManagerSingleton("memory")
+		Context("When a request without cookie", func() {
 			It("should inject a new session id into the cookie", func() {
 				fakeReq := httptest.NewRequest("GET", "/login", nil)
 				fakeW := httptest.NewRecorder()
@@ -29,7 +29,7 @@ var _ = Describe("Session Manager", func() {
 				Expect(cookies).Should(ContainSubstring(sess.SessionID()))
 			})
 		})
-		PContext("When a request with illegal session id in cookie ", func() {
+		Context("When a request with illegal session id in cookie ", func() {
 			It("should replace sessionId with a new one", func() {
 				fakeReq := httptest.NewRequest("GET", "/login", nil)
 				fakeReq.Header.Set("Cookie", sessmanager.CookieName+"="+fakeSessId)
@@ -40,7 +40,7 @@ var _ = Describe("Session Manager", func() {
 				Expect(cookies).Should(Not(ContainSubstring(sessmanager.CookieName + "=" + fakeSessId)))
 			})
 		})
-		PContext("When a request with legal session id in cookie ", func() {
+		Context("When a request with legal session id in cookie ", func() {
 			It("should reuse the same session Id", func() {
 				fakeReq := httptest.NewRequest("GET", "/login", nil)
 				fakeW := httptest.NewRecorder()
@@ -61,6 +61,7 @@ var _ = Describe("Session Manager", func() {
 		Context("With 10 concurrent requests)", func() {
 			It("should return 10 different sessions", func() {
 				sessArr := make(map[string]bool)
+				var mu sync.Mutex
 				for i := 0; i < 10; i++ {
 					go func() {
 						defer GinkgoRecover()
@@ -70,15 +71,48 @@ var _ = Describe("Session Manager", func() {
 						cookies, _ := url.QueryUnescape(fakeW.Header().Get("Set-Cookie"))
 						Expect(cookies).Should(ContainSubstring(sessmanager.CookieName))
 						Expect(cookies).Should(ContainSubstring(sess.SessionID()))
+						mu.Lock()
 						Expect(sessArr[sess.SessionID()]).Should(BeZero())
 						sessArr[sess.SessionID()] = true
+						mu.Unlock()
 					}()
 				}
 			})
 		})
 
 	})
-	Describe("Modified value in session", func() {
-		//sess :=
+	Describe("Modified values", func() {
+		manager, _ := sessmanager.GetManagerSingleton("memory")
+		Context("When setting values in a session", func() {
+			It("should be fine", func() {
+				fakeReq := httptest.NewRequest("GET", "/login", nil)
+				fakeW := httptest.NewRecorder()
+				sess := manager.SessionStart(fakeW, fakeReq)
+				var wg sync.WaitGroup
+				wg.Add(3)
+				go func() {
+					sess.Set("Name", "Zhuolun Li")
+					wg.Done()
+				}()
+				go func() {
+					sess.Set("Handle", "jolyon129")
+					wg.Done()
+				}()
+				go func() {
+					sess.Set("Subject", "Distributed System")
+					wg.Done()
+				}()
+				wg.Wait()
+				name := sess.Get("Name").(string)
+				handle := sess.Get("Handle").(string)
+				subject := sess.Get("Subject").(string)
+				Expect(name).Should(Equal("Zhuolun Li"))
+				Expect(handle).Should(Equal("jolyon129"))
+				Expect(subject).Should(Equal("Distributed System"))
+			})
+		})
+		Context("When seting values in 2 sessions concurrently", func() {
+
+		})
 	})
 })
