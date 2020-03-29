@@ -79,7 +79,7 @@ func (u *UserRepo) FindAllUsers() []*storage.UserEntity {
 
 // Check whether the user srcId follows the user targetId.
 // Take O(#following) time
-func (u *UserRepo) CheckWhetherFollow(srcId uint, targetId uint) bool {
+func (u *UserRepo) CheckWhetherFollowing(srcId uint, targetId uint) bool {
 	srcUserE, err := u.Storage.Read(srcId)
 	if err != nil {
 		log.Println(err)
@@ -89,7 +89,7 @@ func (u *UserRepo) CheckWhetherFollow(srcId uint, targetId uint) bool {
 		return false
 	}
 	fl := srcUserE.Following
-	for e := fl.Front(); e != nil; e.Next() {
+	for e := fl.Front(); e != nil; e=e.Next() {
 		fuid := e.Value.(uint)
 		if fuid == targetId {
 			return true
@@ -106,7 +106,7 @@ func (u *UserRepo) StartFollowing(srcId uint, targetId uint) error {
 		if srcUser.ID == targetUser.ID {
 			return errors.New("cannot follow themselves")
 		}
-		if u.CheckWhetherFollow(srcId,targetId){
+		if u.CheckWhetherFollowing(srcId,targetId){
 			return errors.New("already followed")
 		}
 		srcUser.Following.PushBack(targetId)
