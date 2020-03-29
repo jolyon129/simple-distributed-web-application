@@ -2,6 +2,7 @@ package repository
 
 import (
 	"container/list"
+	"errors"
 	"log"
 	"zl2501-final-project/web/model/storage"
 )
@@ -15,6 +16,9 @@ type UserInfo struct {
 	Password string
 }
 
+// Create a new user and return user id
+// if the user name is no duplicated.
+// Otherwise return error
 func (userRepo *UserRepo) CreateNewUser(u *UserInfo) (uint, error) {
 	ID, err := userRepo.Storage.Create(&storage.UserEntity{
 		ID:       0,
@@ -22,7 +26,7 @@ func (userRepo *UserRepo) CreateNewUser(u *UserInfo) (uint, error) {
 		Password: u.Password,
 	})
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		return 0, err
 	} else {
 		return ID, nil
@@ -84,7 +88,7 @@ func (u *UserRepo) CheckWhetherFollow(srcId uint, targetId uint) bool {
 	if _, err := u.Storage.Read(targetId); err != nil {
 		return false
 	}
-	fl := srcUserE.Follower
+	fl := srcUserE.Following
 	for e := fl.Front(); e != nil; e.Next() {
 		fuid := e.Value.(uint)
 		if fuid == targetId {
@@ -95,22 +99,25 @@ func (u *UserRepo) CheckWhetherFollow(srcId uint, targetId uint) bool {
 }
 
 // User srcId starts to follow targetId.
-func (u *UserRepo) StartFollowing(srcId uint, targetId uint) bool {
+func (u *UserRepo) StartFollowing(srcId uint, targetId uint) error {
 	srcUser, err1 := u.Storage.Read(srcId)
 	targetUser, err2 := u.Storage.Read(targetId)
 	if err1 == nil && err2 == nil {
 		if srcUser.ID == targetUser.ID {
-			return false
+			return errors.New("cannot follow themselves")
+		}
+		if u.CheckWhetherFollow(srcId,targetId){
+			return errors.New("already followed")
 		}
 		srcUser.Following.PushBack(targetId)
 		targetUser.Follower.PushBack(srcId)
 		u.Storage.Update(srcId, srcUser)
 		u.Storage.Update(targetId, targetUser)
-		return true
+		return nil
 	} else {
 		log.Println(err1)
 		log.Println(err2)
-		return false
+		return errors.New("illegal user id")
 	}
 }
 
