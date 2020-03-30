@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"container/list"
 	"zl2501-final-project/web/model/storage"
 )
 
@@ -16,7 +15,6 @@ func init() {
 	}
 	memPostStorage = &MemPostStore{
 		postMap:   make(map[uint]*storage.PostEntity),
-		posts:     list.New(),
 		pkCounter: 1000, // Start from 100
 	}
 	memModels := storage.Manager{

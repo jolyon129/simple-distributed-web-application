@@ -1,18 +1,15 @@
 package memory
 
 import (
-	"container/list"
 	"sync"
 	"time"
 	"zl2501-final-project/web/model/storage"
 )
 
-//TODO:
-// Refactor this! No Posts!
 type MemPostStore struct {
 	sync.Mutex
-	postMap   map[uint]*storage.PostEntity // // Map index to entity/record
-	posts     *list.List
+	postMap map[uint]*storage.PostEntity // // Map index to entity/record
+	//posts     *list.List
 	pkCounter uint
 }
 
@@ -34,7 +31,6 @@ func (m *MemPostStore) Create(post *storage.PostEntity) (uint, *storage.MyStorag
 		CreatedTime: time.Now(),
 	}
 	m.postMap[newPost.ID] = &newPost
-	m.posts.PushBack(&newPost)
 	return pk, nil
 }
 
@@ -44,14 +40,15 @@ func (m *MemPostStore) Delete(ID uint) *storage.MyStorageError {
 	if _, ok := m.postMap[ID]; !ok {
 		return &storage.MyStorageError{Message: "Non-exist ID"}
 	} else {
-		for e := m.posts.Front(); e != nil; e = e.Next() {
-			u := e.Value.(storage.PostEntity)
-			if u.ID == ID {
-				id := u.ID
-				delete(m.postMap, id)
-				m.posts.Remove(e)
-			}
-		}
+		//for e := m.posts.Front(); e != nil; e = e.Next() {
+		//	u := e.Value.(storage.PostEntity)
+		//	if u.ID == ID {
+		//		id := u.ID
+		//		delete(m.postMap, id)
+		//		m.posts.Remove(e)
+		//	}
+		//}
+		delete(m.postMap, ID)
 		return nil
 	}
 }
