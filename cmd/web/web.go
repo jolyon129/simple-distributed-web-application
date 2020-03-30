@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"time"
 	"zl2501-final-project/web"
 	"zl2501-final-project/web/controller"
@@ -11,10 +10,10 @@ import (
 
 func main() {
 	// Change working directory to web/ first
-	err := os.Chdir("../../web")
-	if err != nil {
-		panic(err)
-	}
+	//err := os.Chdir("../../web")
+	//if err != nil {
+	//	panic(err)
+	//}
 	addDefaultData()
 	web.StartService()
 }
@@ -35,7 +34,7 @@ func addDefaultData() {
 	time.Sleep(2 * time.Second)
 	pid2, _ := postRepo.CreateNewPost(repository.PostInfo{
 		UserID:  uId,
-		Content: "I really hope this coronavirus can end soon! No more quarantine!",
+		Content: "I really hope this coronavirus is over very soon! No more quarantine!",
 	})
 	userRepo.AddTweetToUser(uId, pid2)
 

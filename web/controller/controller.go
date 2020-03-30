@@ -20,7 +20,7 @@ func init() {
 }
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		t, _ := template.ParseFiles("template/signup.html")
+		t, _ := template.ParseFiles(constant.RelativePathForTemplate+"signup.html")
 		w.Header().Set("Content-Type", "text/html")
 		t.Execute(w, nil)
 	} else {
@@ -59,7 +59,7 @@ func GoIndex(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("cache-control","no-store") // Avoid the safari remember the redirect
 		http.Redirect(w, r, "/home", 302)
 	} else {
-		t, _ := template.ParseFiles("template/index.html")
+		t, _ := template.ParseFiles(constant.RelativePathForTemplate+"index.html")
 		t.Execute(w, nil)
 	}
 }
@@ -71,7 +71,7 @@ func LogOut(w http.ResponseWriter, r *http.Request) {
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		t, _ := template.ParseFiles("template/login.html")
+		t, _ := template.ParseFiles(constant.RelativePathForTemplate+"login.html")
 		w.Header().Set("Content-Type", "text/html")
 		_ = t.Execute(w, nil)
 	} else {
@@ -109,7 +109,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 
 func Tweet(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		t, _ := template.ParseFiles("template/tweet.html")
+		t, _ := template.ParseFiles(constant.RelativePathForTemplate+"tweet.html")
 		w.Header().Set("Content-Type", "text/html")
 		_ = t.Execute(w, nil)
 	} else {
@@ -159,7 +159,7 @@ func ViewUsers(w http.ResponseWriter, r *http.Request) {
 			UserList: newUserList,
 		}
 		log.Println(view.UserList)
-		t, _ := template.ParseFiles("template/users.html")
+		t, _ := template.ParseFiles(constant.RelativePathForTemplate+"users.html")
 		w.Header().Set("Content-Type", "text/html")
 		t.Execute(w, view)
 	}
@@ -237,7 +237,7 @@ func User(w http.ResponseWriter, r *http.Request) {
 				UserId:    int(uE.ID),
 			})
 		}
-		t, _ := template.ParseFiles("template/user.html")
+		t, _ := template.ParseFiles(constant.RelativePathForTemplate+"user.html")
 		t.Execute(w, userView{
 			Name:     uE.UserName,
 			MyTweets: posts,

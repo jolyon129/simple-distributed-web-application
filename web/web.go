@@ -56,6 +56,8 @@ func MiddlewareAdapt(h http.Handler, middleware ...func(http.Handler) http.Handl
 	return h
 }
 
+// This is a middleware
+// Add Some Header
 func SetHeader(handlerToWrap http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//w.Header().Set("Content-Type", "text/html")

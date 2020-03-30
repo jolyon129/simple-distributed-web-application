@@ -22,12 +22,13 @@ type homeView struct {
 	Feed     []tweet
 }
 
+
 func Home(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		sess := globalSessions.SessionStart(w, r)
 		uname := sess.Get(constant.UserName).(string)
 		//log.Println("THe user name in session is:",uname)
-		t, _ := template.ParseFiles("template/home.html")
+		t, _ := template.ParseFiles(constant.RelativePathForTemplate+"home.html")
 		w.Header().Set("Content-Type", "text/html")
 		view := homeView{Name: uname, MyTweets: make([]tweet, 0)}
 		userRepo := model.GetUserRepo()
