@@ -1,23 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+          crossorigin="anonymous">
     <meta charset="UTF-8">
     <title>Home Page</title>
 </head>
 <body>
-<h1>Twitter Clone App</h1>
-<h2>Welcome, {{.Name}}</h2>
-<p><a href="/users">View All Users</a> </p>
-<p><a href="/tweet">Tweet!</a></p>
-<p><a href="/logout">Log Out</a></p>
-<div>
-    <p><b>Feed:</b></p>
-    {{range $i, $t := .Feed}}
-        <p>{{$t.Content}}</p>
-        <p><a href="/user/{{$t.UserId}}">{{$t.CreatedBy}}</a> {{$t.CreatedAt}} </p>
-        <hr>
-    {{end}}
+<div class="container">
+    <h1>Twitter Clone App</h1>
+    <h2>Welcome, {{.Name}}</h2>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <ul class="nav navbar-nav  mr-auto">
+            <li class="nav-item"><a class="nav-link" href="/users">View All Users</a></li>
+            <li class="nav-item"><a class="nav-link" href="/tweet">Tweet!</a></li>
+            <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
+        </ul>
+    </nav>
+    <div>
+        <p><b>Feed:</b></p>
+        {{range $i, $t := .Feed}}
+            <p>{{$t.Content}}</p>
+            <p><a href="/user/{{$t.UserId}}">{{$t.CreatedBy}}</a> {{$t.CreatedAt}} </p>
+            <hr>
+        {{end}}
 
+    </div>
 </div>
+
 </body>
 </html>

@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+          crossorigin="anonymous">
     <meta charset="UTF-8">
     <title>Login</title>
 </head>
 <body>
-<h1>Twitter Clone App</h1>
-<h2>Log In</h2>
-<form action="/login" method="post">
-    Username:<input type="text" name="username" required>
-    Password:<input type="password" name="password" required>
-    <input type="submit" value="Login">
-</form>
+<div class="container">
+    <form action="/login" method="post">
+        <h1>Twitter Clone App</h1>
+        <h2>Log In</h2>
+        Username:<input type="text" name="username" required>
+        Password:<input type="password" name="password" required>
+        <input type="submit" value="Login">
+    </form>
+</div>
 </body>
 </html>

@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+          crossorigin="anonymous">
     <meta charset="UTF-8">
     <title>Tweet</title>
 </head>
 <body>
-<h1>Twitter Clone App</h1>
-<h2>What do you want to tweet?{{.Name}}</h2>
-<form action="/tweet" method="post" id="tweetform">
-    <textarea rows="4" cols="50" placeholder="Enter text here..."name="content" form="tweetform">
+<div class="container">
+
+    <h1>Twitter Clone App</h1>
+    <h2>What do you want to tweet?{{.Name}}</h2>
+    <form action="/tweet" method="post" id="tweetform">
+    <textarea rows="4" cols="50" placeholder="Enter text here..." name="content" form="tweetform">
 </textarea>
-    <input type="submit" value="Tweet!">
-</form>
+        <input type="submit" value="Tweet!">
+    </form>
+</div>
 </body>
 </html>

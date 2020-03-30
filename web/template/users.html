@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <meta charset="UTF-8">
     <title>User Lists</title>
 </head>
-<h1>Twitter Clone App</h1>
-<h2>User List</h2>
-<h3><a href="/home">Home</a></h3>
 <body>
-{{range $i, $u := .UserList}}
-    <div><span>{{$u.Name}}</span>
-        <span>
+<div class="container">
+<h1>Twitter Clone App</h1>
+<h2>All User List</h2>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <ul class="nav navbar-nav  mr-auto">
+        <li class="nav-item"><a class="nav-link" href="/home">Home</a></li>
+    </ul>
+</nav>
+{{/*<h3><a href="/home">Home</a></h3>*/}}
+    <p><b>User List:</b></p>
+    {{range $i, $u := .UserList}}
+        <div><span>{{$u.Name}}</span>
+            <span>
             {{if $u.Followed}}<a href="/unfollow?userId={{$u.Id}}">unfollow</a>
             {{else}}<a href="/follow?userId={{$u.Id}}">follow</a>
             {{end}}
         </span>
-    </div>
-{{end}}
+        </div>
+    {{end}}
+</div>
+
 </body>
 </html>
