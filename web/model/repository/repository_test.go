@@ -376,7 +376,7 @@ var _ = Describe("Post Repository", func() {
 				wg.Wait()
 				postEs := make([]*storage.PostEntity, 20)
 				wg.Add(20)
-				for i := 1; i < 20; i++ {
+				for i := 0; i < 20; i++ {
 					go func(i int) {
 						defer wg.Done()
 						post := postRepo.SelectById(postIds[i])
@@ -389,7 +389,7 @@ var _ = Describe("Post Repository", func() {
 				for i := 1; i < 20; i++ {
 					post := postEs[i]
 					Expect(post).ShouldNot(BeIdenticalTo(prev))
-					Expect(post).Should(Equal(prev.Content))
+					Expect(post.Content).Should(Equal(prev.Content))
 					prev = post
 				}
 			})
