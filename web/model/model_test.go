@@ -249,7 +249,7 @@ var _ = Describe("User Repository", func() {
 				users := make([]uint, 10)
 				var wg1 sync.WaitGroup
 				wg1.Add(10)
-				log.Println("Before Length:", srcUser.Following.Len())
+				//log.Println("Before Length:", srcUser.Following.Len())
 				for i := 0; i < 10; i++ {
 					go func(t int) {
 						defer wg1.Done()
@@ -261,7 +261,7 @@ var _ = Describe("User Repository", func() {
 						Expect(err0).Should(BeNil())
 						err := userRepo.StartFollowing(srcUser.ID, id)
 						Expect(err).Should(BeNil())
-						log.Println("Checking again", id)
+						//log.Println("Checking again", id)
 						users[t] = id
 					}(i)
 				}
@@ -270,7 +270,7 @@ var _ = Describe("User Repository", func() {
 				myuser := userRepo.SelectById(puId)
 				log.Println("Length:", myuser.Following.Len())
 				for i := 0; i < len(users); i++ {
-					log.Println(users[i])
+					//log.Println(users[i])
 					idToTest := users[i]
 					res := userRepo.CheckWhetherFollowing(srcUser.ID, idToTest)
 					Expect(res).Should(BeTrue())

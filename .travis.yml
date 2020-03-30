@@ -47,4 +47,4 @@ before_script:
 script:
 #  - golangci-lint run       # run a bunch of code checkers/linters in parallel
   - cd web && go mod vendor && cd .. # Download the dependency into the vendor folder
-  - ginko-v -race ./...  # Run all the tests with the race detector enabled
+  - ginkgo -race ./...  # Run all the tests with the race detector enabled
