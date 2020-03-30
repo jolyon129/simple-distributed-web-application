@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"zl2501-final-project/web/auth"
+	"zl2501-final-project/web/constant"
 	"zl2501-final-project/web/controller"
 	"zl2501-final-project/web/logger"
 	"zl2501-final-project/web/session/sessmanager"
@@ -25,21 +26,22 @@ func StartService() {
 	//globalSessions,_ = session.NewManager("memory","gosessionid",3600)
 	//go globalSessions.GC()
 	mux := http.NewServeMux()
-	mux.Handle("/", http.HandlerFunc(controller.GoIndex)) // set router
-	mux.Handle("/login", http.HandlerFunc(controller.LogIn))
-	mux.Handle("/signup", http.HandlerFunc(controller.SignUp))
-	mux.Handle("/home", MiddlewareAdapt(http.HandlerFunc(controller.Home), auth.CheckAuth))
-	mux.Handle("/logout", http.HandlerFunc(controller.LogOut))
-	mux.Handle("/tweet", MiddlewareAdapt(http.HandlerFunc(controller.Tweet), auth.CheckAuth))
-	mux.Handle("/users", MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers), auth.CheckAuth))
-	mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.User), auth.CheckAuth))
-	mux.Handle("/follow", MiddlewareAdapt(http.HandlerFunc(controller.Follow), auth.CheckAuth))
-	mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow), auth.CheckAuth))
-	err := http.ListenAndServe(":9090", logger.LogRequests(mux))
+	mux.Handle("/", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader))                                  // set router
+	mux.Handle("/index", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader)) // set router
+	mux.Handle("/login", MiddlewareAdapt(http.HandlerFunc(controller.LogIn), SetHeader))
+	mux.Handle("/signup", MiddlewareAdapt(http.HandlerFunc(controller.SignUp), SetHeader))
+	mux.Handle("/home", MiddlewareAdapt(http.HandlerFunc(controller.Home), auth.CheckAuth, SetHeader))
+	mux.Handle("/logout", MiddlewareAdapt(http.HandlerFunc(controller.LogOut), SetHeader))
+	mux.Handle("/tweet", MiddlewareAdapt(http.HandlerFunc(controller.Tweet), auth.CheckAuth, SetHeader))
+	mux.Handle("/users", MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers), auth.CheckAuth, SetHeader))
+	mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.User), auth.CheckAuth, SetHeader))
+	mux.Handle("/follow", MiddlewareAdapt(http.HandlerFunc(controller.Follow), auth.CheckAuth, SetHeader))
+	mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow), auth.CheckAuth, SetHeader))
+	err := http.ListenAndServe(":"+constant.Port, logger.LogRequests(mux))
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	} else {
-		log.Println("Server starts at: localhost:9090")
+		log.Println("Server starts at: localhost:"+constant.Port)
 	}
 }
 
@@ -52,4 +54,12 @@ func MiddlewareAdapt(h http.Handler, middleware ...func(http.Handler) http.Handl
 		h = mw(h)
 	}
 	return h
+}
+
+func SetHeader(handlerToWrap http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("cache-control", "no-store")
+		handlerToWrap.ServeHTTP(w, r)
+	})
 }

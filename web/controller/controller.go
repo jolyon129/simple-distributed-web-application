@@ -29,7 +29,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		password := r.Form["password"][0]
 		if len(userName) == 0 || len(password) == 0 {
 			log.Println("Illegal user name or password")
-			http.Redirect(w, r, "/signup", 301)
+			http.Redirect(w, r, "/signup", 302)
 			return
 		}
 		log.Println("username:", r.Form["username"])
@@ -42,12 +42,12 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		})
 		if error != nil {
 			log.Println(error)
-			http.Redirect(w, r, "/signup", 301)
+			http.Redirect(w, r, "/signup", 302)
 		} else {
 			sess := globalSessions.SessionStart(w, r)
 			sess.Set(constant.UserName, userName)
 			sess.Set(constant.UserId, uId)
-			http.Redirect(w, r, "/home", 301)
+			http.Redirect(w, r, "/home", 303)
 		}
 	}
 }
@@ -56,7 +56,8 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 // If already logged in(session is valid), go to /home instead.
 func GoIndex(w http.ResponseWriter, r *http.Request) {
 	if globalSessions.SessionAuth(r) {
-		http.Redirect(w, r, "/home", 301)
+		w.Header().Set("cache-control","no-store") // Avoid the safari remember the redirect
+		http.Redirect(w, r, "/home", 302)
 	} else {
 		t, _ := template.ParseFiles("template/index.html")
 		t.Execute(w, nil)
@@ -65,7 +66,7 @@ func GoIndex(w http.ResponseWriter, r *http.Request) {
 
 func LogOut(w http.ResponseWriter, r *http.Request) {
 	globalSessions.SessionDestroy(w, r)
-	http.Redirect(w, r, "/", 301)
+	http.Redirect(w, r, "/index", 302)
 }
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +82,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		password := r.Form["password"][0]
 		if len(userName) == 0 || len(password) == 0 {
 			log.Println("Illegal user name or password")
-			http.Redirect(w, r, "/login", 301)
+			http.Redirect(w, r, "/login", 302)
 			return
 		}
 		log.Println("username:", r.Form["username"][0])
@@ -89,19 +90,19 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		user := userRepo.SelectByName(userName)
 		if user == nil {
 			log.Println("User does not exist.")
-			http.Redirect(w, r, "/login", 301)
+			http.Redirect(w, r, "/login", 302)
 			return
 		} else {
 			if e := ComparePassword(user.Password, password); e != nil {
 				log.Println("Wrong password.")
-				http.Redirect(w, r, "/login", 301)
+				http.Redirect(w, r, "/login", 302)
 				return
 			}
 		}
 		sess := globalSessions.SessionStart(w, r)
 		sess.Set(constant.UserName, userName)
 		sess.Set(constant.UserId, user.ID)
-		http.Redirect(w, r, "/home", 301)
+		http.Redirect(w, r, "/home", 303)
 
 	}
 }
@@ -124,7 +125,7 @@ func Tweet(w http.ResponseWriter, r *http.Request) {
 			Content: content,
 		})
 		userRepo.AddTweetToUser(uId, pId)
-		http.Redirect(w, r, "/home", 301)
+		http.Redirect(w, r, "/home", 302)
 	}
 }
 
@@ -153,15 +154,6 @@ func ViewUsers(w http.ResponseWriter, r *http.Request) {
 			newUserList = append(newUserList, user{Name: value.UserName,
 				Followed: userRepo.CheckWhetherFollowing(myUid,value.ID),
 				Id:       strconv.Itoa(int(value.ID))})
-			//if _, ok := myFollowingMap[value.ID]; ok { // Mark as followed
-			//	newUserList = append(newUserList, user{Name: value.UserName,
-			//		Followed: true,
-			//		Id:       strconv.Itoa(int(value.ID))})
-			//} else {
-			//	newUserList = append(newUserList, user{Name: value.UserName, // Mark as not followed
-			//		Followed: false,
-			//		Id:       strconv.Itoa(int(value.ID))})
-			//}
 		}
 		view := viewUserView{
 			UserList: newUserList,
@@ -188,7 +180,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		myUid := sess.Get(constant.UserId).(uint)
 		uRepo := model.GetUserRepo()
 		uRepo.StartFollowing(myUid, uId)
-		http.Redirect(w, r, "/users", 301)
+		http.Redirect(w, r, "/users", 302)
 	}
 }
 
@@ -197,19 +189,19 @@ func Unfollow(w http.ResponseWriter, r *http.Request) {
 	val, ok := param[constant.UserId]
 	if !ok { // If no `userId` in url
 		log.Println("No user id to unfollow!")
-		http.Redirect(w, r, "/users", 301)
+		http.Redirect(w, r, "/users", 302)
 	} else {
 		uId32, err := strconv.ParseUint(val[0], 10, 32)
 		if err != nil {
 			log.Println("Wrong user id!")
-			http.Redirect(w, r, "/users", 301)
+			http.Redirect(w, r, "/users", 302)
 		}
 		targetId := uint(uId32)
 		sess := globalSessions.SessionStart(w, r)
 		myUid := sess.Get(constant.UserId).(uint)
 		uRepo := model.GetUserRepo()
 		uRepo.StopFollowing(myUid, targetId)
-		http.Redirect(w, r, "/users", 301)
+		http.Redirect(w, r, "/users", 302)
 	}
 }
 
@@ -224,14 +216,14 @@ func User(w http.ResponseWriter, r *http.Request) {
 		uid, err := strconv.ParseUint(uidstr, 10, 32)
 		if err != nil {
 			log.Println("Illegal userid")
-			http.Redirect(w, r, "/users", 301)
+			http.Redirect(w, r, "/users", 302)
 			return
 		}
 		uiduint := uint(uid)
 		uE := model.GetUserRepo().SelectById(uiduint)
 		if uE == nil {
 			log.Println("Illegal userid")
-			http.Redirect(w, r, "/users", 301)
+			http.Redirect(w, r, "/users", 302)
 			return
 		}
 		posts := make([]tweet, 0)
