@@ -1,4 +1,4 @@
-package model_test
+package repository_test
 
 import (
 	"fmt"
@@ -8,28 +8,30 @@ import (
 	"strconv"
 	"sync"
 	"zl2501-final-project/web/model"
-	"zl2501-final-project/web/model/repository"
+	. "zl2501-final-project/web/model/repository"
 	"zl2501-final-project/web/model/storage"
 )
 
-var userRepo *repository.UserRepo
+var userRepo *UserRepo
+var postRepo *PostRepo
 var puId uint
 var puId2 uint
 var usersForTestFollowing []uint
 var _ = BeforeSuite(func() {
 	userRepo = model.GetUserRepo()
-	puId, _ = userRepo.CreateNewUser(&repository.UserInfo{
+	postRepo = model.GetPostRepo()
+	puId, _ = userRepo.CreateNewUser(&UserInfo{
 		UserName: "jolyon129",
 		Password: "123",
 	})
-	puId2, _ = userRepo.CreateNewUser(&repository.UserInfo{
+	puId2, _ = userRepo.CreateNewUser(&UserInfo{
 		UserName: "jolyon2",
 		Password: "123",
 	})
 	srcUser := userRepo.SelectById(puId)
 	usersForTestFollowing = make([]uint, 10)
 	for i := 0; i < 10; i++ {
-		id, _ := userRepo.CreateNewUser(&repository.UserInfo{
+		id, _ := userRepo.CreateNewUser(&UserInfo{
 			UserName: "userForTestFollowing" + strconv.Itoa(i),
 			Password: "123",
 		})
@@ -41,7 +43,7 @@ var _ = Describe("User Repository", func() {
 	Describe("Create New User in single thread", func() {
 		Context("with a non-existed username", func() {
 			It("should return a new User ID", func() {
-				uId, err := userRepo.CreateNewUser(&repository.UserInfo{
+				uId, err := userRepo.CreateNewUser(&UserInfo{
 					UserName: "Zhuolun Li",
 					Password: "123",
 				})
@@ -56,7 +58,7 @@ var _ = Describe("User Repository", func() {
 			It("should return error", func() {
 
 				fmt.Fprintln(GinkgoWriter, "The predefined User Id:", puId)
-				uId, err := userRepo.CreateNewUser(&repository.UserInfo{
+				uId, err := userRepo.CreateNewUser(&UserInfo{
 					UserName: "jolyon129",
 					Password: "123",
 				})
@@ -74,7 +76,7 @@ var _ = Describe("User Repository", func() {
 				for i := 0; i < 10; i++ {
 					go func(i int) {
 						defer wg.Done()
-						uid, _ := userRepo.CreateNewUser(&repository.UserInfo{
+						uid, _ := userRepo.CreateNewUser(&UserInfo{
 							UserName: "user" + strconv.Itoa(i),
 							Password: "123",
 						})
@@ -95,7 +97,7 @@ var _ = Describe("User Repository", func() {
 				for i := 0; i < 10; i++ {
 					go func() {
 						defer wg.Done()
-						uid, err := userRepo.CreateNewUser(&repository.UserInfo{
+						uid, err := userRepo.CreateNewUser(&UserInfo{
 							UserName: "dup",
 							Password: "123",
 						})
@@ -163,7 +165,7 @@ var _ = Describe("User Repository", func() {
 			It("should be synchronized", func() {
 				var wg sync.WaitGroup
 				wg.Add(20)
-				nuId, _ := userRepo.CreateNewUser(&repository.UserInfo{
+				nuId, _ := userRepo.CreateNewUser(&UserInfo{
 					UserName: "newuser",
 					Password: "123",
 				})
@@ -223,7 +225,7 @@ var _ = Describe("User Repository", func() {
 	Describe("Check Whether following", func() {
 		Context("when check one whom I already followed ", func() {
 			It("should return true", func() {
-				uId1, _ := userRepo.CreateNewUser(&repository.UserInfo{
+				uId1, _ := userRepo.CreateNewUser(&UserInfo{
 					UserName: "testfollowing",
 					Password: "123",
 				})
@@ -254,7 +256,7 @@ var _ = Describe("User Repository", func() {
 					go func(t int) {
 						defer wg1.Done()
 						defer GinkgoRecover()
-						id, err0 := userRepo.CreateNewUser(&repository.UserInfo{
+						id, err0 := userRepo.CreateNewUser(&UserInfo{
 							UserName: "newUserForTestFollowing" + strconv.Itoa(t),
 							Password: "123",
 						})
@@ -289,5 +291,108 @@ var _ = Describe("User Repository", func() {
 			})
 		})
 	})
+	Describe("Add Tweets", func() {
+		Context("Add 10 tweets concurrently", func() {
+			It("should create all of the tweets correctly", func() {
+				var wg sync.WaitGroup
+				wg.Add(10)
+				uId, _ := userRepo.CreateNewUser(&UserInfo{
+					UserName: "TestForTweeting",
+					Password: "123",
+				})
+				for i := 0; i < 10; i++ {
+					go func(i int) {
+						defer wg.Done()
+						userRepo.AddTweetToUser(uId, uint(i))
+					}(i)
+				}
+				wg.Wait()
+				uE := userRepo.SelectById(uId)
+				Expect(uE.Posts.Len()).Should(Equal(10))
+			})
+		})
+	})
 
+})
+var _ = Describe("Post Repository", func() {
+	Describe("Create new post/Tweet", func() {
+		Context("When tweet one message", func() {
+			It("should succeed", func() {
+				pid, err := postRepo.CreateNewPost(PostInfo{
+					UserID:  puId,
+					Content: "Test",
+				})
+				Expect(err).To(BeNil())
+				Expect(pid).To(Not(BeZero()))
+				pE, _ := postRepo.Storage.Read(pid)
+				Expect(pE.UserID).To(Equal(puId))
+			})
+		})
+		Context("When post 20 tweets concurrently", func() {
+			It("should store 20 tweets correctly", func() {
+				var wg sync.WaitGroup
+				wg.Add(20)
+				postIds := make([]uint, 20)
+				for i := 0; i < 20; i++ {
+					go func(i int) {
+						defer wg.Done()
+						pid, err := postRepo.CreateNewPost(PostInfo{
+							UserID:  puId,
+							Content: "TestConcurrency" + strconv.Itoa(i),
+						})
+						Expect(err).To(BeNil())
+						Expect(pid).To(Not(BeZero()))
+						postIds[i] = pid
+					}(i)
+				}
+				wg.Wait()
+				for i := 0; i < 20; i++ {
+					pE, err := postRepo.Storage.Read(postIds[i])
+					Expect(err).Should(BeNil())
+					Expect(pE.Content).Should(Equal("TestConcurrency" + strconv.Itoa(i)))
+				}
+			})
+		})
+	})
+	Describe("Read Tweet", func() {
+		Context("Read the same tweet 20 times concurrently", func() {
+			It("should return 20 different pointers with the same information", func() {
+				var wg sync.WaitGroup
+				wg.Add(20)
+				postIds := make([]uint, 20)
+				for i := 0; i < 20; i++ {
+					go func(i int) {
+						defer wg.Done()
+						defer GinkgoRecover()
+						pid, err := postRepo.CreateNewPost(PostInfo{
+							UserID:  puId,
+							Content: "TestConcurrency",
+						})
+						Expect(err).To(BeNil())
+						Expect(pid).To(Not(BeZero()))
+						postIds[i] = pid
+					}(i)
+				}
+				wg.Wait()
+				postEs := make([]*storage.PostEntity, 20)
+				wg.Add(20)
+				for i := 1; i < 20; i++ {
+					go func(i int) {
+						defer wg.Done()
+						post := postRepo.SelectById(postIds[i])
+						postEs[i] = post
+					}(i)
+				}
+				wg.Wait()
+				prev := postRepo.SelectById(postIds[0])
+				Expect(prev.Content).Should(Equal("TestConcurrency"))
+				for i := 1; i < 20; i++ {
+					post := postEs[i]
+					Expect(post).ShouldNot(BeIdenticalTo(prev))
+					Expect(post).Should(Equal(prev.Content))
+					prev = post
+				}
+			})
+		})
+	})
 })
