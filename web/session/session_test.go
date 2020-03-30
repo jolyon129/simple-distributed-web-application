@@ -81,7 +81,7 @@ var _ = Describe("Session Manager", func() {
 		})
 
 	})
-	Describe("Modified values", func() {
+	Describe("Modified values in session", func() {
 		manager, _ := sessmanager.GetManagerSingleton("memory")
 		Context("When setting values in a session", func() {
 			It("should be fine", func() {
@@ -111,8 +111,41 @@ var _ = Describe("Session Manager", func() {
 				Expect(subject).Should(Equal("Distributed System"))
 			})
 		})
-		Context("When seting values in 2 sessions concurrently", func() {
-
+		Context("When setting values in 2 sessions concurrently", func() {
+			It("Should be synchronized", func() {
+				fakeReq1 := httptest.NewRequest("GET", "/login", nil)
+				fakeReq2 := httptest.NewRequest("GET", "/login", nil)
+				fakeW1 := httptest.NewRecorder()
+				fakeW2 := httptest.NewRecorder()
+				s1 := manager.SessionStart(fakeW1, fakeReq1)
+				s2 := manager.SessionStart(fakeW2, fakeReq2)
+				var wg sync.WaitGroup
+				wg.Add(10)
+				for i := 0; i < 5; i++ {
+					go func(i int) {
+						s1.Set(i, i)
+						wg.Done()
+					}(i)
+					go func(i int) {
+						s2.Set(i, i)
+						wg.Done()
+					}(i)
+				}
+				wg.Wait()
+				for i := 0; i < 5; i++ {
+					Expect(s1.Get(i).(int)).Should(Equal(i))
+				}
+			})
+		})
+		Context("When delete existed keys", func() {
+			It("should be wiped out", func() {
+				fakeReq := httptest.NewRequest("GET", "/login", nil)
+				fakeW := httptest.NewRecorder()
+				sess := manager.SessionStart(fakeW, fakeReq)
+				sess.Set("Name", "Zhuolun Li")
+				sess.Delete("Name")
+				Expect(sess.Get("Name")).Should(BeNil())
+			})
 		})
 	})
 })

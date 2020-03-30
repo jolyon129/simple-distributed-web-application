@@ -29,6 +29,10 @@ func (e *MyStorageError) Error() string {
 	return e.Message
 }
 
+func (e *MyStorageError) String() string {
+	return e.Message
+}
+
 type UserStorageInterface interface {
 	Create(user *UserEntity) (uint, *MyStorageError)
 	Delete(ID uint) *MyStorageError
@@ -36,7 +40,7 @@ type UserStorageInterface interface {
 	// Return a copy of user entity.
 	Read(ID uint) (*UserEntity, *MyStorageError)
 	Update(ID uint, user *UserEntity) (uint, *MyStorageError)
-	FindAll() *list.List
+	FindAll() []*UserEntity
 }
 
 type PostStorageInterface interface {

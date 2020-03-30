@@ -9,8 +9,8 @@ func init() {
 	var memUserStorage storage.UserStorageInterface
 	var memPostStorage storage.PostStorageInterface
 	memUserStorage = &MemUserStore{
-		userMap:     make(map[uint]*storage.UserEntity),
-		users:       list.New(),
+		userMap: make(map[uint]*storage.UserEntity),
+		//users:       list.New(),
 		userNameSet: make(map[string]bool),
 		pkCounter:   100, // Start from 100
 	}

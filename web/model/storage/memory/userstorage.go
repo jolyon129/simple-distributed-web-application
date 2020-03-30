@@ -2,33 +2,47 @@ package memory
 
 import (
 	"container/list"
+	"sort"
 	"sync"
 	"zl2501-final-project/web/model/storage"
 )
 
-//TODO:
-// return a new user entity to avoid clients change the
-// internal data
-
 type MemUserStore struct {
 	sync.Mutex
-	userMap     map[uint]*storage.UserEntity // Map index to entity/record
-	users       *list.List                   // A list of user entity. The entry is a pointer.
-	userNameSet map[string]bool              // A set of username. Used as a fast approach to avoid duplicate names
-	pkCounter   uint                         // Primary Key Counter
+	userMap map[uint]*storage.UserEntity // Map index to entity/record
+	//users       *list.List                   // A list of user entity. The entry is a pointer.
+	userNameSet map[string]bool // A set of username. Used as a fast approach to avoid duplicate names
+	pkCounter   uint            // Primary Key Counter
 }
 
-func (m *MemUserStore) FindAll() *list.List {
+// Sort User By their ID
+type EntityById []*storage.UserEntity
+
+func (e EntityById) Len() int {
+	return len(e)
+}
+
+func (e EntityById) Less(i, j int) bool {
+	return e[i].ID < e[j].ID
+}
+
+func (e EntityById) Swap(i, j int) {
+	e[i], e[j] = e[j], e[i]
+}
+
+func (m *MemUserStore) FindAll() []*storage.UserEntity {
 	m.Lock()
 	defer m.Unlock()
-	newList := list.New()
-	for e := m.users.Front(); e != nil; e = e.Next() {
-		u := e.Value.(*storage.UserEntity)
-		newUE := storage.UserEntity{}
-		copyUserEntity(&newUE, u)
-		newList.PushBack(&newUE)
+	//newList := list.New()
+	res := make(EntityById, 0)
+	for _, entity := range m.userMap {
+		newE := storage.UserEntity{}
+		copyUserEntity(&newE, entity)
+		//newList.PushBack(&newE)
+		res = append(res, &newE)
 	}
-	return newList
+	sort.Sort(res)
+	return res
 }
 
 // Return a new primary key
@@ -43,17 +57,9 @@ func (m *MemUserStore) getNewPK() uint {
 func (m *MemUserStore) Update(ID uint, newUserE *storage.UserEntity) (uint, *storage.MyStorageError) {
 	m.Lock()
 	defer m.Unlock()
-	userEntity := m.userMap[ID]
-	userEntity.Password = newUserE.Password
-	newPostList := list.New()
-	newFollowingList := list.New()
-	newFollowerList := list.New()
-	copyUintList(newPostList, newUserE.Posts) // Copy the post list
-	copyUintList(newFollowingList, newUserE.Following)
-	copyUintList(newFollowerList, newUserE.Follower)
-	userEntity.Posts = newPostList // Change the pointer in the userEntity
-	userEntity.Follower = newFollowerList
-	userEntity.Following = newFollowingList
+	totalNewE := &storage.UserEntity{}
+	copyUserEntity(totalNewE, newUserE)
+	m.userMap[ID] = totalNewE
 	return ID, nil
 }
 
@@ -74,7 +80,7 @@ func (m *MemUserStore) Create(user *storage.UserEntity) (uint, *storage.MyStorag
 	}
 	m.userMap[pk] = &newUser
 	m.userNameSet[user.UserName] = true
-	m.users.PushBack(&newUser)
+	//m.users.PushBack(&newUser)
 	return pk, nil
 }
 
@@ -84,16 +90,9 @@ func (m *MemUserStore) Delete(ID uint) *storage.MyStorageError {
 	if _, ok := m.userMap[ID]; !ok {
 		return &storage.MyStorageError{Message: "Non-exist ID"}
 	} else {
-		for e := m.users.Front(); e != nil; e = e.Next() {
-			u := e.Value.(storage.UserEntity)
-			if u.ID == ID {
-				name := u.UserName
-				id := u.ID
-				delete(m.userNameSet, name)
-				delete(m.userMap, id)
-				m.users.Remove(e)
-			}
-		}
+		userE, _ := m.Read(ID)
+		delete(m.userNameSet, userE.UserName)
+		delete(m.userMap, ID)
 		return nil
 	}
 }

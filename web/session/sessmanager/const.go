@@ -2,4 +2,4 @@ package sessmanager
 
 const ProviderName = "memory"
 const CookieName = "sessionId"
-const MaxLifeTime = 3600
+const MaxLifeTime = 7200

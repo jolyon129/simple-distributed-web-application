@@ -13,7 +13,8 @@ var postRepo *repository.PostRepo
 // Get the singleton of user repository
 func GetUserRepo() *repository.UserRepo {
 	if userRepo == nil {
-		userRepo = &repository.UserRepo{Storage: storageManager.UserStorage}
+		userRepo = repository.NewUserRepo()
+		userRepo.Storage = storageManager.UserStorage
 		return userRepo
 	} else {
 		return userRepo
