@@ -6,6 +6,8 @@ import (
 	"zl2501-final-project/web/model/storage"
 )
 
+//TODO:
+// Add lock!
 type PostRepo struct {
 	Storage storage.PostStorageInterface
 }

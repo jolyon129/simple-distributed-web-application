@@ -7,6 +7,8 @@ import (
 	"zl2501-final-project/web/model/storage"
 )
 
+//TODO:
+// Refactor this! No Posts!
 type MemPostStore struct {
 	sync.Mutex
 	postMap   map[uint]*storage.PostEntity // // Map index to entity/record
