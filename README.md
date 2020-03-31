@@ -7,7 +7,7 @@
 The project is built on Go 1.14 and uses `Go Module`. If your go version is lower than this, the `go mod vendor` may cause errors. 
 
 I use `Makefile` to organize commands.
-* `make run-web`: Run `go mod vendor` first to download the required 3rd party libraries(Ginkgo and crypto) and then start the server. The server starts at `http://localhost:9000`
+* `make run-web`:  Start the server(will call `go mod vendor` first to download 3rd party packages(Ginkgo and Crypto). The server starts at `http://localhost:9000`
 * `make test`: Run `go test -v --race`to call `ginkgo`.
 * `make build`: Build `web` into `./build` directory. After building, you can execute `./build/web` to run the server. The working directory has to be the root of the project so that the server can access to the HTML file(which is in `./web/template/`)
 
@@ -21,7 +21,9 @@ After starting service, go to `localhost:9000` to enter into the application. Yo
 
 The user `zl2501` has some tweets and is following the user `jolyon129`(password is 123). After login, the page is redirected to the `home` and you can see your feed(including your own tweets and `jolyon129`'s tweets). I use merge sort to display all tweets chronologically.
 
-Your can view other users by clicking `View all users`. On the user list page, you can follow and unfollow others (your feed will change as well).    
+Tweet as you want. 
+
+Your can also view other users by clicking `View all users`. On this user list page, you can follow and unfollow others (your feed will change as well).    
 
 ## URL 
 
