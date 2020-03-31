@@ -9,11 +9,6 @@ import (
 )
 
 func main() {
-	// Change working directory to web/ first
-	//err := os.Chdir("../../web")
-	//if err != nil {
-	//	panic(err)
-	//}
 	addDefaultData()
 	web.StartService()
 }

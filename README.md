@@ -1,4 +1,9 @@
-# Distributed Systems: Final Project
+[![Build Status](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project.svg?token=LyWHGctXVCcEk9v6z4HG&branch=master)](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project)
+
+
+
+
+# Distributed Systems: Final Project (Requirement)
 
 The project for this course will be to develop (in stages), a distributed, reliable backend in support of a mildly complex (think twitter) social media application.
 
