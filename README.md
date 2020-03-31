@@ -4,6 +4,8 @@
 
 ## Run the server
 
+Put the project under the `$GOPATH/src`
+
 The project is built on Go 1.14 and uses `Go Module`. If your go version is lower than this, the `go mod vendor` may cause errors. 
 
 I use `Makefile` to organize commands.
