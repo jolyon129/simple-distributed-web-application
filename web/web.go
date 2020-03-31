@@ -17,7 +17,6 @@ func init() {
 	// Set global logger
 	log.SetPrefix("GlobalLogger: ")
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	log.Println("init started")
 	globalSessions, _ = sessmanager.GetManagerSingleton("memory")
 }
 
@@ -37,12 +36,9 @@ func StartService() {
 	mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.User), auth.CheckAuth, SetHeader))
 	mux.Handle("/follow", MiddlewareAdapt(http.HandlerFunc(controller.Follow), auth.CheckAuth, SetHeader))
 	mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow), auth.CheckAuth, SetHeader))
-	err := http.ListenAndServe(":"+constant.Port, logger.LogRequests(mux))
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	} else {
-		log.Println("Server starts at: localhost:"+constant.Port)
-	}
+	log.Println("Server is going to start at: http://localhost:"+constant.Port)
+	log.Fatal(http.ListenAndServe(":"+constant.Port, logger.LogRequests(mux)))
+
 }
 
 // Adapt all middlewares to the handler.

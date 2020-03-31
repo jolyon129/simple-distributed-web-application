@@ -212,17 +212,10 @@ type userView struct {
 
 func User(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		uidstr := path.Base(html.UnescapeString(r.URL.Path))
-		uid, err := strconv.ParseUint(uidstr, 10, 32)
-		if err != nil {
-			log.Println("Illegal userid")
-			http.Redirect(w, r, "/users", 302)
-			return
-		}
-		uiduint := uint(uid)
-		uE := model.GetUserRepo().SelectById(uiduint)
+		userNameStr := path.Base(html.UnescapeString(r.URL.Path))
+		uE := model.GetUserRepo().SelectByName(userNameStr)
 		if uE == nil {
-			log.Println("Illegal userid")
+			log.Println("Illegal User Name")
 			http.Redirect(w, r, "/users", 302)
 			return
 		}
