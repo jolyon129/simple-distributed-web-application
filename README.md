@@ -4,9 +4,9 @@
 
 ## Run the server
 
-Put the project under the `$GOPATH/src`
+WARN: The project is built on Go 1.14 and uses `Go Module`. If your go version is lower than this, the `go mod vendor` may cause errors. 
 
-The project is built on Go 1.14 and uses `Go Module`. If your go version is lower than this, the `go mod vendor` may cause errors. 
+Please put the project under the `$GOPATH/src` and cd into the project first.
 
 I use `Makefile` to organize commands.
 * `make run-web`:  Start the server(will call `go mod vendor` first to download 3rd party packages(Ginkgo and Crypto). The server starts at `http://localhost:9000`
