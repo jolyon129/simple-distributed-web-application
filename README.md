@@ -4,13 +4,16 @@
 
 ## Run the server
 
-I use `Makefile` to organize commands.
+The project is built on Go 1.14 and uses `Go Module`. If your go version is lower than this, the `go mod vendor` may cause errors. 
 
+I use `Makefile` to organize commands.
 * `make run-web`: Run `go mod vendor` first to download the required 3rd party libraries(Ginkgo and crypto) and then start the server. The server starts at `http://localhost:9000`
 * `make test`: Run `go test -v --race`to call `ginkgo`.
 * `make build`: Build `web` into `./build` directory. After building, you can execute `./build/web` to run the server. The working directory has to be the root of the project so that the server can access to the HTML file(which is in `./web/template/`)
 
 ## Logic
+
+`make run-web` to start the server.
 
 After starting service, go to `localhost:9000` to enter into the application. You can creat your own user or login by using the predefined test user.
 
@@ -20,7 +23,7 @@ The user `zl2501` has some tweets and is following the user `jolyon129`(password
 
 Your can view other users by clicking `View all users`. On the user list page, you can follow and unfollow others (your feed will change as well).    
 
-### URL 
+## URL 
 
 * `/index`  login or sign up 
 * `/home`   view the feed which consists of tweets from the following users (need to check auth ahead. If not login, redirect to the `/index`), and can take other basic actions (logout, tweet, view user list)
@@ -45,39 +48,39 @@ Your can view other users by clicking `View all users`. On the user list page, y
     ├── constant            --- Some Configuration and Constants(Port Number, etc)
     │   └── constant.go
     ├── controller          --- Implement controllers for the requests
-    │   ├── controller.go   --- Other controllers(`login`,`sigin`,`tweet`,ec)
+    │   ├── controller.go   --- Other controllers(`login`,`sigin`,`tweet`, etc)
     │   ├── home.go         --- Seperate file for home controller
     │   └── util.go         --- Utility 
     ├── go.mod              --- Go Module 
     ├── go.sum
-    ├── logger              --- Request Controller Middileware
+    ├── logger              --- Request Logger Middileware
     │   └── logger.go      
     ├── model               --- Implement Model Layer
     │   ├── model.go
     │   ├── model_suite_test.go --- Ginkgo Bootstrap File
-    │   ├── model_test.go
+    │   ├── model_test.go   -- Tests
     │   ├── repository      --- Implement repository
     │   │   ├── postrepo.go     --- Post/Tweets Repository
-    │   │   ├── repository_suite_test.go
+    │   │   ├── repository_suite_test.go --- Ginkgo Bootstrap File
     │   │   ├── repository_test.go  --- Tests for userrepo and postrepo
     │   │   └── userrepo.go     --- User Repository
     │   └── storage         --- Implement Storage Layer
     │       ├── memory      --- thread-safe memory Implementation
-    │       │   ├── memory.go
-    │       │   ├── poststorage.go
-    │       │   └── userstorage.go
+    │       │   ├── memory.go   --- Register memory implemnetation as the provider of stroage
+    │       │   ├── poststorage.go  --- Post/Tweet Storage
+    │       │   └── userstorage.go  --- User Storage
     │       └── storage_interface.go    --- Storage interface for users and posts/tweets
     ├── session                 --- Implement session control
     │   ├── provider_interface.go   --- Session provider interface
     │   ├── session_suite_test.go   --- Ginkgo bootstrap file
-    │   ├── session_test.go
+    │   ├── session_test.go         --- Tests
     │   ├── sessmanager             --- Export session manager to be called by others 
-    │   │   ├── const.go        --- session configuration
-    │   │   └── manager.go
-    │   └── storage 
-    │       ├── memory
+    │   │   ├── const.go        --- session manager configuration
+    │   │   └── manager.go      --- Implement Session Manager(Singleton)
+    │   └── storage             --- Session Storage
+    │       ├── memory          
     │       │   └── memory.go   --- thread-safe memory implementation
-    │       └── session_interface.go
+    │       └── session_interface.go    --- Interaface for session 
     ├── template                --- HTML files
     │   ├── home.html
     │   ├── index.html
@@ -86,13 +89,9 @@ Your can view other users by clicking `View all users`. On the user list page, y
     │   ├── tweet.html
     │   ├── user.html
     │   └── users.html
-    ├── vendor                 --- 3rd Party Library(crypto,ginkgo)
+    ├── vendor                 --- The directory for 3rd Party Library(crypto,ginkgo)
     └── web.go                 --- Set up router: route reqeusts to corresponding controllers  
 ```
-
-
-
-
 
 # Distributed Systems: Final Project (Requirement)
 
