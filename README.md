@@ -1,5 +1,96 @@
 [![Build Status](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project.svg?token=LyWHGctXVCcEk9v6z4HG&branch=master)](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project)
 
+# Stage 1 Explanation
+
+## Run the server
+
+I use `Makefile` to organize commands.
+
+* `make run-web`: Run `go mod vendor` first to download the required 3rd party libraries(Ginkgo and crypto) and then start the server. The server starts at `http://localhost:9000`
+* `make test`: Run `go test -v --race`to call `ginkgo`.
+* `make build`: Build `web` into `./build` directory. After building, you can execute `./build/web` to run the server. The working directory has to be the root of the project so that the server can access to the HTML file(which is in `./web/template/`)
+
+## Logic
+
+After starting service, go to `localhost:9000` to enter into the application. You can creat your own user or login by using the predefined test user.
+
+**The uesrname is "zl2501", and the password is "123".**
+
+The user `zl2501` has some tweets and is following the user `jolyon129`(password is 123). After login, the page is redirected to the `home` and you can see your feed(including your own tweets and `jolyon129`'s tweets). I use merge sort to display all tweets chronologically.
+
+Your can view other users by clicking `View all users`. On the user list page, you can follow and unfollow others (your feed will change as well).    
+
+### URL 
+
+* `/index`  login or sign up 
+* `/home`   view the feed which consists of tweets from the following users (need to check auth ahead. If not login, redirect to the `/index`), and can take other basic actions (logout, tweet, view user list)
+* `/users`  display all other users so that the user can follow or unfollow (need to check auth ahead)
+* `/user/:username` view some user's tweets
+
+
+## Project Structure
+
+```
+.
+├── Makefile        --- makefile
+├── README.md       
+├── build           --- store the result of building 
+├── cmd              
+│   └── web        
+│       └── web.go  --- call `StartService` and `addDefaultData`
+└── web
+    ├── auth            
+    │   └──  auth.go        --- Authentication Middleware
+    │   
+    ├── constant            --- Some Configuration and Constants(Port Number, etc)
+    │   └── constant.go
+    ├── controller          --- Implement controllers for the requests
+    │   ├── controller.go   --- Other controllers(`login`,`sigin`,`tweet`,ec)
+    │   ├── home.go         --- Seperate file for home controller
+    │   └── util.go         --- Utility 
+    ├── go.mod              --- Go Module 
+    ├── go.sum
+    ├── logger              --- Request Controller Middileware
+    │   └── logger.go      
+    ├── model               --- Implement Model Layer
+    │   ├── model.go
+    │   ├── model_suite_test.go --- Ginkgo Bootstrap File
+    │   ├── model_test.go
+    │   ├── repository      --- Implement repository
+    │   │   ├── postrepo.go     --- Post/Tweets Repository
+    │   │   ├── repository_suite_test.go
+    │   │   ├── repository_test.go  --- Tests for userrepo and postrepo
+    │   │   └── userrepo.go     --- User Repository
+    │   └── storage         --- Implement Storage Layer
+    │       ├── memory      --- thread-safe memory Implementation
+    │       │   ├── memory.go
+    │       │   ├── poststorage.go
+    │       │   └── userstorage.go
+    │       └── storage_interface.go    --- Storage interface for users and posts/tweets
+    ├── session                 --- Implement session control
+    │   ├── provider_interface.go   --- Session provider interface
+    │   ├── session_suite_test.go   --- Ginkgo bootstrap file
+    │   ├── session_test.go
+    │   ├── sessmanager             --- Export session manager to be called by others 
+    │   │   ├── const.go        --- session configuration
+    │   │   └── manager.go
+    │   └── storage 
+    │       ├── memory
+    │       │   └── memory.go   --- thread-safe memory implementation
+    │       └── session_interface.go
+    ├── template                --- HTML files
+    │   ├── home.html
+    │   ├── index.html
+    │   ├── login.html
+    │   ├── signup.html
+    │   ├── tweet.html
+    │   ├── user.html
+    │   └── users.html
+    ├── vendor                 --- 3rd Party Library(crypto,ginkgo)
+    └── web.go                 --- Set up router: route reqeusts to corresponding controllers  
+```
+
+
 
 
 
