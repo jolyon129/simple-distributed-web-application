@@ -237,6 +237,7 @@ var _ = Describe("User Repository", func() {
 			It("all return true", func() {
 				for i := 0; i < 10; i++ {
 					go func(t int) {
+						defer GinkgoRecover()
 						res := userRepo.CheckWhetherFollowing(puId, usersForTestFollowing[t])
 						Expect(res).Should(BeTrue())
 					}(i)
