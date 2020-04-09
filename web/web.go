@@ -21,9 +21,6 @@ func init() {
 }
 
 func StartService() {
-	//session.RegisterProvider("memory",nil)
-	//globalSessions,_ = session.NewManager("memory","gosessionid",3600)
-	//go globalSessions.GC()
 	mux := http.NewServeMux()
 	mux.Handle("/", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader))                                  // set router
 	mux.Handle("/index", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader)) // set router
@@ -38,7 +35,6 @@ func StartService() {
 	mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow), auth.CheckAuth, SetHeader))
 	log.Println("Server is going to start at: http://localhost:"+constant.Port)
 	log.Fatal(http.ListenAndServe(":"+constant.Port, logger.LogRequests(mux)))
-
 }
 
 // Adapt all middlewares to the handler.
