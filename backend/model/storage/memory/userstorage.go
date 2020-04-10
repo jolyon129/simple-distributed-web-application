@@ -11,7 +11,6 @@ type MemUserStore struct {
     storage.UserStorageInterface
     sync.Mutex
     userMap map[uint]*storage.UserEntity // Map index to entity/record
-    //users       *list.List                   // A list of user entity. The entry is a pointer.
     userNameSet map[string]bool // A set of username. Used as a fast approach to avoid duplicate names
     pkCounter   uint            // Primary Key Counter
 }
@@ -33,17 +32,17 @@ func (e EntityById) Swap(i, j int) {
 }
 
 func (m *MemUserStore) FindAll(result chan []*storage.UserEntity, errorChan chan error) {
-	m.Lock()
-	defer m.Unlock()
-	res := make(EntityById, 0)
-	for _, entity := range m.userMap {
-		newE := storage.UserEntity{}
-		copyUserEntity(&newE, entity)
-		//newList.PushBack(&newE)
-		res = append(res, &newE)
-	}
-	sort.Sort(res)
-	result<-res
+    m.Lock()
+    defer m.Unlock()
+    res := make(EntityById, 0)
+    for _, entity := range m.userMap {
+        newE := storage.UserEntity{}
+        copyUserEntity(&newE, entity)
+        //newList.PushBack(&newE)
+        res = append(res, &newE)
+    }
+    sort.Sort(res)
+    result <- res
 }
 
 // Return a new primary key
@@ -55,61 +54,63 @@ func (m *MemUserStore) getNewPK() uint {
 
 // Update can only modified the password and the post, the following and the follower list.
 // Take O(#post+#following+#follower) time.
-func (m *MemUserStore) Update(ID uint, newUserE *storage.UserEntity) (uint, *storage.MyStorageError) {
-	m.Lock()
-	defer m.Unlock()
-	totalNewE := &storage.UserEntity{}
-	copyUserEntity(totalNewE, newUserE)
-	m.userMap[ID] = totalNewE
-	return ID, nil
+func (m *MemUserStore) Update(ID uint, user *storage.UserEntity, result chan uint,
+        errorChan chan error) {
+    m.Lock()
+    defer m.Unlock()
+    totalNewE := &storage.UserEntity{}
+    copyUserEntity(totalNewE, user)
+    m.userMap[ID] = totalNewE
+    result <- ID
 }
 
-func (m *MemUserStore) Create(user *storage.UserEntity) (uint, *storage.MyStorageError) {
-	m.Lock()
-	defer m.Unlock()
-	if _, ok := m.userNameSet[user.UserName]; ok {
-		return 0, &storage.MyStorageError{Message: "Duplicate UserStorage Names!"}
-	}
-	pk := m.getNewPK()
-	newUser := storage.UserEntity{
-		ID:        pk,
-		UserName:  user.UserName,
-		Password:  user.Password,
-		Posts:     list.New(),
-		Following: list.New(),
-		Follower:  list.New(),
-	}
-	m.userMap[pk] = &newUser
-	m.userNameSet[user.UserName] = true
-	//m.users.PushBack(&newUser)
-	return pk, nil
+func (m *MemUserStore) Create(user *storage.UserEntity, result chan uint, errorChan chan error) {
+    m.Lock()
+    defer m.Unlock()
+    if _, ok := m.userNameSet[user.UserName]; ok {
+        errorChan <- &storage.MyStorageError{Message: "Duplicate UserStorage Names!"}
+    }
+    pk := m.getNewPK()
+    newUser := storage.UserEntity{
+        ID:        pk,
+        UserName:  user.UserName,
+        Password:  user.Password,
+        Posts:     list.New(),
+        Following: list.New(),
+        Follower:  list.New(),
+    }
+    m.userMap[pk] = &newUser
+    m.userNameSet[user.UserName] = true
+    result <- pk
 }
 
-func (m *MemUserStore) Delete(ID uint) *storage.MyStorageError {
-	m.Lock()
-	defer m.Unlock()
-	if _, ok := m.userMap[ID]; !ok {
-		return &storage.MyStorageError{Message: "Non-exist ID"}
-	} else {
-		userE, _ := m.Read(ID)
-		delete(m.userNameSet, userE.UserName)
-		delete(m.userMap, ID)
-		return nil
-	}
+func (m *MemUserStore) Delete(ID uint, result chan bool, errorChan chan error) {
+    m.Lock()
+    defer m.Unlock()
+    if _, ok := m.userMap[ID]; !ok {
+        errorChan <- &storage.MyStorageError{Message: "Non-exist ID"}
+    } else {
+        uInDB := m.userMap[ID]
+        // Copy the post list
+        newUser := storage.UserEntity{}
+        copyUserEntity(&newUser, uInDB)
+        delete(m.userNameSet, newUser.UserName)
+        delete(m.userMap, ID)
+        result <- true
+    }
 }
 
-func (m *MemUserStore) Read(ID uint) (*storage.UserEntity, *storage.MyStorageError) {
-	m.Lock()
-	defer m.Unlock()
-	if _, ok := m.userMap[ID]; !ok {
-		return nil, &storage.MyStorageError{Message: "Non-exist ID"}
-	} else {
-		uInDB := m.userMap[ID]
-		// Copy the post list
-		newUser := storage.UserEntity{}
-		copyUserEntity(&newUser, uInDB)
-		return &newUser, nil
-	}
+func (m *MemUserStore) Read(ID uint, result chan *storage.UserEntity, errorChan chan error) {
+    m.Lock()
+    defer m.Unlock()
+    if _, ok := m.userMap[ID]; !ok {
+        errorChan <- &storage.MyStorageError{Message: "Non-exist ID"}
+    } else {
+        uInDB := m.userMap[ID]
+        newUser := storage.UserEntity{}
+        copyUserEntity(&newUser, uInDB)
+        result <- &newUser
+    }
 }
 
 // Copy a list of uint

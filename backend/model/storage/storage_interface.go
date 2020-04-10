@@ -39,7 +39,7 @@ type UserStorageInterface interface {
 	// Read by user ID.
 	// Return a copy of user entity.
 	Read(ID uint, result chan *UserEntity, errorChan chan error)
-	Update(ID uint, user *UserEntity, result chan *UserEntity, errorChan chan error)
+	Update(ID uint, user *UserEntity, result chan uint, errorChan chan error)
 	FindAll(result chan []*UserEntity, errorChan chan error)
 }
 
