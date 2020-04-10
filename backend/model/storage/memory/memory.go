@@ -6,20 +6,20 @@ import (
 
 func init() {
 	var memUserStorage storage.UserStorageInterface
-	var memPostStorage storage.PostStorageInterface
+	var memPostStorage storage.TweetStorageInterface
 	memUserStorage = &MemUserStore{
 		userMap: make(map[uint]*storage.UserEntity),
 		//users:       list.New(),
 		userNameSet: make(map[string]bool),
 		pkCounter:   100, // Start from 100
 	}
-	memPostStorage = &MemPostStore{
-		postMap:   make(map[uint]*storage.PostEntity),
+	memPostStorage = &MemTweetStore{
+		postMap:   make(map[uint]*storage.TweetEntity),
 		pkCounter: 1000, // Start from 100
 	}
 	memModels := storage.Manager{
-		UserStorage: memUserStorage,
-		PostStorage: memPostStorage,
+		UserStorage:  memUserStorage,
+		TweetStorage: memPostStorage,
 	}
 	// Register the implementation of storage manager.
 	storage.RegisterDriver("memory", &memModels)

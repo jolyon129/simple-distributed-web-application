@@ -14,7 +14,7 @@ type UserEntity struct {
 	Posts     *list.List // The oldest comes first
 }
 
-type PostEntity struct {
+type TweetEntity struct {
 	ID          uint
 	UserID      uint
 	Content     string
@@ -43,14 +43,10 @@ type UserStorageInterface interface {
 	FindAll(result chan []*UserEntity, errorChan chan error)
 }
 
-type PostStorageInterface interface {
-	Create(post *PostEntity) (uint, *MyStorageError)
-	//Delete(ID uint) *MyStorageError
-	// Read by post ID
+type TweetStorageInterface interface {
+	Create(tweet *TweetEntity, result chan uint, errorChan chan error)
 	// Return a copy of post entity
-	Read(ID uint) (PostEntity, *MyStorageError)
-	//Update(ID uint, post *PostEntity) (uint,*MyStorageError)
-
+	Read(ID uint, result chan TweetEntity, errorChan chan error)
 }
 
 var drivers = make(map[string]*Manager)
@@ -66,14 +62,14 @@ func NewManager(name string) *Manager {
 
 // A storage manager. The is the entry point for the storage package.
 type Manager struct {
-	UserStorage UserStorageInterface
-	PostStorage PostStorageInterface
+	UserStorage  UserStorageInterface
+	TweetStorage TweetStorageInterface
 }
 
 func (m *Manager) GetUserStorage() UserStorageInterface {
 	return m.UserStorage
 }
 
-func (m *Manager) GetPostStorage() PostStorageInterface {
-	return m.PostStorage
+func (m *Manager) GetTweetStorage() TweetStorageInterface {
+	return m.TweetStorage
 }

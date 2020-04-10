@@ -10,7 +10,7 @@ import (
 
 type PostRepo struct {
 	sync.Mutex
-	Storage storage.PostStorageInterface
+	Storage storage.TweetStorageInterface
 }
 
 type PostInfo struct {
@@ -21,7 +21,7 @@ type PostInfo struct {
 func (postRepo *PostRepo) CreateNewPost(p PostInfo) (uint, error) {
 	postRepo.Lock()
 	defer postRepo.Unlock()
-	ID, err := postRepo.Storage.Create(&storage.PostEntity{
+	ID, err := postRepo.Storage.Create(&storage.TweetEntity{
 		ID:          0,
 		UserID:      p.UserID,
 		Content:     p.Content,
@@ -36,7 +36,7 @@ func (postRepo *PostRepo) CreateNewPost(p PostInfo) (uint, error) {
 }
 
 // Return a post Entity according the post id
-func (postRepo *PostRepo) SelectById(pId uint) *storage.PostEntity {
+func (postRepo *PostRepo) SelectById(pId uint) *storage.TweetEntity {
 	postRepo.Lock()
 	postRepo.Unlock()
 	p, err := postRepo.Storage.Read(pId)

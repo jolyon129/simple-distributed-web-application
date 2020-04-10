@@ -33,7 +33,7 @@ func GetPostRepo() *repository.PostRepo {
 	muForPost.Lock()
 	defer muForPost.Unlock()
 	if postRepo == nil {
-		postRepo = &repository.PostRepo{Storage: storageManager.PostStorage}
+		postRepo = &repository.PostRepo{Storage: storageManager.TweetStorage}
 		return postRepo
 	} else {
 		return postRepo
