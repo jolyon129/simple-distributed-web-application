@@ -4,11 +4,9 @@ import (
 	"log"
 	"net/http"
 	"zl2501-final-project/backend/constant"
-	"zl2501-final-project/web/logger"
-	"zl2501-final-project/web/session/sessmanager"
+	"zl2501-final-project/backend/session/sessmanager"
 )
 
-var globalSessions *sessmanager.Manager
 
 func init() {
 	// Set global logger
@@ -19,7 +17,8 @@ func init() {
 
 
 func StartService() {
-	mux := http.NewServeMux()
+//	mux := http.NewServeMux()
 	log.Println("Server is going to start at: http://localhost:"+constant.Port)
-	log.Fatal(http.ListenAndServe(":"+constant.Port, logger.LogRequests(mux)))
 }
+
+
