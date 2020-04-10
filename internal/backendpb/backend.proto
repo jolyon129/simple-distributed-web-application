@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package internal.backendpb;
+
+service Backend {
+    //    rpc SignUp (SignUpRequest) returns (SignUpResponse) {
+    //    }
+    rpc SessionAuth (SessionGeneralRequest) returns (SessionGeneralResponse) {
+    }
+    rpc SessionStart (SessionGeneralRequest) returns (SessionGeneralResponse) {
+    }
+    rpc SessionDestroy (SessionGeneralRequest) returns (SessionGeneralResponse) {
+    }
+    rpc NewTweet (NewTweetRequest) returns (NewTweetResponse) {
+    }
+    rpc TweetSelectById (SelectByIdRequest) returns (TweetSelectByIdResponse) {
+    }
+    rpc NewUser (NewUserRequest) returns (NewUserResponse) {
+    }
+    rpc UserSelectByName (UserSelectByNameRequest) returns (UserSelectByNameResponse) {
+    }
+    rpc UserSelectById (SelectByIdRequest) returns (UserSelectByIdResponse) {
+    }
+    rpc UserAddTweet (UserAddTweetRequest) returns (UserAddTweetResponse) {
+    }
+    rpc FindAllUsers (FindAllUsersRequest) returns (FindAllUsersResponse) {
+    }
+    rpc UserCheckWhetherFollowing (UserCheckWhetherFollowingRequest) returns (UserCheckWhetherFollowingResponse) {
+    }
+    rpc StartFollowing (StartFollowingRequest) returns (StartFollowingResponse) {
+    }
+    rpc StopFollowing (StopFollowingRequest) returns (StopFollowingResponse) {
+    }
+}
+
+
+message StopFollowingRequest {
+    uint64 source_user_id = 1;
+    uint64 target_user_id = 2;
+}
+
+message StopFollowingResponse {
+    bool ok = 1;
+}
+
+
+message StartFollowingRequest {
+    uint64 source_user_id = 1;
+    uint64 target_user_id = 2;
+}
+message StartFollowingResponse {
+    bool ok = 1;
+}
+
+message UserCheckWhetherFollowingRequest {
+    uint64 source_user_id = 1;
+    uint64 target_user_id = 2;
+}
+
+message UserCheckWhetherFollowingResponse {
+    bool ok = 1;
+}
+
+message FindAllUsersRequest {
+}
+message FindAllUsersResponse {
+    repeated UserEntity users = 1;
+}
+
+message UserAddTweetRequest {
+    uint64 user_id = 1;
+    uint64 tweet_id = 2;
+}
+
+message UserAddTweetResponse {
+    bool ok = 1;
+}
+
+
+message UserSelectByIdResponse {
+    UserEntity user = 1;
+}
+message UserEntity {
+    uint64 user_id = 1;
+    string user_name = 2;
+    string password = 3;
+    repeated uint64 followers = 4;
+    repeated uint64 followings = 5;
+    repeated uint64 tweets = 6;
+
+}
+message UserSelectByNameRequest {
+    string name = 1;
+}
+message UserSelectByNameResponse {
+    string user_id = 1;
+}
+
+message NewUserRequest {
+    string user_name = 1;
+    string user_pwd = 2;
+}
+message NewUserResponse {
+    uint64 user_id = 1;
+}
+
+message NewTweetRequest {
+    uint64 user_id = 1;
+    string content = 2;
+}
+
+message NewTweetResponse {
+    uint64 tweet_id = 1;
+}
+
+message SelectByIdRequest {
+    uint64 id = 1;
+}
+
+message TweetSelectByIdResponse {
+    TweetEntity msg = 1;
+}
+
+message TweetEntity {
+    uint64 tweet_id = 1;
+    uint64 user_id = 2;
+    string content = 3;
+    string created_time = 4;
+}
+
+message SessionGeneralRequest {
+    string session_id = 1;
+}
+message SessionGeneralResponse {
+    bool ok = 1;
+}
+
+
