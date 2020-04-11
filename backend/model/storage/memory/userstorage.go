@@ -69,6 +69,7 @@ func (m *MemUserStore) Create(user *storage.UserEntity, result chan uint, errorC
 	defer m.Unlock()
 	if _, ok := m.userNameSet[user.UserName]; ok {
 		errorChan <- &storage.MyStorageError{Message: "Duplicate UserStorage Names!"}
+		return // Return Immediately!
 	}
 	pk := m.getNewPK()
 	newUser := storage.UserEntity{

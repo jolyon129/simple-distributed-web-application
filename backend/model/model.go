@@ -9,7 +9,7 @@ import (
 
 var storageManager = storage.NewManager("memory")
 var userRepo *repository.UserRepo
-var postRepo *repository.TweetRepo
+var tweetRepo *repository.TweetRepo
 var muForUser sync.Mutex
 var muForPost sync.Mutex
 
@@ -19,8 +19,7 @@ func GetUserRepo() *repository.UserRepo {
 	muForUser.Lock()
 	defer muForUser.Unlock()
 	if userRepo == nil {
-		userRepo = repository.NewUserRepo()
-		userRepo.Storage = storageManager.UserStorage
+		userRepo = repository.NewUserRepo(storageManager.UserStorage)
 		return userRepo
 	} else {
 		return userRepo
@@ -32,10 +31,10 @@ func GetUserRepo() *repository.UserRepo {
 func GetPostRepo() *repository.TweetRepo {
 	muForPost.Lock()
 	defer muForPost.Unlock()
-	if postRepo == nil {
-		postRepo = &repository.TweetRepo{Storage: storageManager.TweetStorage}
-		return postRepo
+	if tweetRepo == nil {
+		tweetRepo = repository.NewTweetRepo(storageManager.TweetStorage)
+		return tweetRepo
 	} else {
-		return postRepo
+		return tweetRepo
 	}
 }

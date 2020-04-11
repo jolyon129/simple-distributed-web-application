@@ -10,7 +10,7 @@ import (
 // This is a singleton type
 type UserRepo struct {
 	sync.Mutex // Need lock
-	Storage    storage.UserStorageInterface
+	storage    storage.UserStorageInterface
 	con        *sync.Cond
 }
 
@@ -19,11 +19,12 @@ type UserInfo struct {
 	Password string
 }
 
-func NewUserRepo() *UserRepo {
+func NewUserRepo(storageInterface storage.UserStorageInterface) *UserRepo {
 	ret := UserRepo{
-		Storage: nil,
+		storage: nil,
 	}
 	ret.con = sync.NewCond(&ret)
+	ret.storage = storageInterface
 	return &ret
 }
 
@@ -34,7 +35,7 @@ func (userRepo *UserRepo) CreateNewUser(ctx context.Context, u *UserInfo) (uint,
 	result := make(chan uint)
 	errorChan := make(chan error)
 	go func() {
-		userRepo.Storage.Create(&storage.UserEntity{
+		userRepo.storage.Create(&storage.UserEntity{
 			ID:       0,
 			UserName: u.UserName,
 			Password: u.Password,
@@ -55,7 +56,7 @@ func (userRepo *UserRepo) SelectByName(ctx context.Context, name string) (*stora
 	result := make(chan []*storage.UserEntity)
 	errorChan := make(chan error)
 	go func() {
-		userRepo.Storage.FindAll(result, errorChan)
+		userRepo.storage.FindAll(result, errorChan)
 	}()
 	select {
 	case users := <-result:
@@ -76,7 +77,7 @@ func (userRepo *UserRepo) SelectById(ctx context.Context, uid uint) (*storage.Us
 	result := make(chan *storage.UserEntity)
 	errorChan := make(chan error)
 	go func() {
-		userRepo.Storage.Read(uid, result, errorChan)
+		userRepo.storage.Read(uid, result, errorChan)
 	}()
 	select {
 	case ret := <-result:
@@ -93,7 +94,7 @@ func (u *UserRepo) AddTweetToUser(ctx context.Context, uId uint, pId uint) (bool
 	result := make(chan bool)
 	errorChan := make(chan error)
 	go func() {
-		u.Storage.AddTweetToUserDB(uId, pId, result, errorChan)
+		u.storage.AddTweetToUserDB(uId, pId, result, errorChan)
 	}()
 	select {
 	case <-result:
@@ -110,7 +111,7 @@ func (u *UserRepo) FindAllUsers(ctx context.Context) ([]*storage.UserEntity, err
 	result := make(chan []*storage.UserEntity)
 	errorChan := make(chan error)
 	go func() {
-		u.Storage.FindAll(result, errorChan)
+		u.storage.FindAll(result, errorChan)
 	}()
 	select {
 	case users := <-result:
@@ -124,12 +125,12 @@ func (u *UserRepo) FindAllUsers(ctx context.Context) ([]*storage.UserEntity, err
 
 // Check whether the user srcId follows the user targetId.
 // Take O(#following) time
-func (u *UserRepo) checkWhetherFollowing(ctx context.Context, srcId uint, targetId uint) (bool,
+func (u *UserRepo) CheckWhetherFollowing(ctx context.Context, srcId uint, targetId uint) (bool,
 	error) {
 	result := make(chan bool)
 	errorChan := make(chan error)
 	go func() {
-		u.Storage.CheckWhetherFollowingDB(srcId, targetId, result, errorChan)
+		u.storage.CheckWhetherFollowingDB(srcId, targetId, result, errorChan)
 	}()
 	select {
 	case ret := <-result:
@@ -146,7 +147,7 @@ func (u *UserRepo) StartFollowing(ctx context.Context, srcId uint, targetId uint
 	result := make(chan bool)
 	errorChan := make(chan error)
 	go func() {
-		u.Storage.StartFollowingDB(srcId, targetId, result, errorChan)
+		u.storage.StartFollowingDB(srcId, targetId, result, errorChan)
 	}()
 	select {
 	case err := <-errorChan:
@@ -164,7 +165,7 @@ func (u *UserRepo) StopFollowing(ctx context.Context, srcId uint, targetId uint)
 	result := make(chan bool)
 	errorChan := make(chan error)
 	go func() {
-		u.Storage.StopFollowingDB(srcId, targetId, result, errorChan)
+		u.storage.StopFollowingDB(srcId, targetId, result, errorChan)
 	}()
 	select {
 	case ret := <-result:

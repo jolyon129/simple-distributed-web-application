@@ -9,7 +9,7 @@ import (
 
 type TweetRepo struct {
 	sync.Mutex
-	Storage storage.TweetStorageInterface
+	storage storage.TweetStorageInterface
 }
 
 type TweetInfo struct {
@@ -21,7 +21,7 @@ func (postRepo *TweetRepo) SaveTweet(ctx context.Context, p TweetInfo) (uint, er
 	result := make(chan uint)
 	errorChan := make(chan error)
 	go func() {
-		postRepo.Storage.Create(&storage.TweetEntity{
+		postRepo.storage.Create(&storage.TweetEntity{
 			ID:          0,
 			UserID:      p.UserID,
 			Content:     p.Content,
@@ -43,7 +43,7 @@ func (postRepo *TweetRepo) SelectById(ctx context.Context, pId uint) (*storage.T
 	result := make(chan *storage.TweetEntity)
 	errorChan := make(chan error)
 	go func() {
-		postRepo.Storage.Read(pId, result, errorChan)
+		postRepo.storage.Read(pId, result, errorChan)
 	}()
 	select {
 	case tweet := <-result:
@@ -53,4 +53,9 @@ func (postRepo *TweetRepo) SelectById(ctx context.Context, pId uint) (*storage.T
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+}
+
+func NewTweetRepo(storageInterface storage.TweetStorageInterface) *TweetRepo {
+	ret := TweetRepo{storage: storageInterface}
+	return &ret
 }

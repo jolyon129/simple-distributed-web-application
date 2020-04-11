@@ -69,10 +69,10 @@ type Manager struct {
 	TweetStorage TweetStorageInterface
 }
 
-func (m *Manager) GetUserStorage() UserStorageInterface {
-	return m.UserStorage
-}
-
-func (m *Manager) GetTweetStorage() TweetStorageInterface {
-	return m.TweetStorage
-}
+//func (m *Manager) GetUserStorage() UserStorageInterface {
+//	return m.UserStorage
+//}
+//
+//func (m *Manager) GetTweetStorage() TweetStorageInterface {
+//	return m.TweetStorage
+//}
