@@ -9,7 +9,7 @@ import (
 
 var storageManager = storage.NewManager("memory")
 var userRepo *repository.UserRepo
-var postRepo *repository.PostRepo
+var postRepo *repository.TweetRepo
 var muForUser sync.Mutex
 var muForPost sync.Mutex
 
@@ -29,11 +29,11 @@ func GetUserRepo() *repository.UserRepo {
 
 // Get the singleton of post repository
 // This is synchronized bc multiple threads can call this at the same time
-func GetPostRepo() *repository.PostRepo {
+func GetPostRepo() *repository.TweetRepo {
 	muForPost.Lock()
 	defer muForPost.Unlock()
 	if postRepo == nil {
-		postRepo = &repository.PostRepo{Storage: storageManager.TweetStorage}
+		postRepo = &repository.TweetRepo{Storage: storageManager.TweetStorage}
 		return postRepo
 	} else {
 		return postRepo

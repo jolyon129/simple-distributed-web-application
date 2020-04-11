@@ -11,7 +11,7 @@ type UserEntity struct {
 	Password  string
 	Follower  *list.List
 	Following *list.List
-	Posts     *list.List // The oldest comes first
+	Tweets    *list.List // The oldest comes first
 }
 
 type TweetEntity struct {
@@ -36,17 +36,20 @@ func (e *MyStorageError) String() string {
 type UserStorageInterface interface {
 	Create(user *UserEntity, result chan uint, errorChan chan error)
 	Delete(ID uint, result chan bool, errorChan chan error)
-	// Read by user ID.
-	// Return a copy of user entity.
+	// Read by user ID. Return a copy of user entity.
 	Read(ID uint, result chan *UserEntity, errorChan chan error)
 	Update(ID uint, user *UserEntity, result chan uint, errorChan chan error)
 	FindAll(result chan []*UserEntity, errorChan chan error)
+	AddTweetToUserDB(uId uint, pId uint, result chan bool, errorChan chan error)
+	CheckWhetherFollowingDB(srcId uint, targetId uint, result chan bool, errChan chan error)
+	StartFollowingDB(srcId uint, targetID uint, result chan bool, errorChan chan error)
+	StopFollowingDB(srcId uint, targetID uint, result chan bool, errorChan chan error)
 }
 
 type TweetStorageInterface interface {
 	Create(tweet *TweetEntity, result chan uint, errorChan chan error)
 	// Return a copy of post entity
-	Read(ID uint, result chan TweetEntity, errorChan chan error)
+	Read(ID uint, result chan *TweetEntity, errorChan chan error)
 }
 
 var drivers = make(map[string]*Manager)

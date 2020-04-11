@@ -4,3 +4,4 @@ build/
 /backend/pipe_test.go
 /backend/bounded_pipe_test.go
 /backend/ctxexample/
+/backend/vendor/

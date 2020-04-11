@@ -14,7 +14,7 @@ func init() {
 		pkCounter:   100, // Start from 100
 	}
 	memPostStorage = &MemTweetStore{
-		postMap:   make(map[uint]*storage.TweetEntity),
+		tweetMap:  make(map[uint]*storage.TweetEntity),
 		pkCounter: 1000, // Start from 100
 	}
 	memModels := storage.Manager{
