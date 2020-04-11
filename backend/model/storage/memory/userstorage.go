@@ -83,6 +83,7 @@ func (m *MemUserStore) Create(user *storage.UserEntity, result chan uint, errorC
 	m.userMap[pk] = &newUser
 	m.userNameSet[user.UserName] = true
 	result <- pk
+	return
 }
 
 func (m *MemUserStore) Delete(ID uint, result chan bool, errorChan chan error) {
@@ -90,6 +91,7 @@ func (m *MemUserStore) Delete(ID uint, result chan bool, errorChan chan error) {
 	defer m.Unlock()
 	if _, ok := m.userMap[ID]; !ok {
 		errorChan <- &storage.MyStorageError{Message: "Non-exist ID"}
+		return
 	} else {
 		uInDB := m.userMap[ID]
 		// Copy the post list
@@ -106,6 +108,7 @@ func (m *MemUserStore) Read(ID uint, result chan *storage.UserEntity, errorChan 
 	defer m.Unlock()
 	if _, ok := m.userMap[ID]; !ok {
 		errorChan <- &storage.MyStorageError{Message: "Non-exist ID"}
+		return
 	} else {
 		uInDB := m.userMap[ID]
 		newUser := storage.UserEntity{}
@@ -158,6 +161,7 @@ func (m *MemUserStore) StartFollowingDB(srcId uint, targetId uint, result chan b
 	defer m.Unlock()
 	if targetId == srcId {
 		errorChan <- errors.New("cannot follow themselves")
+		return
 	}
 	srcUser, ok2 := m.userMap[srcId]
 	targetUser, ok := m.userMap[targetId]
@@ -191,6 +195,7 @@ func (m *MemUserStore) StopFollowingDB(srcId uint, targetId uint, result chan bo
 	defer m.Unlock()
 	if targetId == srcId {
 		errorChan <- errors.New("cannot unfollow yourself")
+		return
 	}
 	srcUser, ok2 := m.userMap[srcId]
 	targetUser, ok := m.userMap[targetId]

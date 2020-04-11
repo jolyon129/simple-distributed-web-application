@@ -28,7 +28,7 @@ func GetUserRepo() *repository.UserRepo {
 
 // Get the singleton of post repository
 // This is synchronized bc multiple threads can call this at the same time
-func GetPostRepo() *repository.TweetRepo {
+func GetTweetRepo() *repository.TweetRepo {
 	muForPost.Lock()
 	defer muForPost.Unlock()
 	if tweetRepo == nil {

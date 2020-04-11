@@ -9,9 +9,9 @@ import (
 
 // This is a singleton type
 type UserRepo struct {
-	sync.Mutex // Need lock
-	storage    storage.UserStorageInterface
-	con        *sync.Cond
+	//	sync.Mutex // Need lock
+	storage storage.UserStorageInterface
+	con     *sync.Cond
 }
 
 type UserInfo struct {
@@ -23,7 +23,6 @@ func NewUserRepo(storageInterface storage.UserStorageInterface) *UserRepo {
 	ret := UserRepo{
 		storage: nil,
 	}
-	ret.con = sync.NewCond(&ret)
 	ret.storage = storageInterface
 	return &ret
 }

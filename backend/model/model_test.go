@@ -27,7 +27,7 @@ var _ = Describe("Model", func() {
 			}
 		})
 	})
-	Context("Call GetPostRepo Multiple times concurrently", func() {
+	Context("Call GetTweetRepo Multiple times concurrently", func() {
 		It("should return the singleton", func() {
 			var wg sync.WaitGroup
 			arr := make([]*repository.TweetRepo, 20)
@@ -35,7 +35,7 @@ var _ = Describe("Model", func() {
 			for i := 0; i < 10; i++ {
 				go func(i int) {
 					defer wg.Done()
-					arr[i] = model.GetPostRepo()
+					arr[i] = model.GetTweetRepo()
 				}(i)
 			}
 			wg.Wait()

@@ -2,11 +2,10 @@ package backend
 
 import (
 	"log"
-	"net/http"
+	//	"net/http"
 	"zl2501-final-project/backend/constant"
 	"zl2501-final-project/backend/session/sessmanager"
 )
-
 
 func init() {
 	// Set global logger
@@ -15,10 +14,7 @@ func init() {
 	globalSessions, _ = sessmanager.GetManagerSingleton("memory")
 }
 
-
 func StartService() {
-//	mux := http.NewServeMux()
-	log.Println("Server is going to start at: http://localhost:"+constant.Port)
+	//	mux := http.NewServeMux()
+	log.Println("Server is going to start at: http://localhost:" + constant.Port)
 }
-
-
