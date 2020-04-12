@@ -7,3 +7,6 @@ const Following string = "Following"
 const NotFollowing string = "Not Following"
 const Port string = "9000"
 const RelativePathForTemplate ="./web/template/"
+const BackendServiceAddress     = "localhost:9001"
+const AuthServiceAddress     = "localhost:9002"
+

@@ -14,9 +14,8 @@ func init() {
     log.SetFlags(log.Ltime | log.Lshortfile)
 }
 
-type server struct {
-    pb.UnimplementedAuthServer
-}
+
+
 
 func StartService() {
     log.Println("Auth(Session) Server is going to start at: http://localhost:" + constant.Port)
@@ -25,7 +24,7 @@ func StartService() {
         log.Fatalf("failed to listen: %v", err)
     }
     s := grpc.NewServer()
-    pb.RegisterAuthServer(s, &server{})
+    pb.RegisterAuthServer(s, &authService{})
     if err := s.Serve(lis); err != nil {
         log.Fatalf("failed to serve: %v", err)
     }

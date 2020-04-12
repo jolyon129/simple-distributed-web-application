@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"zl2501-final-project/web/constant"
-	"zl2501-final-project/web/model"
 )
 
 type tweet struct {

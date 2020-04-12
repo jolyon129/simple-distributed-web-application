@@ -5,8 +5,6 @@ import (
 	"log"
 	"net"
 	"zl2501-final-project/backend/pb"
-
-	//	"net/http"
 	"zl2501-final-project/backend/constant"
 )
 
@@ -16,9 +14,8 @@ func init() {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 }
 
-type server struct {
-	pb.UnimplementedBackendServer
-}
+
+
 
 func StartService() {
 	log.Println("Backend Server is going to start at: http://localhost:" + constant.Port)
@@ -27,7 +24,7 @@ func StartService() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	pb.RegisterBackendServer(s,&server{})
+	pb.RegisterBackendServer(s,&backendServer{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

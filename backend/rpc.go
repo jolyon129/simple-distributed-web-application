@@ -3,10 +3,11 @@ package backend
 import (
 	"container/list"
 	"context"
+	"log"
 	"zl2501-final-project/backend/constant"
 	"zl2501-final-project/backend/model"
 	"zl2501-final-project/backend/model/repository"
-	"zl2501-final-project/backend/pb"
+	backendpb "zl2501-final-project/backend/pb"
 )
 
 var tweetRepo *repository.TweetRepo
@@ -18,11 +19,11 @@ func init() {
 }
 
 type backendServer struct {
-	pb.BackendServer
+	backendpb.UnimplementedBackendServer
 }
 
 func (b backendServer) NewTweet(ctx context.Context,
-	request *pb.NewTweetRequest) (*pb.NewTweetResponse, error) {
+	request *backendpb.NewTweetRequest) (*backendpb.NewTweetResponse, error) {
 	uId := uint(request.UserId)
 	tId, err := tweetRepo.SaveTweet(ctx, repository.TweetInfo{
 		UserID:  uId,
@@ -35,21 +36,21 @@ func (b backendServer) NewTweet(ctx context.Context,
 	if err1 != nil {
 		return nil, err1
 	}
-	return &pb.NewTweetResponse{
+	return &backendpb.NewTweetResponse{
 		TweetId: uint64(tId),
 	}, nil
 
 }
 
 func (b backendServer) TweetSelectById(ctx context.Context,
-	request *pb.SelectByIdRequest) (*pb.TweetSelectByIdResponse, error) {
+	request *backendpb.SelectByIdRequest) (*backendpb.TweetSelectByIdResponse, error) {
 	tId := uint(request.Id)
 	tweet, err := tweetRepo.SelectById(ctx, tId)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.TweetSelectByIdResponse{
-		Msg: &pb.TweetEntity{
+	return &backendpb.TweetSelectByIdResponse{
+		Msg: &backendpb.TweetEntity{
 			TweetId:     uint64(tweet.ID),
 			UserId:      uint64(tweet.UserID),
 			Content:     tweet.Content,
@@ -59,7 +60,7 @@ func (b backendServer) TweetSelectById(ctx context.Context,
 }
 
 func (b backendServer) NewUser(ctx context.Context,
-	request *pb.NewUserRequest) (*pb.NewUserResponse, error) {
+	request *backendpb.NewUserRequest) (*backendpb.NewUserResponse, error) {
 	uId, err := userRepo.CreateNewUser(ctx, &repository.UserInfo{
 		UserName: request.UserName,
 		Password: request.UserPwd,
@@ -67,20 +68,20 @@ func (b backendServer) NewUser(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &pb.NewUserResponse{
+	return &backendpb.NewUserResponse{
 		UserId: uint64(uId),
 	}, nil
 }
 
 func (b backendServer) UserSelectByName(ctx context.Context,
-	request *pb.UserSelectByNameRequest) (*pb.UserSelectByNameResponse, error) {
+	request *backendpb.UserSelectByNameRequest) (*backendpb.UserSelectByNameResponse, error) {
 	user, err := userRepo.SelectByName(ctx, request.Name)
 	//test,err1:=userRepo.SelectById(ctx,1)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.UserSelectByNameResponse{
-		User: &pb.UserEntity{
+	return &backendpb.UserSelectByNameResponse{
+		User: &backendpb.UserEntity{
 			UserId:     uint64(user.ID),
 			UserName:   user.UserName,
 			Password:   "",
@@ -103,13 +104,13 @@ func convertUintListToUint64Slice(list *list.List) []uint64 {
 }
 
 func (b backendServer) UserSelectById(ctx context.Context,
-	request *pb.SelectByIdRequest) (*pb.UserSelectByIdResponse, error) {
+	request *backendpb.SelectByIdRequest) (*backendpb.UserSelectByIdResponse, error) {
 	user, err := userRepo.SelectById(ctx, uint(request.Id))
 	if err != nil {
 		return nil, err
 	}
-	return &pb.UserSelectByIdResponse{
-		User: &pb.UserEntity{
+	return &backendpb.UserSelectByIdResponse{
+		User: &backendpb.UserEntity{
 			UserId:     uint64(user.ID),
 			UserName:   user.UserName,
 			Password:   "",
@@ -121,7 +122,7 @@ func (b backendServer) UserSelectById(ctx context.Context,
 }
 
 func (b backendServer) UserAddTweet(ctx context.Context,
-	request *pb.UserAddTweetRequest) (*pb.UserAddTweetResponse, error) {
+	request *backendpb.UserAddTweetRequest) (*backendpb.UserAddTweetResponse, error) {
 	uId := uint(request.UserId)
 	_, err := userRepo.SelectById(ctx, uId)
 	if err != nil {
@@ -138,20 +139,20 @@ func (b backendServer) UserAddTweet(ctx context.Context,
 	if err2 != nil {
 		return nil, err2
 	}
-	return &pb.UserAddTweetResponse{
+	return &backendpb.UserAddTweetResponse{
 		Ok: true,
 	}, nil
 }
 
 func (b backendServer) FindAllUsers(ctx context.Context,
-	request *pb.FindAllUsersRequest) (*pb.FindAllUsersResponse, error) {
+	request *backendpb.FindAllUsersRequest) (*backendpb.FindAllUsersResponse, error) {
 	users, err := userRepo.FindAllUsers(ctx)
 	if err != nil {
 		return nil, err
 	}
-	retUsers := make([]*pb.UserEntity, len(users))
+	retUsers := make([]*backendpb.UserEntity, len(users))
 	for idx, user := range users {
-		retUsers[idx] = &pb.UserEntity{
+		retUsers[idx] = &backendpb.UserEntity{
 			UserId:     uint64(user.ID),
 			UserName:   user.UserName,
 			Password:   "",
@@ -160,46 +161,51 @@ func (b backendServer) FindAllUsers(ctx context.Context,
 			Tweets:     convertUintListToUint64Slice(user.Tweets),
 		}
 	}
-	return &pb.FindAllUsersResponse{
+	return &backendpb.FindAllUsersResponse{
 		Users: retUsers,
 	}, nil
 }
 
 func (b backendServer) UserCheckWhetherFollowing(ctx context.Context,
-	request *pb.UserCheckWhetherFollowingRequest) (*pb.UserCheckWhetherFollowingResponse, error) {
+	request *backendpb.UserCheckWhetherFollowingRequest) (*backendpb.UserCheckWhetherFollowingResponse, error) {
 	srcId := uint(request.SourceUserId)
 	tarId := uint(request.TargetUserId)
 	ok, err := userRepo.CheckWhetherFollowing(ctx, srcId, tarId)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.UserCheckWhetherFollowingResponse{
+	return &backendpb.UserCheckWhetherFollowingResponse{
 		Ok: ok,
 	}, nil
 }
 
 func (b backendServer) StartFollowing(ctx context.Context,
-	request *pb.StartFollowingRequest) (*pb.StartFollowingResponse, error) {
+	request *backendpb.StartFollowingRequest) (*backendpb.StartFollowingResponse, error) {
 	srcId := uint(request.SourceUserId)
 	tarId := uint(request.TargetUserId)
 	ok, err := userRepo.StartFollowing(ctx, srcId, tarId)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.StartFollowingResponse{
+	return &backendpb.StartFollowingResponse{
 		Ok: ok,
 	}, nil
 }
 
 func (b backendServer) StopFollowing(ctx context.Context,
-	request *pb.StopFollowingRequest) (*pb.StopFollowingResponse, error) {
+	request *backendpb.StopFollowingRequest) (*backendpb.StopFollowingResponse, error) {
 	srcId := uint(request.SourceUserId)
 	tarId := uint(request.TargetUserId)
 	ok, err := userRepo.StopFollowing(ctx, srcId, tarId)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.StopFollowingResponse{
+	return &backendpb.StopFollowingResponse{
 		Ok: ok,
 	}, nil
+}
+func (s *backendServer) SayHello(ctx context.Context, in *backendpb.HelloRequest) (*backendpb.HelloReply,
+	error) {
+	log.Printf("Received: %v", in.GetName())
+	return &backendpb.HelloReply{Message: "Hello " + in.GetName()}, nil
 }

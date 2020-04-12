@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"zl2501-final-project/auth/sessmanager"
 	"zl2501-final-project/web/constant"
-	"zl2501-final-project/web/session/sessmanager"
 )
 
 var globalSessions *sessmanager.Manager

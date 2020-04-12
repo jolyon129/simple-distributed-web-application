@@ -2,8 +2,8 @@ package auth
 
 import (
     "context"
-    "zl2501-final-project/auth/pb"
     "zl2501-final-project/auth/sessmanager"
+    "zl2501-final-project/auth/pb"
 )
 var globalSessions *sessmanager.Manager
 
@@ -12,7 +12,7 @@ func init() {
 }
 
 type authService struct {
-    pb.AuthServer
+    pb.UnimplementedAuthServer
 }
 
 func (b authService) SessionAuth(ctx context.Context,
