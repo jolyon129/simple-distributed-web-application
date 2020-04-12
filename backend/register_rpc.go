@@ -1,91 +1,99 @@
 package backend
 
 import (
-	"context"
-	pb "zl2501-final-project/backend/pb"
-	"zl2501-final-project/backend/session/sessmanager"
+    "context"
+    "zl2501-final-project/backend/constant"
+    "zl2501-final-project/backend/model"
+    "zl2501-final-project/backend/model/repository"
+    pb "zl2501-final-project/backend/pb"
 )
 
-var globalSessions *sessmanager.Manager
+var tweetRepo *repository.TweetRepo
+var userRepo *repository.UserRepo
 
 func init() {
-	globalSessions, _ = sessmanager.GetManagerSingleton("memory")
+    tweetRepo = model.GetTweetRepo()
+    userRepo = model.GetUserRepo()
 }
 
 type backendServer struct {
-	pb.BackendServer
+    pb.BackendServer
 }
 
-func (b backendServer) SessionAuth(ctx context.Context,
-	request *pb.SessionGeneralRequest) (*pb.SessionAuthResponse, error) {
-	ok, err := globalSessions.SessionAuth(ctx, request.SessionId)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.SessionAuthResponse{
-		Ok: ok,
-	}, nil
+
+func (b backendServer) NewTweet(ctx context.Context,
+        request *pb.NewTweetRequest) (*pb.NewTweetResponse, error) {
+    uId := uint(request.UserId)
+    tId, err := tweetRepo.SaveTweet(ctx, repository.TweetInfo{
+        UserID:  uId,
+        Content: request.Content,
+    })
+    if err != nil {
+        return nil, err
+    }
+    _, err1 := userRepo.AddTweetToUser(ctx, uId, tId)
+    if err1 != nil {
+        return nil, err1
+    }
+    return &pb.NewTweetResponse{
+        TweetId: uint64(tId),
+    }, nil
 
 }
 
-func (b backendServer) SessionStart(ctx context.Context,
-	request *pb.SessionGeneralRequest) (*pb.SessionGeneralResponse, error) {
-	nSessId, err := globalSessions.SessionStart(ctx, request.SessionId)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.SessionGeneralResponse{
-		SessionId: nSessId,
-	}, nil
+func (b backendServer) TweetSelectById(ctx context.Context,
+        request *pb.SelectByIdRequest) (*pb.TweetSelectByIdResponse, error) {
+    tId := uint(request.Id)
+    tweet, err := tweetRepo.SelectById(ctx, tId)
+    if err != nil {
+        return nil, err
+    }
+    return &pb.TweetSelectByIdResponse{
+        Msg: &pb.TweetEntity{
+            TweetId:     uint64(tweet.ID),
+            UserId:      uint64( tweet.UserID ),
+            Content:     tweet.Content ,
+            CreatedTime: tweet.CreatedTime.Format(constant.TimeFormat),
+        },
+    }, nil
 }
 
-func (b backendServer) SessionDestroy(ctx context.Context, request *pb.SessionGeneralRequest) (*pb.SessionDestroyResponse, error) {
-	ok, err := globalSessions.SessionDestroy(ctx, request.SessionId)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.SessionDestroyResponse{
-		Ok: ok,
-	}, nil
+func (b backendServer) NewUser(ctx context.Context,
+    request *pb.NewUserRequest) (*pb.NewUserResponse, error) {
+
+    panic("implement me")
 }
 
-func (b backendServer) NewTweet(ctx context.Context, request *pb.NewTweetRequest) (*pb.NewTweetResponse, error) {
-	panic("implement me")
+func (b backendServer) UserSelectByName(ctx context.Context,
+    request *pb.UserSelectByNameRequest) (*pb.UserSelectByNameResponse, error) {
+    panic("implement me")
 }
 
-func (b backendServer) TweetSelectById(ctx context.Context, request *pb.SelectByIdRequest) (*pb.TweetSelectByIdResponse, error) {
-	panic("implement me")
+func (b backendServer) UserSelectById(ctx context.Context,
+    request *pb.SelectByIdRequest) (*pb.UserSelectByIdResponse, error) {
+    panic("implement me")
 }
 
-func (b backendServer) NewUser(ctx context.Context, request *pb.NewUserRequest) (*pb.NewUserResponse, error) {
-
-	panic("implement me")
+func (b backendServer) UserAddTweet(ctx context.Context,
+    request *pb.UserAddTweetRequest) (*pb.UserAddTweetResponse, error) {
+    panic("implement me")
 }
 
-func (b backendServer) UserSelectByName(ctx context.Context, request *pb.UserSelectByNameRequest) (*pb.UserSelectByNameResponse, error) {
-	panic("implement me")
-}
-
-func (b backendServer) UserSelectById(ctx context.Context, request *pb.SelectByIdRequest) (*pb.UserSelectByIdResponse, error) {
-	panic("implement me")
-}
-
-func (b backendServer) UserAddTweet(ctx context.Context, request *pb.UserAddTweetRequest) (*pb.UserAddTweetResponse, error) {
-	panic("implement me")
-}
-
-func (b backendServer) FindAllUsers(ctx context.Context, request *pb.FindAllUsersRequest) (*pb.FindAllUsersResponse, error) {
-	panic("implement me")
+func (b backendServer) FindAllUsers(ctx context.Context,
+    request *pb.FindAllUsersRequest) (*pb.FindAllUsersResponse, error) {
+    panic("implement me")
 }
 
 func (b backendServer) UserCheckWhetherFollowing(ctx context.Context, request *pb.UserCheckWhetherFollowingRequest) (*pb.UserCheckWhetherFollowingResponse, error) {
-	panic("implement me")
+    panic("implement me")
 }
 
-func (b backendServer) StartFollowing(ctx context.Context, request *pb.StartFollowingRequest) (*pb.StartFollowingResponse, error) {
-	panic("implement me")
+func (b backendServer) StartFollowing(ctx context.Context,
+    request *pb.StartFollowingRequest) (*pb.StartFollowingResponse, error) {
+    panic("implement me")
 }
 
-func (b backendServer) StopFollowing(ctx context.Context, request *pb.StopFollowingRequest) (*pb.StopFollowingResponse, error) {
-	panic("implement me")
+func (b backendServer) StopFollowing(ctx context.Context,
+    request *pb.StopFollowingRequest) (*pb.StopFollowingResponse, error) {
+    panic("implement me")
 }

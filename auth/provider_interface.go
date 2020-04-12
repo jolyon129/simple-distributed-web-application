@@ -1,7 +1,7 @@
-package session
+package auth
 
 import (
-	"zl2501-final-project/backend/session/storage"
+	"zl2501-final-project/auth/storage"
 )
 
 // provides stores the implementation of manager

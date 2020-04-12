@@ -1,16 +1,11 @@
 syntax = "proto3";
 
-package internal.backendpb;
+package pb;
 
 service Backend {
     //    rpc SignUp (SignUpRequest) returns (SignUpResponse) {
     //    }
-    rpc SessionAuth (SessionGeneralRequest) returns (SessionAuthResponse) {
-    }
-    rpc SessionStart (SessionGeneralRequest) returns (SessionGeneralResponse) {
-    }
-    rpc SessionDestroy (SessionGeneralRequest) returns (SessionDestroyResponse) {
-    }
+
     rpc NewTweet (NewTweetRequest) returns (NewTweetResponse) {
     }
     rpc TweetSelectById (SelectByIdRequest) returns (TweetSelectByIdResponse) {
@@ -32,12 +27,7 @@ service Backend {
     rpc StopFollowing (StopFollowingRequest) returns (StopFollowingResponse) {
     }
 }
-message SessionDestroyResponse{
-    bool ok =1;
-}
-message SessionAuthResponse{
-    bool ok=1;
-}
+
 message StopFollowingRequest {
     uint64 source_user_id = 1;
     uint64 target_user_id = 2;
@@ -131,12 +121,4 @@ message TweetEntity {
     string content = 3;
     string created_time = 4;
 }
-
-message SessionGeneralRequest {
-    string session_id = 1;
-}
-message SessionGeneralResponse {
-    string session_id = 1;
-}
-
 

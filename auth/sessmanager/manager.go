@@ -9,9 +9,9 @@ import (
     "io"
     "sync"
     "time"
-    "zl2501-final-project/backend/session"
-    "zl2501-final-project/backend/session/storage"
-    _ "zl2501-final-project/backend/session/storage/memory" // Use memory implementation of session
+    "zl2501-final-project/auth"
+    "zl2501-final-project/auth/storage"
+    _ "zl2501-final-project/auth/storage/memory" // Use memory implementation of session
 )
 
 // This is a singleton and used across the application.
@@ -19,16 +19,16 @@ var GlobalSessionManager *Manager
 
 // global session manager
 type Manager struct {
-    cookieName  string                    //private cookiename
-    mu          sync.Mutex                // protects session
-    provider    session.ProviderInterface // A bridge to represent the underlying structure of session
+    cookieName  string                 //private cookiename
+    mu          sync.Mutex             // protects session
+    provider    auth.ProviderInterface // A bridge to represent the underlying structure of session
     maxlifetime int64
 }
 
 // Get the singleton of manager
 func GetManagerSingleton(provideName string) (*Manager, error) {
     if GlobalSessionManager == nil {
-        provider, ok := session.GetProvider("memory")
+        provider, ok := auth.GetProvider("memory")
         if !ok {
             return nil, fmt.Errorf("session: unknown provide %q (forgotten import?)", provideName)
         }

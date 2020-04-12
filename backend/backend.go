@@ -1,10 +1,10 @@
 package backend
 
 import (
-	"log"
-	//	"net/http"
-	"zl2501-final-project/backend/constant"
-	"zl2501-final-project/backend/session/sessmanager"
+    "log"
+	"zl2501-final-project/auth/sessmanager"
+    //	"net/http"
+    "zl2501-final-project/backend/constant"
 )
 
 func init() {

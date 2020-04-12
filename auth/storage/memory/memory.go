@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"sync"
 	"time"
-	"zl2501-final-project/backend/session"
-	"zl2501-final-project/backend/session/storage"
+	"zl2501-final-project/auth"
+	"zl2501-final-project/auth/storage"
 )
 
 var pder = &Provider{list: list.New()}
 
 // MemSessStore implement the session interface
 type MemSessStore struct {
-	session.ProviderInterface
+	auth.ProviderInterface
 	sid          string                      // unique session id
 	timeAccessed time.Time                   // last access time
 	value        map[interface{}]interface{} // session value stored inside
@@ -125,5 +125,5 @@ func (pder *Provider) SessionUpdate(sid string) error {
 
 func init() {
 	pder.sessions = make(map[string]*list.Element, 0)
-	session.RegisterProvider("memory", pder)
+	auth.RegisterProvider("memory", pder)
 }

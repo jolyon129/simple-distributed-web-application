@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package pb;
+
+service Auth {
+    rpc SessionAuth (SessionGeneralRequest) returns (SessionAuthResponse) {
+    }
+    rpc SessionStart (SessionGeneralRequest) returns (SessionGeneralResponse) {
+    }
+    rpc SessionDestroy (SessionGeneralRequest) returns (SessionDestroyResponse) {
+    }
+}
+message SessionDestroyResponse {
+    bool ok = 1;
+}
+message SessionAuthResponse {
+    bool ok = 1;
+}
+
+message SessionGeneralRequest {
+    string session_id = 1;
+}
+message SessionGeneralResponse {
+    string session_id = 1;
+}
+
+
