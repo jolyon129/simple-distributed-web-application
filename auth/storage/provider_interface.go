@@ -1,8 +1,4 @@
-package auth
-
-import (
-	"zl2501-final-project/auth/storage"
-)
+package storage
 
 // provides stores the implementation of manager
 var provides = make(map[string]ProviderInterface)
@@ -11,10 +7,10 @@ var provides = make(map[string]ProviderInterface)
 // underlying structure of the session manager
 type ProviderInterface interface {
 	// Create a new session
-	SessionInit(sid string) (storage.SessionStorageInterface, error)
+	SessionInit(sid string) (SessionStorageInterface, error)
 	// Read session through ssid.
 	// If not existed, return (nil, error)
-	SessionRead(sid string) (storage.SessionStorageInterface, error)
+	SessionRead(sid string) (SessionStorageInterface, error)
 	SessionDestroy(sid string) error
 	SessionGC(maxLifeTime int64)
 }
