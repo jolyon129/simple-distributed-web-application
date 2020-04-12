@@ -15,7 +15,7 @@ import (
 )
 
 var userRepo *UserRepo
-var postRepo *TweetRepo
+var tweetRepo *TweetRepo
 var puId uint
 var puId2 uint
 var usersForTestFollowing []uint
@@ -23,7 +23,7 @@ var _ = BeforeSuite(func() {
     log.SetPrefix("Ginkgo: ")
     log.SetFlags(log.Ltime | log.Lshortfile)
     userRepo = model.GetUserRepo()
-    postRepo = model.GetTweetRepo()
+    tweetRepo = model.GetTweetRepo()
     //    result := make(chan uint)
     //    errorChan := make(chan error)
     timeout := 3000 * time.Millisecond
@@ -101,10 +101,10 @@ var _ = Describe("User Repository", func() {
     Describe("Create New User concurrently", func() {
         Context("with different user names", func() {
             It("should return different user entity", func() {
-               ctx, _ := context.WithTimeout(context.Background(), timeout)
-//                ctx := context.Background()
+                ctx, _ := context.WithTimeout(context.Background(), timeout)
+                //                ctx := context.Background()
                 var wg sync.WaitGroup
-                num:=10
+                num := 10
                 wg.Add(num)
                 uids := make([]uint, num)
                 for i := 0; i < num; i++ {
@@ -249,7 +249,18 @@ var _ = Describe("User Repository", func() {
                 Expect(u).Should(BeZero())
             })
         })
-        Context("When adding 10 tweets to 2 users concurrently", func() {
+        Context("When create tweets and add tweet concurrently", func() {
+            It("Should be synchronized", func() {
+                //ctx, cancel := context.WithTimeout(context.Background(), timeout)
+                //defer cancel()
+                //nuId, _ :=userRepo.CreateNewUser(ctx, &UserInfo{
+                //    UserName: "newuser2",
+                //    Password: "123",
+                //})
+
+            })
+        })
+        Context("When create and save 10 tweets to 2 users concurrently", func() {
             It("should be synchronized", func() {
                 ctx, cancel := context.WithTimeout(context.Background(), timeout)
                 defer cancel()
@@ -267,29 +278,41 @@ var _ = Describe("User Repository", func() {
                 for i := 0; i < 10; i++ {
                     go func(i int) {
                         defer wg.Done()
-                        userRepo.AddTweetToUser(ctx, nuId2, uint(100+i))
+                        tId, _ := tweetRepo.SaveTweet(ctx, TweetInfo{
+                            UserID:  nuId2,
+                            Content: strconv.Itoa(100+i),
+                        })
+                        userRepo.AddTweetToUser(ctx, nuId2, tId)
                     }(i)
                     go func(i int) {
                         defer wg.Done()
-                        userRepo.AddTweetToUser(ctx, nuId, uint(10+i))
+                        tId, _ := tweetRepo.SaveTweet(ctx, TweetInfo{
+                            UserID:  nuId,
+                            Content: strconv.Itoa(10+i),
+                        })
+                        userRepo.AddTweetToUser(ctx, nuId, tId)
                     }(i)
                 }
                 wg.Wait()
                 u, _ := userRepo.SelectById(ctx, nuId2)
-                checkSum := uint(0)
+                checkSum2 := 0
                 for e := u.Tweets.Front(); e != nil; e = e.Next() {
-                    pId := e.Value.(uint)
-                    checkSum += pId
+                    tId := e.Value.(uint)
+                    costr, _:=tweetRepo.SelectById(ctx,tId)
+                    coint,_:=strconv.Atoi(costr.Content)
+                    checkSum2 += coint
                 }
-                Expect(checkSum).Should(Equal(uint(1045)))
+                Expect(checkSum2).Should(Equal(1045))
 
-                checkSum2 := uint(0)
+                checkSUm1 := 0
                 u2, _ := userRepo.SelectById(ctx, nuId)
                 for e := u2.Tweets.Front(); e != nil; e = e.Next() {
-                    pId := e.Value.(uint)
-                    checkSum2 += pId
+                    tId := e.Value.(uint)
+                    costr, _:=tweetRepo.SelectById(ctx,tId)
+                    coint,_:=strconv.Atoi(costr.Content)
+                    checkSUm1 += coint
                 }
-                Expect(checkSum2).Should(Equal(uint(145)))
+                Expect(checkSUm1).Should(Equal(145))
             })
         })
         Context("Add 10 tweets concurrently to the same user", func() {
@@ -490,7 +513,7 @@ var _ = Describe("Tweet Repository", func() {
                 timeout := 200 * time.Millisecond
                 ctx, _ := context.WithTimeout(context.Background(), timeout)
                 time.Sleep(500 * time.Millisecond)
-                u, err := postRepo.SaveTweet(ctx, TweetInfo{})
+                u, err := tweetRepo.SaveTweet(ctx, TweetInfo{})
                 Expect(err).ShouldNot(BeNil())
                 Expect(u).Should(BeZero())
             })
@@ -499,16 +522,16 @@ var _ = Describe("Tweet Repository", func() {
             It("should succeed", func() {
                 ctx, cancel := context.WithTimeout(context.Background(), timeout)
                 defer cancel()
-                pid, err := postRepo.SaveTweet(ctx, TweetInfo{
+                pid, err := tweetRepo.SaveTweet(ctx, TweetInfo{
                     UserID:  puId,
                     Content: "Test",
                 })
-                if err!=nil{
+                if err != nil {
                     Fail(err.Error())
                 }
                 Expect(pid).To(Not(BeZero()))
-                //pE, _ := postRepo.storage.Read(pid)
-                pE, _ := postRepo.SelectById(ctx, pid)
+                //pE, _ := tweetRepo.storage.Read(pid)
+                pE, _ := tweetRepo.SelectById(ctx, pid)
                 Expect(pE.UserID).To(Equal(puId))
             })
         })
@@ -522,7 +545,7 @@ var _ = Describe("Tweet Repository", func() {
                 for i := 0; i < 20; i++ {
                     go func(i int) {
                         defer wg.Done()
-                        pid, err := postRepo.SaveTweet(ctx, TweetInfo{
+                        pid, err := tweetRepo.SaveTweet(ctx, TweetInfo{
                             UserID:  puId,
                             Content: "TestConcurrency" + strconv.Itoa(i),
                         })
@@ -533,8 +556,8 @@ var _ = Describe("Tweet Repository", func() {
                 }
                 wg.Wait()
                 for i := 0; i < 20; i++ {
-                    //pE, err := postRepo.storage.Read(postIds[i])
-                    pE, err := postRepo.SelectById(ctx, postIds[i])
+                    //pE, err := tweetRepo.storage.Read(postIds[i])
+                    pE, err := tweetRepo.SelectById(ctx, postIds[i])
                     Expect(err).Should(BeNil())
                     Expect(pE.Content).Should(Equal("TestConcurrency" + strconv.Itoa(i)))
                 }
@@ -547,7 +570,7 @@ var _ = Describe("Tweet Repository", func() {
                 timeout := 200 * time.Millisecond
                 ctx, _ := context.WithTimeout(context.Background(), timeout)
                 time.Sleep(500 * time.Millisecond)
-                u, err := postRepo.SelectById(ctx, uint(101))
+                u, err := tweetRepo.SelectById(ctx, uint(101))
                 Expect(err).ShouldNot(BeNil())
                 Expect(u).Should(BeZero())
             })
@@ -563,7 +586,7 @@ var _ = Describe("Tweet Repository", func() {
                     go func(i int) {
                         defer wg.Done()
                         defer GinkgoRecover()
-                        pid, err := postRepo.SaveTweet(ctx, TweetInfo{
+                        pid, err := tweetRepo.SaveTweet(ctx, TweetInfo{
                             UserID:  puId,
                             Content: "TestConcurrency",
                         })
@@ -578,12 +601,12 @@ var _ = Describe("Tweet Repository", func() {
                 for i := 0; i < 20; i++ {
                     go func(i int) {
                         defer wg.Done()
-                        post, _ := postRepo.SelectById(ctx, postIds[i])
+                        post, _ := tweetRepo.SelectById(ctx, postIds[i])
                         postEs[i] = post
                     }(i)
                 }
                 wg.Wait()
-                prev, _ := postRepo.SelectById(ctx, postIds[0])
+                prev, _ := tweetRepo.SelectById(ctx, postIds[0])
                 Expect(prev.Content).Should(Equal("TestConcurrency"))
                 for i := 1; i < 20; i++ {
                     post := postEs[i]
