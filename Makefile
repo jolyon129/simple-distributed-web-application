@@ -16,6 +16,10 @@ vendor-web:
 vendor-backend:
 	cd ./backend && go mod vendor
 
+vendor-auth:
+	cd ./auth && go mod vendor
+
+
 run-web: vendor-web
 	go run ./cmd/web/web.go
 
@@ -25,6 +29,12 @@ build-web: vendor-web
 
 run-backend: vendor-backend
 	go run ./cmd/backend/backend.go
+
+
+run-auth: vendor-auth
+	go run ./cmd/auth/auth.go
+
+
 
 test:
 	go test -v --race ./...

@@ -3,11 +3,6 @@ syntax = "proto3";
 package pb;
 
 service Backend {
-    //    rpc SignUp (SignUpRequest) returns (SignUpResponse) {
-    //    }
-
-//    rpc NewTweet (NewTweetRequest) returns (NewTweetResponse) {
-//    }
     rpc TweetSelectById (SelectByIdRequest) returns (TweetSelectByIdResponse) {
     }
     rpc NewUser (NewUserRequest) returns (NewUserResponse) {
