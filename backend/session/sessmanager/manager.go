@@ -42,7 +42,7 @@ func GetManagerSingleton(provideName string) (*Manager, error) {
 }
 
 // Generate the unique ID for a session
-func (manager *Manager) sessionId() string {
+func (manager *Manager) newSessionId() string {
     b := make([]byte, 32)
     if _, err := io.ReadFull(rand.Reader, b); err != nil {
         return ""
@@ -50,38 +50,44 @@ func (manager *Manager) sessionId() string {
     return base64.URLEncoding.EncodeToString(b)
 }
 
-// Read sessionId from Given sessId If its legal.
-// If not exist, create a new sessionId and return.
-// If exist and the sessionId is valid, reuse the same session and return the same one.
+// Read session from given sessId If its legal.
+// If not exist, create a new newSessionId and return.
+// If exist and the newSessionId is valid, reuse the same session and return the same one.
 func (manager *Manager) SessionStart(ctx context.Context, sessId string) (string, error) {
-    result := make(chan storage.SessionStorageInterface)
-    errorChan := make(chan error)
+    result := make(chan storage.SessionStorageInterface, 1)
+    errorChan := make(chan error, 1)
     manager.mu.Lock()
     defer manager.mu.Unlock()
     go func() {
-        if sessId == "" {
-            newSessId := manager.sessionId()
+        if sessId == "" {// Empty
+            newSessId := manager.newSessionId()
             sess, err := manager.provider.SessionInit(newSessId)
             if err != nil {
                 errorChan <- err
+                return
             } else {
                 result <- sess
+                return
             }
-        } else {
+        } else { // sessId not exist
             oldSess, err := manager.provider.SessionRead(sessId)
             if err != nil {
-                newSessId := manager.sessionId()
+                newSessId := manager.newSessionId()
                 sess, err := manager.provider.SessionInit(newSessId)
                 if err != nil {
                     errorChan <- err
+                    return
                 } else {
                     result <- sess
+                    return
                 }
             } else { // If the sessId is legal, reuse the session
                 if err != nil {
                     errorChan <- err
+                    return
                 } else {
                     result <- oldSess
+                    return
                 }
             }
         }
@@ -98,13 +104,15 @@ func (manager *Manager) SessionStart(ctx context.Context, sessId string) (string
 
 // Check whether the session has expired
 func (manager *Manager) SessionAuth(ctx context.Context, sessId string) (bool, error) {
-    errorChan := make(chan error)
-    resultChan := make(chan bool)
+    errorChan := make(chan error, 1)
+    resultChan := make(chan bool, 1)
     go func() {
         if _, err := manager.provider.SessionRead(sessId); err != nil {
             errorChan <- err
+            return
         } else {
             resultChan <- true
+            return
         }
     }()
     select {
@@ -119,20 +127,22 @@ func (manager *Manager) SessionAuth(ctx context.Context, sessId string) (bool, e
 }
 
 // Manually terminate the session and ask clients to overwrite the corresponding cookie
-func (manager *Manager) SessionDestroy(ctx context.Context, sessId string) (bool,error) {
-    errorChan := make(chan error)
-    result := make(chan bool)
+func (manager *Manager) SessionDestroy(ctx context.Context, sessId string) (bool, error) {
+    errorChan := make(chan error, 1)
+    result := make(chan bool, 1)
     go func() {
         err := manager.provider.SessionDestroy(sessId)
         if err != nil {
             errorChan <- err
+            return
         } else {
             result <- true
+            return
         }
     }()
     select {
-    case ret:=<-result:
-        return ret,nil
+    case ret := <-result:
+        return ret, nil
     case err := <-errorChan:
         return false, err
     case <-ctx.Done():
@@ -146,4 +156,83 @@ func (manager *Manager) GC() {
     manager.provider.SessionGC(manager.maxlifetime)
     manager.mu.Unlock()
     time.AfterFunc(time.Duration(manager.maxlifetime), func() { manager.GC() })
+}
+
+// Set Key and Value to a Session
+func (manager *Manager) SetValue(ctx context.Context,sessId string, key,
+    value interface{})(bool, error){
+    result := make(chan bool, 1)
+    errorChan := make(chan error, 1)
+    go func() {
+        session, err:= manager.provider.SessionRead(sessId)
+        if err!=nil{
+            errorChan<-err
+            return
+        }
+        err1 :=session.Set(key,value)
+        if err1!=nil{
+            errorChan<-err
+            return
+        }
+        result<- true
+    }()
+    select {
+    case ret := <-result:
+        return ret, nil
+    case err := <-errorChan:
+        return false, err
+    case <-ctx.Done():
+        return false, ctx.Err()
+    }
+}
+
+// Delete Key and Value from a Session
+func (manager *Manager) DeleteValue(ctx context.Context,sessId string, key interface{})(bool,
+    error){
+    result := make(chan bool, 1)
+    errorChan := make(chan error, 1)
+    go func() {
+        sess,err := manager.provider.SessionRead(sessId)
+        if err !=nil{
+            errorChan<-err
+            return
+        }
+        err1 := sess.Delete(key)
+        if err1 !=nil{
+            errorChan<-err
+            return
+        }
+        result <-true
+    }()
+    select {
+    case ret := <-result:
+        return ret, nil
+    case err := <-errorChan:
+        return false, err
+    case <-ctx.Done():
+        return false, ctx.Err()
+    }
+}
+
+//  Get Value from a Session with the Key
+func (manager *Manager) GetValue(ctx context.Context,sessId string, key interface{})(interface{}, error){
+    result := make(chan interface{}, 1)
+    errorChan := make(chan error, 1)
+    go func() {
+        session, err:= manager.provider.SessionRead(sessId)
+        if err!=nil{
+            errorChan<-err
+            return
+        }
+        value :=session.Get(key)
+        result<- value
+    }()
+    select {
+    case ret := <-result:
+        return ret, nil
+    case err := <-errorChan:
+        return false, err
+    case <-ctx.Done():
+        return false, ctx.Err()
+    }
 }

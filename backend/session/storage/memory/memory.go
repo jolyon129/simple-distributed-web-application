@@ -13,6 +13,7 @@ var pder = &Provider{list: list.New()}
 
 // MemSessStore implement the session interface
 type MemSessStore struct {
+	session.ProviderInterface
 	sid          string                      // unique session id
 	timeAccessed time.Time                   // last access time
 	value        map[interface{}]interface{} // session value stored inside
