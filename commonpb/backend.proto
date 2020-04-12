@@ -6,8 +6,8 @@ service Backend {
     //    rpc SignUp (SignUpRequest) returns (SignUpResponse) {
     //    }
 
-    rpc NewTweet (NewTweetRequest) returns (NewTweetResponse) {
-    }
+//    rpc NewTweet (NewTweetRequest) returns (NewTweetResponse) {
+//    }
     rpc TweetSelectById (SelectByIdRequest) returns (TweetSelectByIdResponse) {
     }
     rpc NewUser (NewUserRequest) returns (NewUserResponse) {
@@ -63,7 +63,7 @@ message FindAllUsersResponse {
 
 message UserAddTweetRequest {
     uint64 user_id = 1;
-    uint64 tweet_id = 2;
+    string content = 2;
 }
 
 message UserAddTweetResponse {
@@ -87,7 +87,7 @@ message UserSelectByNameRequest {
     string name = 1;
 }
 message UserSelectByNameResponse {
-    string user_id = 1;
+    UserEntity user = 1;
 }
 
 message NewUserRequest {
