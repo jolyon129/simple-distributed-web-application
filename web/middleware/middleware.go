@@ -61,3 +61,4 @@ func CheckAuth(handlerToWrap http.Handler) http.Handler {
         }
     })
 }
+
