@@ -2,6 +2,7 @@ package controller
 
 import (
     "context"
+    "errors"
     "html"
     "html/template"
     "log"
@@ -12,7 +13,17 @@ import (
     . "zl2501-final-project/web/pb"
 )
 
-func SignUp(w http.ResponseWriter, r *http.Request) {
+type appError struct {
+    Err     error
+    Message string
+    Code    int
+}
+
+func (a appError) Error() string {
+    return a.Message
+}
+
+func SignUp(w http.ResponseWriter, r *http.Request) error {
     if r.Method == "GET" {
         t, _ := template.ParseFiles(constant.RelativePathForTemplate + "signup.html")
         w.Header().Set("Content-Type", "text/html")
@@ -22,9 +33,12 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
         userName := r.Form["username"][0]
         password := r.Form["password"][0]
         if len(userName) == 0 || len(password) == 0 {
-            log.Println("Illegal user name or password")
             http.Redirect(w, r, "/signup", 302)
-            return
+            return appError{
+                Err:     errors.New("illegal user name or password"),
+                Message: "Illegal user name or password",
+                Code:    400,
+            }
         }
         log.Println("username:", r.Form["username"])
         log.Println("password:", r.Form["password"])
@@ -35,10 +49,21 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
             UserPwd:  hash,
         })
         if error != nil {
-            log.Println(error)
             http.Redirect(w, r, "/signup", 302)
+            return appError{
+                Err:     error,
+                Message: error.Error(),
+                Code:    400,
+            }
         } else {
-            sessId, _ := SessionStart(w, r)
+            sessId, error := SessionStart(w, r)
+            if error != nil {
+                return appError{
+                    Err:     error,
+                    Message: error.Error(),
+                    Code:    500,
+                }
+            }
             _, err1 := AuthClientIns.SetValue(ctx, &SetValueRequest{
                 Key:   constant.UserName,
                 Value: userName,
@@ -52,11 +77,16 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
             if err1 != nil || err2 != nil {
                 log.Print(err1)
                 log.Print(err2)
-                //Todo: Error Handler
+                return appError{
+                    Err:     err1,
+                    Message: err1.Error(),
+                    Code:    500,
+                }
             }
             http.Redirect(w, r, "/home", 303)
         }
     }
+    return nil
 }
 
 // Go to index page if not logged in.
@@ -76,7 +106,7 @@ func LogOut(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/index", 302)
 }
 
-func LogIn(w http.ResponseWriter, r *http.Request) {
+func LogIn(w http.ResponseWriter, r *http.Request) error {
     if r.Method == "GET" {
         t, _ := template.ParseFiles(constant.RelativePathForTemplate + "login.html")
         w.Header().Set("Content-Type", "text/html")
@@ -88,7 +118,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
         if len(userName) == 0 || len(password) == 0 {
             log.Println("Illegal user name or password")
             http.Redirect(w, r, "/login", 302)
-            return
+            return nil
         }
         log.Println("username:", r.Form["username"][0])
         log.Println("password:", r.Form["password"][0])
@@ -97,26 +127,32 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
         res, SelectByNameErr := BackendClientIns.UserSelectByName(ctx, &UserSelectByNameRequest{
             Name: userName,
         })
-        if SelectByNameErr != nil {
+        if SelectByNameErr != nil { // User not existed
             log.Printf(SelectByNameErr.Error())
-        }
-        //log.Print(err)
-        if res.User == nil {
-            log.Println("User does not exist.")
             http.Redirect(w, r, "/login", 302)
-            return
-        } else {
-            if e := ComparePassword(res.User.Password, password); e != nil {
-                log.Println("Wrong password.")
-                http.Redirect(w, r, "/login", 302)
-                return
+            return appError{
+                Err:     SelectByNameErr,
+                Message: SelectByNameErr.Error(),
+                Code:    400,
             }
         }
-        //ctx1, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
+        if e := ComparePassword(res.User.Password, password); e != nil { // Wrong Password
+            http.Redirect(w, r, "/login", 302)
+            return appError{
+                Err:     e,
+                Message: "Wrong password.",
+                Code:    400,
+            }
+        }
+        //ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
         sessId, err := SessionInit(w, r)
         if err != nil {
             log.Print(err)
-            return //TODO: Add error handler
+            return appError{
+                Err:     err,
+                Message: err.Error(),
+                Code:    500,
+            }
         }
         _, err1 := AuthClientIns.SetValue(ctx, &SetValueRequest{
             Key:   constant.UserName,
@@ -131,11 +167,15 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
         if err1 != nil || err2 != nil {
             log.Print(err1)
             log.Print(err2)
-            //Todo: Error Handler
+            return appError{
+                Err:     err1,
+                Message: err1.Error(),
+                Code:    500,
+            }
         }
         http.Redirect(w, r, "/home", 303)
-
     }
+    return nil
 }
 
 func Tweet(w http.ResponseWriter, r *http.Request) {

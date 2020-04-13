@@ -29,11 +29,15 @@ type homeView struct {
     Feed     []tweet
 }
 
-func Home(w http.ResponseWriter, r *http.Request) {
+func Home(w http.ResponseWriter, r *http.Request) error{
     if r.Method == "GET" {
         userId, err1 := GetMyUserId(r)
         if err1!=nil{
-            log.Printf(err1.Error())
+            return appError{
+                Err:     err1,
+                Message: err1.Error(),
+                Code:    0,
+            }
         }
         ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
         res, _ := BackendClientIns.UserSelectById(ctx, &SelectByIdRequest{
@@ -95,6 +99,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
         view.Feed = retFeed
         t.Execute(w, view)
     }
+    return nil
 }
 
 // Return a list of tweet (from oldest to newest)

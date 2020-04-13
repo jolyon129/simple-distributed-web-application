@@ -21,25 +21,22 @@ vendor-backend:
 vendor-auth:
 	cd ./auth && go mod vendor
 
-
 vendor-all: vendor-backend vendor-auth vendor-web
 
-run-web:
+run-web: vendor-web
 	go run ./cmd/web/web.go
 
 build-web: vendor-web
 	mkdir -p ./build
 	$(GOBUILD) -o ./build/ ./cmd/web/web.go
 
-run-backend:
+run-backend: vendor-backend
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/backend/backend.go
 
 
-run-auth:
+run-auth: vendor-auth
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/auth/auth.go
 
 
-
-
-test:
-#	go test -v --race ./...
+test: vendor-auth vendor-backend
+	go test -v --race ./...

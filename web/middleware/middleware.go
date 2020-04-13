@@ -14,7 +14,7 @@ import (
 func init() {
 }
 
-// logRequestsMiddleware is a middleware handler which implement the handler interface
+
 type logRequestsMiddleware struct {
     handler http.Handler
     logger  *log.Logger
@@ -26,6 +26,7 @@ func (l *logRequestsMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request
     l.logger.Printf("Request:%s %s, Time: %v", r.Method, r.URL.Path, time.Since(start))
 }
 
+// logRequestsMiddleware is a middleware handler which implement the handler interface
 func LogRequests(handlerToWrap http.Handler) *logRequestsMiddleware {
     logger := log.New(os.Stdout, "LogRequests:", log.Ltime|log.Lshortfile)
     return &logRequestsMiddleware{
@@ -62,3 +63,12 @@ func CheckAuth(handlerToWrap http.Handler) http.Handler {
     })
 }
 
+// This is a middleware to
+// add Some Header to response
+func SetHeader(handlerToWrap http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "text/html")
+        w.Header().Set("cache-control", "no-store")
+        handlerToWrap.ServeHTTP(w, r)
+    })
+}

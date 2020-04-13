@@ -515,7 +515,7 @@ var _ = Describe("Tweet Repository", func() {
             It("should return timeout err and wipe out the redundant tweet", func() {
                 timeout := 200 * time.Millisecond
                 ctx, cancel := context.WithTimeout(context.Background(), timeout)
-                time.Sleep(500 * time.Millisecond)
+                time.Sleep(1000 * time.Millisecond)
                 cancel()
                 u, err := tweetRepo.SaveTweet(ctx, TweetInfo{})
                 Expect(err).ShouldNot(BeNil())

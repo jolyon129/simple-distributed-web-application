@@ -7,12 +7,9 @@ import (
     "time"
     "zl2501-final-project/web/constant"
     "zl2501-final-project/web/controller"
-    "zl2501-final-project/web/middleware"
+    . "zl2501-final-project/web/middleware"
     "zl2501-final-project/web/pb"
 )
-
-
-
 
 // Then, initialize the session manager
 func init() {
@@ -35,25 +32,41 @@ func GreetHello() {
 
 }
 
+// This consume the returned error from custom handler!
+type appHandler func(http.ResponseWriter, *http.Request) error
+
+func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    if err := fn(w, r); err != nil {
+        http.Error(w, err.Error(), 500)
+    }
+}
+
 func StartService() {
     authConn := pb.CreateAuthServiceConnection()
-    backendConn :=pb.CreateBackendServiceConnection()
+    backendConn := pb.CreateBackendServiceConnection()
     defer authConn.Close()
     defer backendConn.Close()
     mux := http.NewServeMux()
-    mux.Handle("/", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader)) // set router
+    mux.Handle("/", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex),
+        SetHeader)) // set router
     mux.Handle("/index", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader))
-    mux.Handle("/login", MiddlewareAdapt(http.HandlerFunc(controller.LogIn), SetHeader))
-    mux.Handle("/signup", MiddlewareAdapt(http.HandlerFunc(controller.SignUp), SetHeader))
-    mux.Handle("/home", MiddlewareAdapt(http.HandlerFunc(controller.Home), middleware.CheckAuth, SetHeader))
+    mux.Handle("/login", MiddlewareAdapt(appHandler(controller.LogIn), SetHeader))
+    mux.Handle("/signup", MiddlewareAdapt(appHandler(controller.SignUp), SetHeader))
+    mux.Handle("/home", MiddlewareAdapt(appHandler(controller.Home), CheckAuth,
+        SetHeader))
     mux.Handle("/logout", MiddlewareAdapt(http.HandlerFunc(controller.LogOut), SetHeader))
-    mux.Handle("/tweet", MiddlewareAdapt(http.HandlerFunc(controller.Tweet), middleware.CheckAuth, SetHeader))
-    mux.Handle("/users", MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers), middleware.CheckAuth, SetHeader))
-    mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.User), middleware.CheckAuth, SetHeader))
-    mux.Handle("/follow", MiddlewareAdapt(http.HandlerFunc(controller.Follow), middleware.CheckAuth, SetHeader))
-    mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow), middleware.CheckAuth, SetHeader))
+    mux.Handle("/tweet", MiddlewareAdapt(http.HandlerFunc(controller.Tweet),
+        CheckAuth, SetHeader))
+    mux.Handle("/users", MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers),
+        CheckAuth, SetHeader))
+    mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.User), CheckAuth,
+        SetHeader))
+    mux.Handle("/follow", MiddlewareAdapt(http.HandlerFunc(controller.Follow),
+        CheckAuth, SetHeader))
+    mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow),
+        CheckAuth, SetHeader))
     log.Println("Server is going to start at: http://localhost:" + constant.Port)
-    log.Fatal(http.ListenAndServe(":"+constant.Port, middleware.LogRequests(mux)))
+    log.Fatal(http.ListenAndServe(":"+constant.Port, LogRequests(mux)))
 }
 
 // Adapt all middleware to the handler.
@@ -67,12 +80,3 @@ func MiddlewareAdapt(h http.Handler, middleware ...func(http.Handler) http.Handl
     return h
 }
 
-// This is a middleware to
-// add Some Header to response
-func SetHeader(handlerToWrap http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Type", "text/html")
-        w.Header().Set("cache-control", "no-store")
-        handlerToWrap.ServeHTTP(w, r)
-    })
-}
