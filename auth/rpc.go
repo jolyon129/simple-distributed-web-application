@@ -2,6 +2,7 @@ package auth
 
 import (
     "context"
+    "log"
     "zl2501-final-project/auth/pb"
     "zl2501-final-project/auth/sessmanager"
 )
@@ -59,6 +60,7 @@ func (b authService) SetValue(ctx context.Context, req *pb.SetValueRequest) (
     if err != nil {
         return nil, err
     }
+    log.Printf("Set Key:%s, Value:%s, in SessionId:%s", req.Key, req.Value, req.Ssid)
     return &pb.SetValueResponse{
         Ok: ok,
     }, nil
@@ -71,6 +73,7 @@ func (b authService) GetValue(ctx context.Context, req *pb.GetValueRequest) (
         return nil, err
     }
     retstr, _ := value.(string)
+    log.Printf("Get Key:%s, Value:%s, in SessionId:%s", req.Key, retstr, req.Ssid)
     return &pb.GetValueResponse{
         Value: retstr,
     }, nil

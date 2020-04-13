@@ -58,7 +58,7 @@ func (manager *Manager) SessionStart(ctx context.Context, sessId string) (string
     manager.mu.Lock()
     defer manager.mu.Unlock()
     go func() {
-        if sessId == "" {// Empty
+        if sessId == "" { // Empty
             newSessId := manager.newSessionId()
             sess, err := manager.provider.SessionInit(newSessId)
             if err != nil {
@@ -158,22 +158,22 @@ func (manager *Manager) GC() {
 }
 
 // Set Key and Value to a Session
-func (manager *Manager) SetValue(ctx context.Context,sessId string, key,
-    value interface{})(bool, error){
+func (manager *Manager) SetValue(ctx context.Context, sessId string, key,
+        value interface{}) (bool, error) {
     result := make(chan bool, 1)
     errorChan := make(chan error, 1)
     go func() {
-        session, err:= manager.provider.SessionRead(sessId)
-        if err!=nil{
-            errorChan<-err
+        session, err := manager.provider.SessionRead(sessId)
+        if err != nil {
+            errorChan <- err
             return
         }
-        err1 :=session.Set(key,value)
-        if err1!=nil{
-            errorChan<-err
+        err1 := session.Set(key, value)
+        if err1 != nil {
+            errorChan <- err
             return
         }
-        result<- true
+        result <- true
     }()
     select {
     case ret := <-result:
@@ -186,22 +186,22 @@ func (manager *Manager) SetValue(ctx context.Context,sessId string, key,
 }
 
 // Delete Key and Value from a Session
-func (manager *Manager) DeleteValue(ctx context.Context,sessId string, key interface{})(bool,
-    error){
+func (manager *Manager) DeleteValue(ctx context.Context, sessId string, key interface{}) (bool,
+        error) {
     result := make(chan bool, 1)
     errorChan := make(chan error, 1)
     go func() {
-        sess,err := manager.provider.SessionRead(sessId)
-        if err !=nil{
-            errorChan<-err
+        sess, err := manager.provider.SessionRead(sessId)
+        if err != nil {
+            errorChan <- err
             return
         }
         err1 := sess.Delete(key)
-        if err1 !=nil{
-            errorChan<-err
+        if err1 != nil {
+            errorChan <- err
             return
         }
-        result <-true
+        result <- true
     }()
     select {
     case ret := <-result:
@@ -214,17 +214,17 @@ func (manager *Manager) DeleteValue(ctx context.Context,sessId string, key inter
 }
 
 //  Get Value from a Session with the Key
-func (manager *Manager) GetValue(ctx context.Context,sessId string, key interface{})(interface{}, error){
+func (manager *Manager) GetValue(ctx context.Context, sessId string, key interface{}) (interface{}, error) {
     result := make(chan interface{}, 1)
     errorChan := make(chan error, 1)
     go func() {
-        session, err:= manager.provider.SessionRead(sessId)
-        if err!=nil{
-            errorChan<-err
+        session, err := manager.provider.SessionRead(sessId)
+        if err != nil {
+            errorChan <- err
             return
         }
-        value :=session.Get(key)
-        result<- value
+        value := session.Get(key)
+        result <- value
     }()
     select {
     case ret := <-result:
