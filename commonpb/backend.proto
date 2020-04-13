@@ -22,7 +22,8 @@ service Backend {
     rpc StopFollowing (StopFollowingRequest) returns (StopFollowingResponse) {
     }
     // Sends a greeting
-    rpc SayHello (HelloRequest) returns (HelloReply) {}
+    rpc SayHello (HelloRequest) returns (HelloReply) {
+    }
 }
 
 // The request message containing the user's name.

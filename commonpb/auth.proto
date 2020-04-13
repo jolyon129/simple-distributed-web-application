@@ -9,7 +9,48 @@ service Auth {
     }
     rpc SessionDestroy (SessionGeneralRequest) returns (SessionDestroyResponse) {
     }
+    rpc SetValue (SetValueRequest) returns (SetValueResponse) {
+    }
+
+    rpc GetValue (GetValueRequest) returns (GetValueResponse) {
+    }
+
+    rpc DeleteValue (DeleteValueRequest) returns (DeleteValueResponse) {
+    }
 }
+
+
+message GetValueRequest {
+    string key = 1;
+    string ssid =2;
+}
+
+
+message GetValueResponse {
+    string value = 1;
+}
+
+
+message DeleteValueRequest {
+    string key = 1;
+    string ssid =2;
+}
+
+
+message DeleteValueResponse {
+    bool ok = 1;
+}
+
+message SetValueRequest {
+    string key = 1;
+    string value = 2;
+    string ssid =3;
+}
+
+message SetValueResponse {
+    bool ok = 1;
+}
+
 message SessionDestroyResponse {
     bool ok = 1;
 }
