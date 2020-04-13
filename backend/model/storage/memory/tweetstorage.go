@@ -1,78 +1,90 @@
 package memory
 
 import (
-	"sync"
-	"time"
-	"zl2501-final-project/backend/model/storage"
+    "errors"
+    "sync"
+    "time"
+    "zl2501-final-project/backend/model/storage"
 )
 
 type MemTweetStore struct {
-	storage.TweetStorageInterface
-	sync.Mutex
-	tweetMap map[uint]*storage.TweetEntity // // Map index to entity/record
-	//posts     *list.List
-	pkCounter uint
+    storage.TweetStorageInterface
+    sync.Mutex
+    tweetMap map[uint]*storage.TweetEntity // // Map index to entity/record
+    //posts     *list.List
+    pkCounter uint
 }
 
 // Return a new primary key.
 // No need to lock.
 func (m *MemTweetStore) getNewPK() uint {
-	m.pkCounter++
-	return m.pkCounter
+    m.pkCounter++
+    return m.pkCounter
 }
 
-func (m *MemTweetStore) Create(tweet *storage.TweetEntity, result chan uint, errorChan chan error) {
-	m.Lock()
-	defer m.Unlock()
-	pk := m.getNewPK()
-	newPost := storage.TweetEntity{
-		ID:          pk,
-		UserID:      tweet.UserID,
-		Content:     tweet.Content,
-		CreatedTime: time.Now(),
-	}
-	m.tweetMap[newPost.ID] = &newPost
-	//	return pk, nil
-	result <- pk
+
+func (m *MemTweetStore) DeleteByCreatedTime(timeStamp time.Time, result chan bool, errorChan chan error){
+    m.Lock()
+    defer m.Unlock()
+    for tId,tweet:= range m.tweetMap{
+        if tweet.CreatedTime.Equal(timeStamp){
+            delete(m.tweetMap, tId)
+            result <- true
+            return
+        }
+    }
+    errorChan<-errors.New("didn't find the tweet")
+    return
 }
 
-//func (m *MemTweetStore) Delete(ID uint) *storage.MyStorageError {
-//	m.Lock()
-//	defer m.Unlock()
-//	if _, ok := m.tweetMap[ID]; !ok {
-//		return &storage.MyStorageError{Message: "Non-exist ID"}
-//	} else {
-//		//for e := m.posts.Front(); e != nil; e = e.Next() {
-//		//	u := e.Value.(storage.TweetEntity)
-//		//	if u.ID == ID {
-//		//		id := u.ID
-//		//		delete(m.tweetMap, id)
-//		//		m.posts.Remove(e)
-//		//	}
-//		//}
-//		delete(m.tweetMap, ID)
-//		return nil
-//	}
-//}
+func (m *MemTweetStore) Create(tweet *storage.TweetEntity, result chan uint,
+    errorChan chan error) uint {
+    m.Lock()
+    defer m.Unlock()
+    pk := m.getNewPK()
+    newTweet := storage.TweetEntity{
+        ID:          pk,
+        UserID:      tweet.UserID,
+        Content:     tweet.Content,
+        CreatedTime: time.Now(),
+    }
+    m.tweetMap[newTweet.ID] = &newTweet
+    //	return pk, nil
+    result <- pk
+    return pk
+}
+
+func (m *MemTweetStore) Delete(ID uint, result chan bool, errorChan chan error) {
+    m.Lock()
+    defer m.Unlock()
+    if _, ok := m.tweetMap[ID]; !ok {
+        errorChan <- &storage.MyStorageError{Message: "Non-exist ID"}
+        return
+    } else {
+        delete(m.tweetMap, ID)
+        result <- true
+        return
+    }
+}
 
 func (m *MemTweetStore) Read(ID uint, result chan *storage.TweetEntity, errorChan chan error) {
-	m.Lock()
-	defer m.Unlock()
-	var entity storage.TweetEntity
-	if _, ok := m.tweetMap[ID]; !ok {
-		errorChan <- &storage.MyStorageError{Message: "Non-exist Tweet ID"}
-		return
-	} else {
-		eInDB := m.tweetMap[ID]
-		entity = storage.TweetEntity{
-			ID:          eInDB.ID,
-			UserID:      eInDB.UserID,
-			Content:     eInDB.Content,
-			CreatedTime: eInDB.CreatedTime,
-		}
-		//return entity, nil
-		result <- &entity
-	}
+    m.Lock()
+    defer m.Unlock()
+    var entity storage.TweetEntity
+    if _, ok := m.tweetMap[ID]; !ok {
+        errorChan <- &storage.MyStorageError{Message: "Non-exist Tweet ID"}
+        return
+    } else {
+        eInDB := m.tweetMap[ID]
+        entity = storage.TweetEntity{
+            ID:          eInDB.ID,
+            UserID:      eInDB.UserID,
+            Content:     eInDB.Content,
+            CreatedTime: eInDB.CreatedTime,
+        }
+        //return entity, nil
+        result <- &entity
+    }
 }
 
 //

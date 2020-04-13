@@ -47,9 +47,12 @@ type UserStorageInterface interface {
 }
 
 type TweetStorageInterface interface {
-	Create(tweet *TweetEntity, result chan uint, errorChan chan error)
+	// Return tweet ID
+	Create(tweet *TweetEntity, result chan uint, errorChan chan error) uint
 	// Return a copy of post entity
 	Read(ID uint, result chan *TweetEntity, errorChan chan error)
+	Delete(ID uint, result chan bool, errorChan chan error)
+	DeleteByCreatedTime(timeStamp time.Time, result chan bool, errorChan chan error)
 }
 
 var drivers = make(map[string]*Manager)

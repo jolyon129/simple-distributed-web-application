@@ -86,13 +86,14 @@ var _ = Describe("User Repository", func() {
         Context("with a timeout context", func() {
             It("should return timeout err", func() {
                 timeout := 200 * time.Millisecond
-                ctx, _ := context.WithTimeout(context.Background(), timeout)
-                time.Sleep(1000 * time.Millisecond)
+                ctx, cancel := context.WithTimeout(context.Background(), timeout)
+                time.Sleep(500 * time.Millisecond)
+                cancel()
                 uId, err := userRepo.CreateNewUser(ctx, &UserInfo{
                     UserName: "Timeout",
                     Password: "123",
                 })
-                log.Print(err)
+                //log.Print(err)
                 Expect(err).ShouldNot(BeNil())
                 Expect(uId).Should(BeZero())
             })
@@ -280,7 +281,7 @@ var _ = Describe("User Repository", func() {
                         defer wg.Done()
                         tId, _ := tweetRepo.SaveTweet(ctx, TweetInfo{
                             UserID:  nuId2,
-                            Content: strconv.Itoa(100+i),
+                            Content: strconv.Itoa(100 + i),
                         })
                         userRepo.AddTweetToUser(ctx, nuId2, tId)
                     }(i)
@@ -288,7 +289,7 @@ var _ = Describe("User Repository", func() {
                         defer wg.Done()
                         tId, _ := tweetRepo.SaveTweet(ctx, TweetInfo{
                             UserID:  nuId,
-                            Content: strconv.Itoa(10+i),
+                            Content: strconv.Itoa(10 + i),
                         })
                         userRepo.AddTweetToUser(ctx, nuId, tId)
                     }(i)
@@ -298,8 +299,8 @@ var _ = Describe("User Repository", func() {
                 checkSum2 := 0
                 for e := u.Tweets.Front(); e != nil; e = e.Next() {
                     tId := e.Value.(uint)
-                    costr, _:=tweetRepo.SelectById(ctx,tId)
-                    coint,_:=strconv.Atoi(costr.Content)
+                    costr, _ := tweetRepo.SelectById(ctx, tId)
+                    coint, _ := strconv.Atoi(costr.Content)
                     checkSum2 += coint
                 }
                 Expect(checkSum2).Should(Equal(1045))
@@ -308,8 +309,8 @@ var _ = Describe("User Repository", func() {
                 u2, _ := userRepo.SelectById(ctx, nuId)
                 for e := u2.Tweets.Front(); e != nil; e = e.Next() {
                     tId := e.Value.(uint)
-                    costr, _:=tweetRepo.SelectById(ctx,tId)
-                    coint,_:=strconv.Atoi(costr.Content)
+                    costr, _ := tweetRepo.SelectById(ctx, tId)
+                    coint, _ := strconv.Atoi(costr.Content)
                     checkSUm1 += coint
                 }
                 Expect(checkSUm1).Should(Equal(145))
@@ -439,7 +440,7 @@ var _ = Describe("User Repository", func() {
             It("should return timeout err", func() {
                 timeout := 200 * time.Millisecond
                 ctx, cancel := context.WithTimeout(context.Background(), timeout)
-                time.Sleep(11000 * time.Millisecond)
+                time.Sleep(1000 * time.Millisecond)
                 cancel()
                 u, err := userRepo.StopFollowing(ctx, puId, puId2)
                 Expect(err).ShouldNot(BeNil())
@@ -510,10 +511,10 @@ var _ = Describe("Tweet Repository", func() {
     timeout := 5 * time.Second
     Describe("Create new post/Tweet", func() {
         Context("with a timeout context", func() {
-            It("should return timeout err", func() {
+            It("should return timeout err and wipe out the redundant tweet", func() {
                 timeout := 200 * time.Millisecond
                 ctx, cancel := context.WithTimeout(context.Background(), timeout)
-                time.Sleep(1000 * time.Millisecond)
+                time.Sleep(500 * time.Millisecond)
                 cancel()
                 u, err := tweetRepo.SaveTweet(ctx, TweetInfo{})
                 Expect(err).ShouldNot(BeNil())
@@ -571,7 +572,7 @@ var _ = Describe("Tweet Repository", func() {
             It("should return timeout err", func() {
                 timeout := 200 * time.Millisecond
                 ctx, cancel := context.WithTimeout(context.Background(), timeout)
-                time.Sleep(1000 * time.Millisecond)
+                time.Sleep(500 * time.Millisecond)
                 cancel()
                 u, err := tweetRepo.SelectById(ctx, uint(101))
                 Expect(err).ShouldNot(BeNil())

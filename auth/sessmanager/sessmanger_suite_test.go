@@ -1,7 +1,7 @@
-package auth_test
+package sessmanager_test
 
 import (
-	"testing"
+    "testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
