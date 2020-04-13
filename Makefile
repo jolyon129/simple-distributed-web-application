@@ -38,5 +38,5 @@ run-auth: vendor-auth
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/auth/auth.go
 
 
-test: vendor-auth vendor-backend
+test: vendor-auth vendor-backend vendor-web 
 	go test -v --race ./...
