@@ -389,8 +389,9 @@ var _ = Describe("User Repository", func() {
         Context("with a timeout context", func() {
             It("should return timeout err", func() {
                 timeout := 200 * time.Millisecond
-                ctx, _ := context.WithTimeout(context.Background(), timeout)
+                ctx, cancel := context.WithTimeout(context.Background(), timeout)
                 time.Sleep(1000 * time.Millisecond)
+                cancel()
                 u, err := userRepo.CheckWhetherFollowing(ctx, puId, puId2)
                 Expect(err).ShouldNot(BeNil())
                 Expect(u).Should(BeZero())
