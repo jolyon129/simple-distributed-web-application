@@ -22,25 +22,25 @@ type backendServer struct {
 	backendpb.UnimplementedBackendServer
 }
 
-func (b backendServer) NewTweet(ctx context.Context,
-	request *backendpb.NewTweetRequest) (*backendpb.NewTweetResponse, error) {
-	uId := uint(request.UserId)
-	tId, err := tweetRepo.SaveTweet(ctx, repository.TweetInfo{
-		UserID:  uId,
-		Content: request.Content,
-	})
-	if err != nil {
-		return nil, err
-	}
-	_, err1 := userRepo.AddTweetToUser(ctx, uId, tId)
-	if err1 != nil {
-		return nil, err1
-	}
-	return &backendpb.NewTweetResponse{
-		TweetId: uint64(tId),
-	}, nil
-
-}
+//func (b backendServer) NewTweet(ctx context.Context,
+//	request *backendpb.NewTweetRequest) (*backendpb.NewTweetResponse, error) {
+//	uId := uint(request.UserId)
+//	tId, err := tweetRepo.SaveTweet(ctx, repository.TweetInfo{
+//		UserID:  uId,
+//		Content: request.Content,
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	_, err1 := userRepo.AddTweetToUser(ctx, uId, tId)
+//	if err1 != nil {
+//		return nil, err1
+//	}
+//	return &backendpb.NewTweetResponse{
+//		TweetId: uint64(tId),
+//	}, nil
+//
+//}
 
 func (b backendServer) TweetSelectById(ctx context.Context,
 	request *backendpb.SelectByIdRequest) (*backendpb.TweetSelectByIdResponse, error) {
@@ -68,6 +68,7 @@ func (b backendServer) NewUser(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("Create New User with User Id:%d",uint64(uId))
 	return &backendpb.NewUserResponse{
 		UserId: uint64(uId),
 	}, nil
@@ -84,7 +85,7 @@ func (b backendServer) UserSelectByName(ctx context.Context,
 		User: &backendpb.UserEntity{
 			UserId:     uint64(user.ID),
 			UserName:   user.UserName,
-			Password:   "",
+			Password:   user.Password,
 			Followers:  convertUintListToUint64Slice(user.Follower),
 			Followings: convertUintListToUint64Slice(user.Following),
 			Tweets:     convertUintListToUint64Slice(user.Tweets),
@@ -95,7 +96,7 @@ func (b backendServer) UserSelectByName(ctx context.Context,
 func convertUintListToUint64Slice(list *list.List) []uint64 {
 	tweets := make([]uint64, list.Len())
 	i := 0
-	for e := list.Back(); e != nil; e = e.Prev() {
+	for e := list.Front(); e != nil; e = e.Next() {
 		tid := e.Value.(uint)
 		tweets[i] = uint64(tid)
 		i++
@@ -113,7 +114,7 @@ func (b backendServer) UserSelectById(ctx context.Context,
 		User: &backendpb.UserEntity{
 			UserId:     uint64(user.ID),
 			UserName:   user.UserName,
-			Password:   "",
+			Password:   user.Password,
 			Followers:  convertUintListToUint64Slice(user.Follower),
 			Followings: convertUintListToUint64Slice(user.Following),
 			Tweets:     convertUintListToUint64Slice(user.Tweets),
@@ -155,7 +156,7 @@ func (b backendServer) FindAllUsers(ctx context.Context,
 		retUsers[idx] = &backendpb.UserEntity{
 			UserId:     uint64(user.ID),
 			UserName:   user.UserName,
-			Password:   "",
+			Password:   user.Password,
 			Followers:  convertUintListToUint64Slice(user.Follower),
 			Followings: convertUintListToUint64Slice(user.Following),
 			Tweets:     convertUintListToUint64Slice(user.Tweets),
