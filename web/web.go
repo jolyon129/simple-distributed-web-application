@@ -2,13 +2,17 @@ package web
 
 import (
     "context"
-    "google.golang.org/grpc"
     "log"
     "net/http"
     "time"
     "zl2501-final-project/web/constant"
+    "zl2501-final-project/web/controller"
+    "zl2501-final-project/web/middleware"
     "zl2501-final-project/web/pb"
 )
+
+
+
 
 // Then, initialize the session manager
 func init() {
@@ -19,36 +23,37 @@ func init() {
 
 }
 
-func StartService() {
-    conn, err := grpc.Dial(constant.BackendServiceAddress, grpc.WithInsecure(), grpc.WithBlock())
-    if err != nil {
-        log.Fatalf("did not connect: %v", err)
-    }
-    defer conn.Close()
-    backendClient := pb.NewBackendClient(conn)
-
+func GreetHello() {
     // Contact the server and print out its response.
     ctx, cancel := context.WithTimeout(context.Background(), time.Second)
     defer cancel()
-    r, err := backendClient.SayHello(ctx, &pb.HelloRequest{Name: "Zhuolun"})
+    r, err := pb.BackendClientIns.SayHello(ctx, &pb.HelloRequest{Name: "Zhuolun"})
     if err != nil {
         log.Fatalf("could not greet: %v", err)
     }
     log.Printf("Greeting: %s", r.GetMessage())
-    //mux := http.NewServeMux()
-    //mux.Handle("/", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader))                                  // set router
-    //mux.Handle("/index", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader))
-    //mux.Handle("/login", MiddlewareAdapt(http.HandlerFunc(controller.LogIn), SetHeader))
-    //mux.Handle("/signup", MiddlewareAdapt(http.HandlerFunc(controller.SignUp), SetHeader))
-    //mux.Handle("/home", MiddlewareAdapt(http.HandlerFunc(controller.Home), auth.CheckAuth, SetHeader))
-    //mux.Handle("/logout", MiddlewareAdapt(http.HandlerFunc(controller.LogOut), SetHeader))
-    //mux.Handle("/tweet", MiddlewareAdapt(http.HandlerFunc(controller.Tweet), auth.CheckAuth, SetHeader))
-    //mux.Handle("/users", MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers), auth.CheckAuth, SetHeader))
-    //mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.User), auth.CheckAuth, SetHeader))
-    //mux.Handle("/follow", MiddlewareAdapt(http.HandlerFunc(controller.Follow), auth.CheckAuth, SetHeader))
-    //mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow), auth.CheckAuth, SetHeader))
-    //log.Println("Server is going to start at: http://localhost:"+constant.Port)
-    //log.Fatal(http.ListenAndServe(":"+constant.Port, logger.LogRequests(mux)))
+
+}
+
+func StartService() {
+    authConn := pb.CreateAuthServiceConnection()
+    backendConn :=pb.CreateBackendServiceConnection()
+    defer authConn.Close()
+    defer backendConn.Close()
+    mux := http.NewServeMux()
+    mux.Handle("/", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader)) // set router
+    mux.Handle("/index", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader))
+    mux.Handle("/login", MiddlewareAdapt(http.HandlerFunc(controller.LogIn), SetHeader))
+    mux.Handle("/signup", MiddlewareAdapt(http.HandlerFunc(controller.SignUp), SetHeader))
+    mux.Handle("/home", MiddlewareAdapt(http.HandlerFunc(controller.Home), middleware.CheckAuth, SetHeader))
+    mux.Handle("/logout", MiddlewareAdapt(http.HandlerFunc(controller.LogOut), SetHeader))
+    mux.Handle("/tweet", MiddlewareAdapt(http.HandlerFunc(controller.Tweet), middleware.CheckAuth, SetHeader))
+    mux.Handle("/users", MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers), middleware.CheckAuth, SetHeader))
+    mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.User), middleware.CheckAuth, SetHeader))
+    mux.Handle("/follow", MiddlewareAdapt(http.HandlerFunc(controller.Follow), middleware.CheckAuth, SetHeader))
+    mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow), middleware.CheckAuth, SetHeader))
+    log.Println("Server is going to start at: http://localhost:" + constant.Port)
+    log.Fatal(http.ListenAndServe(":"+constant.Port, middleware.LogRequests(mux)))
 }
 
 // Adapt all middleware to the handler.
