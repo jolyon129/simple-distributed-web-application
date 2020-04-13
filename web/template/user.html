@@ -20,7 +20,7 @@
         <p><b>Feed:</b></p>
         {{range $i, $t := .MyTweets}}
             <p>{{$t.Content}}</p>
-            <p><a href="/user/{{$t.UserId}}">{{$t.CreatedBy}}</a> {{$t.CreatedAt}} </p>
+            <p><a href="/user/{{$.Name}}">{{$t.CreatedBy}}</a> {{$t.CreatedAt}} </p>
             <hr>
         {{end}}
 
