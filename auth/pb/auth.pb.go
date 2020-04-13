@@ -24,6 +24,272 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type GetValueRequest struct {
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Ssid                 string   `protobuf:"bytes,2,opt,name=ssid,proto3" json:"ssid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetValueRequest) Reset()         { *m = GetValueRequest{} }
+func (m *GetValueRequest) String() string { return proto.CompactTextString(m) }
+func (*GetValueRequest) ProtoMessage()    {}
+func (*GetValueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8bbd6f3875b0e874, []int{0}
+}
+
+func (m *GetValueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetValueRequest.Unmarshal(m, b)
+}
+func (m *GetValueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetValueRequest.Marshal(b, m, deterministic)
+}
+func (m *GetValueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetValueRequest.Merge(m, src)
+}
+func (m *GetValueRequest) XXX_Size() int {
+	return xxx_messageInfo_GetValueRequest.Size(m)
+}
+func (m *GetValueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetValueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetValueRequest proto.InternalMessageInfo
+
+func (m *GetValueRequest) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *GetValueRequest) GetSsid() string {
+	if m != nil {
+		return m.Ssid
+	}
+	return ""
+}
+
+type GetValueResponse struct {
+	Value                string   `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetValueResponse) Reset()         { *m = GetValueResponse{} }
+func (m *GetValueResponse) String() string { return proto.CompactTextString(m) }
+func (*GetValueResponse) ProtoMessage()    {}
+func (*GetValueResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8bbd6f3875b0e874, []int{1}
+}
+
+func (m *GetValueResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetValueResponse.Unmarshal(m, b)
+}
+func (m *GetValueResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetValueResponse.Marshal(b, m, deterministic)
+}
+func (m *GetValueResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetValueResponse.Merge(m, src)
+}
+func (m *GetValueResponse) XXX_Size() int {
+	return xxx_messageInfo_GetValueResponse.Size(m)
+}
+func (m *GetValueResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetValueResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetValueResponse proto.InternalMessageInfo
+
+func (m *GetValueResponse) GetValue() string {
+	if m != nil {
+		return m.Value
+	}
+	return ""
+}
+
+type DeleteValueRequest struct {
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Ssid                 string   `protobuf:"bytes,2,opt,name=ssid,proto3" json:"ssid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteValueRequest) Reset()         { *m = DeleteValueRequest{} }
+func (m *DeleteValueRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteValueRequest) ProtoMessage()    {}
+func (*DeleteValueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8bbd6f3875b0e874, []int{2}
+}
+
+func (m *DeleteValueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteValueRequest.Unmarshal(m, b)
+}
+func (m *DeleteValueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteValueRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteValueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteValueRequest.Merge(m, src)
+}
+func (m *DeleteValueRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteValueRequest.Size(m)
+}
+func (m *DeleteValueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteValueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteValueRequest proto.InternalMessageInfo
+
+func (m *DeleteValueRequest) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *DeleteValueRequest) GetSsid() string {
+	if m != nil {
+		return m.Ssid
+	}
+	return ""
+}
+
+type DeleteValueResponse struct {
+	Ok                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteValueResponse) Reset()         { *m = DeleteValueResponse{} }
+func (m *DeleteValueResponse) String() string { return proto.CompactTextString(m) }
+func (*DeleteValueResponse) ProtoMessage()    {}
+func (*DeleteValueResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8bbd6f3875b0e874, []int{3}
+}
+
+func (m *DeleteValueResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteValueResponse.Unmarshal(m, b)
+}
+func (m *DeleteValueResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteValueResponse.Marshal(b, m, deterministic)
+}
+func (m *DeleteValueResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteValueResponse.Merge(m, src)
+}
+func (m *DeleteValueResponse) XXX_Size() int {
+	return xxx_messageInfo_DeleteValueResponse.Size(m)
+}
+func (m *DeleteValueResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteValueResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteValueResponse proto.InternalMessageInfo
+
+func (m *DeleteValueResponse) GetOk() bool {
+	if m != nil {
+		return m.Ok
+	}
+	return false
+}
+
+type SetValueRequest struct {
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value                string   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Ssid                 string   `protobuf:"bytes,3,opt,name=ssid,proto3" json:"ssid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetValueRequest) Reset()         { *m = SetValueRequest{} }
+func (m *SetValueRequest) String() string { return proto.CompactTextString(m) }
+func (*SetValueRequest) ProtoMessage()    {}
+func (*SetValueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8bbd6f3875b0e874, []int{4}
+}
+
+func (m *SetValueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetValueRequest.Unmarshal(m, b)
+}
+func (m *SetValueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetValueRequest.Marshal(b, m, deterministic)
+}
+func (m *SetValueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetValueRequest.Merge(m, src)
+}
+func (m *SetValueRequest) XXX_Size() int {
+	return xxx_messageInfo_SetValueRequest.Size(m)
+}
+func (m *SetValueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetValueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetValueRequest proto.InternalMessageInfo
+
+func (m *SetValueRequest) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *SetValueRequest) GetValue() string {
+	if m != nil {
+		return m.Value
+	}
+	return ""
+}
+
+func (m *SetValueRequest) GetSsid() string {
+	if m != nil {
+		return m.Ssid
+	}
+	return ""
+}
+
+type SetValueResponse struct {
+	Ok                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetValueResponse) Reset()         { *m = SetValueResponse{} }
+func (m *SetValueResponse) String() string { return proto.CompactTextString(m) }
+func (*SetValueResponse) ProtoMessage()    {}
+func (*SetValueResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8bbd6f3875b0e874, []int{5}
+}
+
+func (m *SetValueResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetValueResponse.Unmarshal(m, b)
+}
+func (m *SetValueResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetValueResponse.Marshal(b, m, deterministic)
+}
+func (m *SetValueResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetValueResponse.Merge(m, src)
+}
+func (m *SetValueResponse) XXX_Size() int {
+	return xxx_messageInfo_SetValueResponse.Size(m)
+}
+func (m *SetValueResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetValueResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetValueResponse proto.InternalMessageInfo
+
+func (m *SetValueResponse) GetOk() bool {
+	if m != nil {
+		return m.Ok
+	}
+	return false
+}
+
 type SessionDestroyResponse struct {
 	Ok                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -35,7 +301,7 @@ func (m *SessionDestroyResponse) Reset()         { *m = SessionDestroyResponse{}
 func (m *SessionDestroyResponse) String() string { return proto.CompactTextString(m) }
 func (*SessionDestroyResponse) ProtoMessage()    {}
 func (*SessionDestroyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8bbd6f3875b0e874, []int{0}
+	return fileDescriptor_8bbd6f3875b0e874, []int{6}
 }
 
 func (m *SessionDestroyResponse) XXX_Unmarshal(b []byte) error {
@@ -74,7 +340,7 @@ func (m *SessionAuthResponse) Reset()         { *m = SessionAuthResponse{} }
 func (m *SessionAuthResponse) String() string { return proto.CompactTextString(m) }
 func (*SessionAuthResponse) ProtoMessage()    {}
 func (*SessionAuthResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8bbd6f3875b0e874, []int{1}
+	return fileDescriptor_8bbd6f3875b0e874, []int{7}
 }
 
 func (m *SessionAuthResponse) XXX_Unmarshal(b []byte) error {
@@ -113,7 +379,7 @@ func (m *SessionGeneralRequest) Reset()         { *m = SessionGeneralRequest{} }
 func (m *SessionGeneralRequest) String() string { return proto.CompactTextString(m) }
 func (*SessionGeneralRequest) ProtoMessage()    {}
 func (*SessionGeneralRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8bbd6f3875b0e874, []int{2}
+	return fileDescriptor_8bbd6f3875b0e874, []int{8}
 }
 
 func (m *SessionGeneralRequest) XXX_Unmarshal(b []byte) error {
@@ -152,7 +418,7 @@ func (m *SessionGeneralResponse) Reset()         { *m = SessionGeneralResponse{}
 func (m *SessionGeneralResponse) String() string { return proto.CompactTextString(m) }
 func (*SessionGeneralResponse) ProtoMessage()    {}
 func (*SessionGeneralResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_8bbd6f3875b0e874, []int{3}
+	return fileDescriptor_8bbd6f3875b0e874, []int{9}
 }
 
 func (m *SessionGeneralResponse) XXX_Unmarshal(b []byte) error {
@@ -181,6 +447,12 @@ func (m *SessionGeneralResponse) GetSessionId() string {
 }
 
 func init() {
+	proto.RegisterType((*GetValueRequest)(nil), "pb.GetValueRequest")
+	proto.RegisterType((*GetValueResponse)(nil), "pb.GetValueResponse")
+	proto.RegisterType((*DeleteValueRequest)(nil), "pb.DeleteValueRequest")
+	proto.RegisterType((*DeleteValueResponse)(nil), "pb.DeleteValueResponse")
+	proto.RegisterType((*SetValueRequest)(nil), "pb.SetValueRequest")
+	proto.RegisterType((*SetValueResponse)(nil), "pb.SetValueResponse")
 	proto.RegisterType((*SessionDestroyResponse)(nil), "pb.SessionDestroyResponse")
 	proto.RegisterType((*SessionAuthResponse)(nil), "pb.SessionAuthResponse")
 	proto.RegisterType((*SessionGeneralRequest)(nil), "pb.SessionGeneralRequest")
@@ -192,21 +464,29 @@ func init() {
 }
 
 var fileDescriptor_8bbd6f3875b0e874 = []byte{
-	// 210 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4a, 0x2c, 0x2d, 0xc9,
-	0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2a, 0x48, 0x52, 0xd2, 0xe0, 0x12, 0x0b, 0x4e,
-	0x2d, 0x2e, 0xce, 0xcc, 0xcf, 0x73, 0x49, 0x2d, 0x2e, 0x29, 0xca, 0xaf, 0x0c, 0x4a, 0x2d, 0x2e,
-	0xc8, 0xcf, 0x2b, 0x4e, 0x15, 0xe2, 0xe3, 0x62, 0xca, 0xcf, 0x96, 0x60, 0x54, 0x60, 0xd4, 0xe0,
-	0x08, 0x62, 0xca, 0xcf, 0x56, 0x52, 0xe5, 0x12, 0x86, 0xaa, 0x74, 0x2c, 0x2d, 0xc9, 0xc0, 0xa9,
-	0xcc, 0x8c, 0x4b, 0x14, 0xaa, 0xcc, 0x3d, 0x35, 0x2f, 0xb5, 0x28, 0x31, 0x27, 0x28, 0xb5, 0xb0,
-	0x34, 0xb5, 0xb8, 0x44, 0x48, 0x96, 0x8b, 0xab, 0x18, 0x22, 0x11, 0x9f, 0x99, 0x02, 0xd6, 0xc0,
-	0x19, 0xc4, 0x09, 0x15, 0xf1, 0x4c, 0x51, 0x32, 0x87, 0x3b, 0x04, 0xae, 0x0f, 0x6a, 0x03, 0x7e,
-	0x8d, 0x46, 0xf7, 0x19, 0xb9, 0x58, 0x40, 0x2e, 0x12, 0x72, 0xe6, 0xe2, 0x46, 0x72, 0xa0, 0x90,
-	0xa4, 0x5e, 0x41, 0x92, 0x1e, 0x56, 0xa7, 0x48, 0x89, 0x23, 0x49, 0x21, 0x7b, 0x46, 0x89, 0x41,
-	0xc8, 0x9d, 0x8b, 0x07, 0x2a, 0x11, 0x5c, 0x92, 0x58, 0x54, 0x82, 0xcf, 0x14, 0x29, 0x6c, 0x52,
-	0x70, 0x83, 0x3c, 0xb9, 0xf8, 0x50, 0x03, 0x96, 0x58, 0xa3, 0xd0, 0xe2, 0x41, 0x89, 0x21, 0x89,
-	0x0d, 0x1c, 0x5d, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x83, 0x30, 0x6c, 0xce, 0xbc, 0x01,
-	0x00, 0x00,
+	// 344 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0xc1, 0x6a, 0xc2, 0x40,
+	0x10, 0xd5, 0x68, 0x8b, 0x8e, 0x45, 0x65, 0xb4, 0xd6, 0x0a, 0x85, 0xb2, 0x20, 0x78, 0xf2, 0xd0,
+	0x42, 0x85, 0x9e, 0x5a, 0x2a, 0x2c, 0x1e, 0x7a, 0x31, 0xd0, 0x6b, 0x89, 0x38, 0xa0, 0x24, 0x64,
+	0xd3, 0xec, 0xa6, 0xe0, 0x77, 0xf4, 0x87, 0x4b, 0x92, 0x35, 0xdd, 0xc4, 0x68, 0x4b, 0x6f, 0x9b,
+	0x99, 0xf7, 0xe6, 0xbd, 0xb7, 0x3b, 0x01, 0x70, 0x22, 0xb5, 0x99, 0x06, 0xa1, 0x50, 0x02, 0xad,
+	0x60, 0xc5, 0x66, 0xd0, 0xe1, 0xa4, 0xde, 0x1c, 0x2f, 0xa2, 0x25, 0x7d, 0x44, 0x24, 0x15, 0x76,
+	0xa1, 0xe6, 0xd2, 0x6e, 0x58, 0xbd, 0xad, 0x4e, 0x9a, 0xcb, 0xf8, 0x88, 0x08, 0x75, 0x29, 0xb7,
+	0xeb, 0xa1, 0x95, 0x94, 0x92, 0x33, 0x9b, 0x40, 0xf7, 0x87, 0x28, 0x03, 0xe1, 0x4b, 0xc2, 0x3e,
+	0x9c, 0x7d, 0xc6, 0x05, 0xcd, 0x4d, 0x3f, 0xd8, 0x23, 0xe0, 0x9c, 0x3c, 0x52, 0xf4, 0x0f, 0x95,
+	0x31, 0xf4, 0x72, 0x5c, 0x2d, 0xd4, 0x06, 0x4b, 0xb8, 0x09, 0xb7, 0xb1, 0xb4, 0x84, 0xcb, 0x5e,
+	0xa1, 0x63, 0xff, 0x9a, 0x22, 0x73, 0x67, 0x19, 0xee, 0x32, 0xd5, 0x9a, 0xa1, 0xca, 0xa0, 0x6b,
+	0x17, 0xb3, 0x15, 0x25, 0x27, 0x30, 0xb0, 0x49, 0xca, 0xad, 0xf0, 0xe7, 0x24, 0x55, 0x28, 0x76,
+	0x47, 0x91, 0x63, 0xe8, 0x69, 0xe4, 0x73, 0xa4, 0x36, 0x47, 0x61, 0x0f, 0x70, 0xa9, 0x61, 0x9c,
+	0x7c, 0x0a, 0x1d, 0x6f, 0x9f, 0xe4, 0x06, 0x40, 0xa6, 0x8d, 0xf7, 0xed, 0x5a, 0x07, 0x6a, 0xea,
+	0xca, 0x62, 0xcd, 0x66, 0x99, 0x91, 0x8c, 0xa7, 0x15, 0x4e, 0x13, 0xef, 0xbe, 0x6a, 0x50, 0x8f,
+	0x1d, 0xe1, 0x0b, 0xb4, 0x0c, 0x83, 0x78, 0x3d, 0x0d, 0x56, 0xd3, 0x52, 0x2b, 0xa3, 0x2b, 0xa3,
+	0x65, 0x86, 0x61, 0x15, 0xe4, 0x70, 0xa1, 0x1b, 0xb6, 0x72, 0x42, 0x75, 0x6a, 0xca, 0xa8, 0xac,
+	0x95, 0x0d, 0x5a, 0x40, 0x3b, 0x7f, 0xb1, 0x7f, 0x1d, 0x55, 0x78, 0x07, 0x56, 0xc1, 0x19, 0x34,
+	0xf6, 0xef, 0x88, 0xbd, 0x14, 0x99, 0x5b, 0x92, 0x51, 0x3f, 0x5f, 0x34, 0x89, 0x3c, 0x47, 0xe4,
+	0x65, 0x44, 0x7e, 0x48, 0x7c, 0x82, 0x96, 0xb1, 0xaf, 0x38, 0x88, 0x61, 0x87, 0xcb, 0x9f, 0xde,
+	0x63, 0xc9, 0x62, 0xb3, 0xca, 0xea, 0x3c, 0xf9, 0x37, 0xef, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff,
+	0xc2, 0x2c, 0x9b, 0x1b, 0xa9, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -224,6 +504,9 @@ type AuthClient interface {
 	SessionAuth(ctx context.Context, in *SessionGeneralRequest, opts ...grpc.CallOption) (*SessionAuthResponse, error)
 	SessionStart(ctx context.Context, in *SessionGeneralRequest, opts ...grpc.CallOption) (*SessionGeneralResponse, error)
 	SessionDestroy(ctx context.Context, in *SessionGeneralRequest, opts ...grpc.CallOption) (*SessionDestroyResponse, error)
+	SetValue(ctx context.Context, in *SetValueRequest, opts ...grpc.CallOption) (*SetValueResponse, error)
+	GetValue(ctx context.Context, in *GetValueRequest, opts ...grpc.CallOption) (*GetValueResponse, error)
+	DeleteValue(ctx context.Context, in *DeleteValueRequest, opts ...grpc.CallOption) (*DeleteValueResponse, error)
 }
 
 type authClient struct {
@@ -261,11 +544,41 @@ func (c *authClient) SessionDestroy(ctx context.Context, in *SessionGeneralReque
 	return out, nil
 }
 
+func (c *authClient) SetValue(ctx context.Context, in *SetValueRequest, opts ...grpc.CallOption) (*SetValueResponse, error) {
+	out := new(SetValueResponse)
+	err := c.cc.Invoke(ctx, "/pb.Auth/SetValue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authClient) GetValue(ctx context.Context, in *GetValueRequest, opts ...grpc.CallOption) (*GetValueResponse, error) {
+	out := new(GetValueResponse)
+	err := c.cc.Invoke(ctx, "/pb.Auth/GetValue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authClient) DeleteValue(ctx context.Context, in *DeleteValueRequest, opts ...grpc.CallOption) (*DeleteValueResponse, error) {
+	out := new(DeleteValueResponse)
+	err := c.cc.Invoke(ctx, "/pb.Auth/DeleteValue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServer is the server API for Auth service.
 type AuthServer interface {
 	SessionAuth(context.Context, *SessionGeneralRequest) (*SessionAuthResponse, error)
 	SessionStart(context.Context, *SessionGeneralRequest) (*SessionGeneralResponse, error)
 	SessionDestroy(context.Context, *SessionGeneralRequest) (*SessionDestroyResponse, error)
+	SetValue(context.Context, *SetValueRequest) (*SetValueResponse, error)
+	GetValue(context.Context, *GetValueRequest) (*GetValueResponse, error)
+	DeleteValue(context.Context, *DeleteValueRequest) (*DeleteValueResponse, error)
 }
 
 // UnimplementedAuthServer can be embedded to have forward compatible implementations.
@@ -280,6 +593,15 @@ func (*UnimplementedAuthServer) SessionStart(ctx context.Context, req *SessionGe
 }
 func (*UnimplementedAuthServer) SessionDestroy(ctx context.Context, req *SessionGeneralRequest) (*SessionDestroyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SessionDestroy not implemented")
+}
+func (*UnimplementedAuthServer) SetValue(ctx context.Context, req *SetValueRequest) (*SetValueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetValue not implemented")
+}
+func (*UnimplementedAuthServer) GetValue(ctx context.Context, req *GetValueRequest) (*GetValueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetValue not implemented")
+}
+func (*UnimplementedAuthServer) DeleteValue(ctx context.Context, req *DeleteValueRequest) (*DeleteValueResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteValue not implemented")
 }
 
 func RegisterAuthServer(s *grpc.Server, srv AuthServer) {
@@ -340,6 +662,60 @@ func _Auth_SessionDestroy_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_SetValue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetValueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).SetValue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Auth/SetValue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).SetValue(ctx, req.(*SetValueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Auth_GetValue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetValueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).GetValue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Auth/GetValue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).GetValue(ctx, req.(*GetValueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Auth_DeleteValue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteValueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).DeleteValue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Auth/DeleteValue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).DeleteValue(ctx, req.(*DeleteValueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Auth_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.Auth",
 	HandlerType: (*AuthServer)(nil),
@@ -355,6 +731,18 @@ var _Auth_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SessionDestroy",
 			Handler:    _Auth_SessionDestroy_Handler,
+		},
+		{
+			MethodName: "SetValue",
+			Handler:    _Auth_SetValue_Handler,
+		},
+		{
+			MethodName: "GetValue",
+			Handler:    _Auth_GetValue_Handler,
+		},
+		{
+			MethodName: "DeleteValue",
+			Handler:    _Auth_DeleteValue_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
