@@ -21,7 +21,7 @@ var _ = Describe("Session", func() {
 		Context("When the context timeout", func() {
 			It("should return timeout err", func() {
 				ctx, _ := context.WithTimeout(context.Background(), 400*time.Millisecond)
-				time.Sleep(500*time.Millisecond)
+				time.Sleep(1000*time.Millisecond)
 				_,err:=manager.SessionStart(ctx,"")
 				Expect(err).NotTo(BeNil())
 			})
@@ -71,7 +71,7 @@ var _ = Describe("Session", func() {
 		Context("When the context timeout", func() {
 			It("should return timeout err", func() {
 				ctx, _ := context.WithTimeout(context.Background(), 400*time.Millisecond)
-				time.Sleep(500*time.Millisecond)
+				time.Sleep(1000*time.Millisecond)
 				_,err:= manager.SetValue(ctx,fakeSessId,"Test","tst")
 				Expect(err).NotTo(BeNil())
 			})
