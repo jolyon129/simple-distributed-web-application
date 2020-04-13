@@ -49,4 +49,4 @@ before_script:
 # .golangci.yml file at the top level of your repo.
 script:
 #  - golangci-lint run       # run a bunch of code checkers/linters in parallel
-  - make test  # Test all 
+  - make test  # Test all

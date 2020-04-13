@@ -5,8 +5,8 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"zl2501-final-project/backend/pb"
 	"zl2501-final-project/backend/constant"
+	"zl2501-final-project/backend/pb"
 )
 
 func init() {
@@ -14,9 +14,6 @@ func init() {
 	log.SetPrefix("Backend Service: ")
 	log.SetFlags(log.Ltime | log.Lshortfile)
 }
-
-
-
 
 func StartService() {
 	log.Println("Backend Server is going to start at: http://localhost:" + constant.Port)

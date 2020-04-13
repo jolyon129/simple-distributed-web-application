@@ -3,7 +3,6 @@ package main
 import (
     "context"
     "fmt"
-    "golang.org/x/crypto/bcrypt"
     "time"
     "zl2501-final-project/backend"
     "zl2501-final-project/backend/model"
@@ -16,19 +15,10 @@ func main() {
     backend.StartService()
 }
 
-func EncodePassword(password string) (string, error) {
-    hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-    if err != nil {
-        return "", err
-    } else {
-        return string(hash), nil
-    }
-}
-
 func addDefaultData() {
     bgctx := context.Background()
     userRepo := model.GetUserRepo()
-    hash, _ := EncodePassword("123")
+    hash, _ := backend.EncodePassword("123")
     uId, _ := userRepo.CreateNewUser(bgctx, &repository.UserInfo{
         UserName: "zl2501",
         Password: hash,

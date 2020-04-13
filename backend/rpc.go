@@ -3,6 +3,7 @@ package backend
 import (
 	"container/list"
 	"context"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"zl2501-final-project/backend/constant"
 	"zl2501-final-project/backend/model"
@@ -22,25 +23,15 @@ type backendServer struct {
 	backendpb.UnimplementedBackendServer
 }
 
-//func (b backendServer) NewTweet(ctx context.Context,
-//	request *backendpb.NewTweetRequest) (*backendpb.NewTweetResponse, error) {
-//	uId := uint(request.UserId)
-//	tId, err := tweetRepo.SaveTweet(ctx, repository.TweetInfo{
-//		UserID:  uId,
-//		Content: request.Content,
-//	})
-//	if err != nil {
-//		return nil, err
-//	}
-//	_, err1 := userRepo.AddTweetToUser(ctx, uId, tId)
-//	if err1 != nil {
-//		return nil, err1
-//	}
-//	return &backendpb.NewTweetResponse{
-//		TweetId: uint64(tId),
-//	}, nil
-//
-//}
+
+func EncodePassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	} else {
+		return string(hash), nil
+	}
+}
 
 func (b backendServer) TweetSelectById(ctx context.Context,
 	request *backendpb.SelectByIdRequest) (*backendpb.TweetSelectByIdResponse, error) {
@@ -61,9 +52,10 @@ func (b backendServer) TweetSelectById(ctx context.Context,
 
 func (b backendServer) NewUser(ctx context.Context,
 	request *backendpb.NewUserRequest) (*backendpb.NewUserResponse, error) {
+	hashedPwd,_:= EncodePassword(request.UserPwd)
 	uId, err := userRepo.CreateNewUser(ctx, &repository.UserInfo{
 		UserName: request.UserName,
-		Password: request.UserPwd,
+		Password: hashedPwd,
 	})
 	if err != nil {
 		return nil, err

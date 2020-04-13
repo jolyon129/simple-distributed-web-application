@@ -42,11 +42,10 @@ func SignUp(w http.ResponseWriter, r *http.Request) error {
         }
         log.Println("username:", r.Form["username"])
         log.Println("password:", r.Form["password"])
-        hash, _ := EncodePassword(password)
         ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
         newUserResponse, error := BackendClientIns.NewUser(ctx, &NewUserRequest{
             UserName: userName,
-            UserPwd:  hash,
+            UserPwd:  password,
         })
         if error != nil {
             http.Redirect(w, r, "/signup", 302)
