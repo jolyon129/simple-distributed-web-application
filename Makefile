@@ -30,6 +30,19 @@ build-web: vendor-web
 	mkdir -p ./build
 	$(GOBUILD) -o ./build/ ./cmd/web/web.go
 
+build-auth: vendor-auth
+	mkdir -p ./build
+	$(GOBUILD) -o ./build/ ./cmd/auth/auth.go
+
+build-backend: vendor-backend
+	mkdir -p ./build
+	$(GOBUILD) -o ./build/ ./cmd/backend/backend.go
+
+build: vendor-all
+	make build-web
+	make build-auth
+	make build-backend
+
 run-backend: vendor-backend
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/backend/backend.go
 
@@ -38,5 +51,5 @@ run-auth: vendor-auth
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/auth/auth.go
 
 
-test: vendor-auth vendor-backend vendor-web 
+test: vendor-auth vendor-backend vendor-web
 	go test -v --race ./...

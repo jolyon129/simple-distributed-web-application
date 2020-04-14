@@ -1,5 +1,129 @@
 [![Build Status](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project.svg?token=LyWHGctXVCcEk9v6z4HG&branch=master)](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project)
 
+# Stage 2 Explanation
+
+I split the application into three services: web, backend and auth.
+
+The Backend service exposes access to process DB.The auth service authenticates web requests and servers session data in memory.The web service distribute incoming web reqeuests and render the reponses.
+
+The web server writes a sessionId in cookie and it communicates to auth server to store the `userId` and `userName` of the current session into the session data layer in the auth server. Processes related to DB are moved into backend server. Hence, the web server is totally stateless. 
+
+
+## Commands 
+
+Separately call `make run-auth`, `make run-backend` and `make run-web` in three terminal sessions
+. Then go to `localhost:9000` to enter into the application.
+
+Please note that you need to start the auth and backend server first, and then start the web server.
+
+Make Targets:
+* `make run-auth`: Start the auth server at `localhost:9002`
+* `make run-backend`: Start the backend server at `localhost:9001` 
+* `make run-web`: Start the web server at `localhost:9000`
+* `make test`: Run ginkgo test
+* `make build`: Build into `/build` directory.
+* `make proctoc`: Generate gRPC stubs and distribute into each service directories.
+
+## Logic
+
+The logic is same as the stage one. Still, there is some default data.
+You can login by using the following usernames or register a new  one.
+* User: jolyon129, Password: 123
+* User: zl2501, Password: 123
+
+## Structure
+
+```
+.
+├── Makefile   						--- makefile
+├── README.md
+├── auth							--- Auth Service
+│   ├── auth.go						--- Entry point of auth service 
+│   ├── constant
+│   │   └── constant.go
+│   ├── go.mod
+│   ├── go.sum
+│   ├── pb
+│   │   └── auth.pb.go		    --- Auto generated RPC stub
+│   ├── rpc.go					--- Implement RPC calls
+│   ├── sessmanager				--- Session manager(call functions in provider)
+│   │   ├── const.go
+│   │   ├── manager.go
+│   │   ├── sessmanager_test.go
+│   │   └── sessmanger_suite_test.go
+│   └── storage						--- Implement session storage in memory
+│       ├── memory				    --- Thread-safe memory Implementation
+│       │   └── memory.go
+│       ├── provider_interface.go   --- Interface for session provider
+│       └── session_interface.go	--- Interface for session 
+├── backend							--- Backend Service
+│   ├── backend.go				--- Entry point of backend service
+│   ├── constant
+│   │   └── constant.go
+│   ├── go.mod
+│   ├── go.sum
+│   ├── model					--- Model layer
+│   │   ├── model.go
+│   │   ├── model_suite_test.go
+│   │   ├── model_test.go
+│   │   ├── repository							--- Implement Repository
+│   │   │   ├── repository_suite_test.go
+│   │   │   ├── repository_test.go
+│   │   │   ├── tweetrepo.go
+│   │   │   └── userrepo.go
+│   │   └── storage								--- Implement Storage Layer
+│   │       ├── memory							--- Thread-safe memory Implementation
+│   │       │   ├── memory.go								
+│   │       │   ├── tweetstorage.go
+│   │       │   └── userstorage.go
+│   │       └── storage_interface.go
+│   ├── pb										--- Auto generated RPC stub
+│   │   └── backend.pb.go
+│   └── rpc.go									--- Implement RPC calls
+├── build										--- The output of Build
+│   ├── auth
+│   ├── backend
+│   └── web
+├── cmd							--- Commands to execute services(call `StartService` in each service) 
+│   ├── auth
+│   │   └── auth.go
+│   ├── backend
+│   │   └── backend.go			--- This also calls `addDefaultData`
+│   └── web
+│       └── web.go						
+├── commonpb					--- Store the proto files
+│   ├── auth.proto
+│   └── backend.proto
+├── go.sum
+└── web							--- Web Service
+    ├── constant
+    │   └── constant.go
+    ├── controller				--- Controller layer
+    │   ├── controller.go		--- Other controllers (login,logout, signin, tweet, etc)
+    │   ├── home.go  			--- Controllers for home page
+    │   └── util.go
+    ├── go.mod
+    ├── go.sum
+    ├── middleware				--- Middleware for requests(CheckAuth,Logger,SetHeader)
+    │   └── middleware.go
+    ├── pb						--- Auto generated RPC stub and implement Dial
+    │   ├── auth.pb.go
+    │   ├── backend.pb.go
+    │   └── dial.go				--- Dial to auth and backend service
+    ├── template				--- HTML files
+    │   ├── home.html
+    │   ├── index.html
+    │   ├── login.html
+    │   ├── signup.html
+    │   ├── tweet.html
+    │   ├── user.html
+    │   └── users.html
+    └── web.go				    --- Entry point and router: route reqeusts to corresponding controllers  
+
+25 directories, 59 files
+```
+
+
 # Stage 1 Explanation
 
 ## Run the server
