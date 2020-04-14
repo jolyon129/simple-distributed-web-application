@@ -35,82 +35,82 @@ You can login by using the following usernames or register a new  one.
 
 ```
 .
-├── Makefile   						--- makefile
+├── Makefile    --- makefile
 ├── README.md
-├── auth							--- Auth Service
-│   ├── auth.go						--- Entry point of auth service 
+├── autu            --- Auth Service
+│   ├── auth.go     --- Entry point of auth service 
 │   ├── constant
 │   │   └── constant.go
 │   ├── go.mod
 │   ├── go.sum
 │   ├── pb
-│   │   └── auth.pb.go		    --- Auto generated RPC stub
-│   ├── rpc.go					--- Implement RPC calls
-│   ├── sessmanager				--- Session manager(call functions in provider)
+│   │   └── auth.pb.go	--- Auto generated RPC stub
+│   ├── rpc.go          --- Implement RPC calls
+│   ├── sessmanager     --- Session manager(call functions in provider)
 │   │   ├── const.go
 │   │   ├── manager.go
 │   │   ├── sessmanager_test.go
 │   │   └── sessmanger_suite_test.go
-│   └── storage						--- Implement session storage in memory
-│       ├── memory				    --- Thread-safe memory Implementation
+│   └── storage         --- Implement session storage in memory
+│       ├── memory      --- Thread-safe memory Implementation
 │       │   └── memory.go
 │       ├── provider_interface.go   --- Interface for session provider
-│       └── session_interface.go	--- Interface for session 
-├── backend							--- Backend Service
-│   ├── backend.go				--- Entry point of backend service
+│       └── session_interface.go    --- Interface for session 
+├── backend                 --- Backend Service
+│   ├── backend.go          --- Entry point of backend service
 │   ├── constant
 │   │   └── constant.go
 │   ├── go.mod
 │   ├── go.sum
-│   ├── model					--- Model layer
+│   ├── model               --- Model layer
 │   │   ├── model.go
 │   │   ├── model_suite_test.go
 │   │   ├── model_test.go
-│   │   ├── repository							--- Implement Repository
+│   │   ├── repository      --- Implement Repository
 │   │   │   ├── repository_suite_test.go
 │   │   │   ├── repository_test.go
 │   │   │   ├── tweetrepo.go
 │   │   │   └── userrepo.go
-│   │   └── storage								--- Implement Storage Layer
-│   │       ├── memory							--- Thread-safe memory Implementation
+│   │   └── storage         --- Implement Storage Layer
+│   │       ├── memory      --- Thread-safe memory Implementation
 │   │       │   ├── memory.go								
 │   │       │   ├── tweetstorage.go
 │   │       │   └── userstorage.go
 │   │       └── storage_interface.go
-│   ├── pb										--- Auto generated RPC stub
+│   ├── pb                  --- Auto generated RPC stub
 │   │   └── backend.pb.go
-│   └── rpc.go									--- Implement RPC calls
-├── build										--- The output of Build
+│   └── rpc.go              --- Implement RPC calls
+├── build                   --- The output of Build
 │   ├── auth
 │   ├── backend
 │   └── web
-├── cmd							--- Commands to execute services(call `StartService` in each service) 
+├── cmd                    --- Commands to execute services(call `StartService` in each service) 
 │   ├── auth
 │   │   └── auth.go
 │   ├── backend
-│   │   └── backend.go			--- This also calls `addDefaultData`
+│   │   └── backend.go      --- This also calls `addDefaultData`
 │   └── web
 │       └── web.go						
-├── commonpb					--- Store the proto files
+├── commonpb                --- Store the proto files
 │   ├── auth.proto
 │   └── backend.proto
 ├── go.sum
-└── web							--- Web Service
+└── web                     --- Web Service
     ├── constant
     │   └── constant.go
-    ├── controller				--- Controller layer
-    │   ├── controller.go		--- Other controllers (login,logout, signin, tweet, etc)
-    │   ├── home.go  			--- Controllers for home page
+    ├── controller          --- Controller layer
+    │   ├── controller.go   --- Other controllers (login,logout, signin, tweet, etc)
+    │   ├── home.go         --- Controllers for home page
     │   └── util.go
     ├── go.mod
     ├── go.sum
-    ├── middleware				--- Middleware for requests(CheckAuth,Logger,SetHeader)
+    ├── middleware          --- Middleware for requests(CheckAuth,Logger,SetHeader)
     │   └── middleware.go
-    ├── pb						--- Auto generated RPC stub and implement Dial
+    ├── pb                  --- Auto generated RPC stub and implement Dial
     │   ├── auth.pb.go
     │   ├── backend.pb.go
-    │   └── dial.go				--- Dial to auth and backend service
-    ├── template				--- HTML files
+    │   └── dial.go         --- Dial to auth and backend service
+    ├── template            --- HTML files
     │   ├── home.html
     │   ├── index.html
     │   ├── login.html
@@ -118,7 +118,7 @@ You can login by using the following usernames or register a new  one.
     │   ├── tweet.html
     │   ├── user.html
     │   └── users.html
-    └── web.go				    --- Entry point and router: route reqeusts to corresponding controllers  
+    └── web.go              --- Entry point and router: route reqeusts to corresponding controllers  
 
 25 directories, 59 files
 ```
