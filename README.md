@@ -4,9 +4,9 @@
 
 I split the application into three services: web, backend and auth.
 
-The Backend service exposes access to process DB.The auth service authenticates web requests and servers session data in memory.The web service distribute incoming web reqeuests and render the reponses.
+The Backend service exposes access to process DB.The auth service authenticates web requests and servers session data in memory.The web service act aggregators to produce the reponses composite response from other services.
 
-The web server writes a sessionId in cookie and it communicates to auth server to store the `userId` and `userName` of the current session into the session data layer in the auth server. Processes related to DB are moved into backend server. Hence, the web server is totally stateless. 
+The web server writes a sessionId in cookie and it communicates to auth server to store the `userId` and `userName` of the current session into the session data layer in the auth server. All processes related to DB are moved into backend server. Hence, the web server is totally stateless. 
 
 
 ## Commands 
