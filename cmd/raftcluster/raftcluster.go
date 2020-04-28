@@ -1,0 +1,5 @@
+package raftcluster
+
+func main() {
+
+}
