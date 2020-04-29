@@ -1,10 +1,8 @@
 package web
 
 import (
-    "context"
     "log"
     "net/http"
-    "time"
     "zl2501-final-project/web/constant"
     "zl2501-final-project/web/controller"
     . "zl2501-final-project/web/middleware"
@@ -20,19 +18,7 @@ func init() {
 
 }
 
-func GreetHello() {
-    // Contact the server and print out its response.
-    ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-    defer cancel()
-    r, err := pb.BackendClientIns.SayHello(ctx, &pb.HelloRequest{Name: "Zhuolun"})
-    if err != nil {
-        log.Fatalf("could not greet: %v", err)
-    }
-    log.Printf("Greeting: %s", r.GetMessage())
-
-}
-
-// This consume the returned error from custom handler!
+// This middleware helps consume the returned error from custom handler!
 type appHandler func(http.ResponseWriter, *http.Request) error
 
 func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
