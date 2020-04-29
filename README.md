@@ -206,7 +206,7 @@ Your can also view other users by clicking `View all users`. On this user list p
     │   ├── sessmanager             --- Export session manager to be called by others 
     │   │   ├── const.go        --- session manager configuration
     │   │   └── manager.go      --- Implement Session Manager(Singleton)
-    │   └── storage             --- Session Storage
+    │   └── storage             --- Session Storage. Its LRU under the hood.
     │       ├── memory          
     │       │   └── memory.go   --- thread-safe memory implementation
     │       └── session_interface.go    --- Interaface for session 
