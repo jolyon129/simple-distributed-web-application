@@ -129,7 +129,7 @@ You can login by using the following usernames or register a new  one.
 
 I implemented a memory session layer which is actually LRU under the hood. The memory DB for users and lists is implemented by `list.List` and `set`. 
 
-Every requests need to go throug some middlewares: such as `CheckAuth`, `SetHeader`, `Logger`. 
+Every requests need to go throug some middlewares: such as `CheckAuth`, `SetHeader`, `Logger`. The middleware `CheckAUth` act as the `auth` module.
 
 The authtication of requests is done by the middleware `CheckAuth` and the middleware will check the sessionId within the cokie with the session mananger.
 
