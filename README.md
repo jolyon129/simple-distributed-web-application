@@ -4,9 +4,9 @@
 
 I split the application into three services: web, backend and auth.
 
-The Backend service exposes access to process DB.The auth service authenticates web requests and servers session data in memory.The web service distribute incoming web reqeuests and render the reponses.
+The Backend service exposes access to process DB.The auth service authenticates web requests and servers session data in memory. The web service act as a aggregator to composite response from other services.
 
-The web server writes a sessionId in cookie and it communicates to auth server to store the `userId` and `userName` of the current session into the session data layer in the auth server. Processes related to DB are moved into backend server. Hence, the web server is totally stateless. 
+The web server writes a sessionId in cookie and it communicates to auth server to store the `userId` and `userName` of the current session into the session data layer in the auth server. All processes related to DB are moved into backend server. Hence, the web server is totally stateless. 
 
 
 ## Commands 
@@ -27,6 +27,7 @@ Make Targets:
 ## Logic
 
 The logic is same as the stage one. Still, there is some default data.
+
 You can login by using the following usernames or register a new  one.
 * User: jolyon129, Password: 123
 * User: zl2501, Password: 123
@@ -126,6 +127,12 @@ You can login by using the following usernames or register a new  one.
 
 # Stage 1 Explanation
 
+I implemented a memory session layer which is actually LRU under the hood. The memory DB for users and lists is implemented by `list.List` and `set`. 
+
+Every requests need to go throug some middlewares: such as `CheckAuth`, `SetHeader`, `Logger`. The middleware `CheckAUth` act as the `auth` module.
+
+The authtication of requests is done by the middleware `CheckAuth` and the middleware will check the sessionId within the cokie with the session mananger.
+
 ## Run the server
 
 WARN: The project is built on Go 1.14 and uses `Go Module`. If your go version is lower than this, the `go mod vendor` may cause errors. 
@@ -205,7 +212,7 @@ Your can also view other users by clicking `View all users`. On this user list p
     │   ├── sessmanager             --- Export session manager to be called by others 
     │   │   ├── const.go        --- session manager configuration
     │   │   └── manager.go      --- Implement Session Manager(Singleton)
-    │   └── storage             --- Session Storage
+    │   └── storage             --- Session Storage. Its LRU under the hood.
     │       ├── memory          
     │       │   └── memory.go   --- thread-safe memory implementation
     │       └── session_interface.go    --- Interaface for session 
