@@ -127,6 +127,12 @@ You can login by using the following usernames or register a new  one.
 
 # Stage 1 Explanation
 
+I implemented a memory session layer which is actually LRU under the hood. The memory DB for users and lists is implemented by `list.List` and `set`. 
+
+Every requests need to go throug some middlewares: such as `CheckAuth`, `SetHeader`, `Logger`. 
+
+The authtication of requests is done by the middleware `CheckAuth` and the middleware will check the sessionId within the cokie with the session mananger.
+
 ## Run the server
 
 WARN: The project is built on Go 1.14 and uses `Go Module`. If your go version is lower than this, the `go mod vendor` may cause errors. 
