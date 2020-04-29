@@ -18,7 +18,7 @@ func init() {
 
 }
 
-// This consume the returned error from custom handler!
+// This middleware helps consume the returned error from custom handler!
 type appHandler func(http.ResponseWriter, *http.Request) error
 
 func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
