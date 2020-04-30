@@ -1,5 +1,7 @@
 package authstorage
 
+import "encoding/json"
+
 // provides stores the implementation of manager
 var provides = make(map[string]ProviderInterface)
 
@@ -13,6 +15,7 @@ type ProviderInterface interface {
 	SessionRead(sid string) (SessionStorageInterface, error)
 	SessionDestroy(sid string) error
 	SessionGC(maxLifeTime int64)
+	json.Marshaler
 }
 
 // RegisterProvider makes a session manager provider available by the provided name.
