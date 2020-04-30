@@ -124,7 +124,9 @@ func (pder *Provider) SessionUpdate(sid string) error {
     return nil
 }
 
-func (pder *Provider) MarshalJSON() ([]byte, error) {
+// Get a snapshot of the data structure under the hood
+// Return a json of byte array, like marshall
+func (pder *Provider) GetSnapshot() ([]byte, error) {
     pder.lock.Lock()
     defer pder.lock.Unlock()
     // to encode a Go map type it must be of the form map[string]T
@@ -148,11 +150,7 @@ func (pder *Provider) MarshalJSON() ([]byte, error) {
     return json.Marshal(tmp)
 }
 
-//func (pder *Provider) GetSnapshot() error {
-//    pder.lock.Lock()
-//    defer pder.lock.Unlock()
-//    return nil
-//}
+
 
 func init() {
     pder.sessions = make(map[string]*list.Element, 0)

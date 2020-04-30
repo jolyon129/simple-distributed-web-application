@@ -1,7 +1,6 @@
 package memory_test
 
 import (
-    "encoding/json"
     . "github.com/onsi/ginkgo"
     . "github.com/onsi/gomega"
     authstorage "zl2501-final-project/raftcluster/store/authstore"
@@ -28,7 +27,7 @@ var _ = Describe("Memory", func() {
                 sess1, _ := provider.SessionRead(fakeSessId2)
                 sess1.Set("ins", "jolyon_z")
                 sess1.Set("gender", "male")
-                j, err := json.Marshal(provider)
+                j, err := provider.GetSnapshot()
                 js := string(j)
                 //println(js)
                 Expect(js).Should(ContainSubstring(`"ins":"jolyon_z"`), ContainSubstring(`"id":3334`))

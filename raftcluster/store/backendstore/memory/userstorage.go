@@ -42,7 +42,7 @@ func (m *MemUserStore) FindAll(result chan []*backendstore.UserEntity, errorChan
         //newList.PushBack(&newE)
         res = append(res, &newE)
     }
-    sort.Sort(res)
+    sort.Sort(res) // Sort entity by their ID
     result <- res
 }
 
@@ -232,29 +232,18 @@ func (m *MemUserStore) StopFollowingDB(srcId uint, targetId uint, result chan bo
     result <- true
 }
 
-type marshalStore struct {
-    userMap []byte
-    userSet []byte
-}
-
 // Get the snapshot of userMap and userSet
-func (m *MemUserStore) GetSnapshot() (*marshalStore, error) {
+func (m *MemUserStore) GetSnapshot() ([]byte, error) {
     m.Lock()
     defer m.Unlock()
-    ret1, err := json.Marshal(m.userMap)
-    if err != nil {
-        return nil, err
-    }
-    ret2, err := json.Marshal(m.userMap)
-    if err != nil {
-        return nil, err
-    }
-    return &marshalStore{
-        userMap: ret1,
-        userSet: ret2,
-    }, nil
-
+    return json.Marshal(map[string]interface{}{
+        "userMap": m.userMap,
+        "userNameSet": m.userNameSet,
+        "pkCounter": m.pkCounter,
+    })
 }
+
+
 
 // Copy a list of uint
 func copyUintList(dst *list.List, src *list.List) {
