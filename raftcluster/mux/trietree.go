@@ -8,9 +8,8 @@ import (
 
 // Node represent a node in the trie that can be matched
 type Node struct {
-    parent       *Node
-    segmentValue string //the substring of the segment, e.g: for `/a`, the value is `a`
-    // For fixed pattern route, Name is same as segmentValue
+    parent *Node
+    // For fixed pattern route, Name is same as segment value, /a -> the Name is a
     // For named parameter route, /:id -> the Name is id
     Name             string
     IsNamedParameter bool
@@ -27,11 +26,10 @@ type Trie struct {
 
 func NewTrie() *Trie {
     return &Trie{root: &Node{
-        parent:       nil,
-        segmentValue: "",
-        children:     make(map[string]*Node),
-        IsEndPoint:   false,
-        handlers:     nil,
+        parent:     nil,
+        children:   make(map[string]*Node),
+        IsEndPoint: false,
+        handlers:   nil,
     }}
 }
 
@@ -45,25 +43,27 @@ func (t *Trie) Parse(url string) *Node {
         if child, ok := hasChild(node, segment); !ok {
             key := segment
             name := segment
+            var isNamedParameter bool
             if strings.HasPrefix(segment, ":") {
+                isNamedParameter = true
                 key = NAMED_PARAMETER
                 name = strings.TrimPrefix(segment, ":")
                 node.NextChildIsNamed = true
             }
             node.children[key] = &Node{
                 parent:           node,
-                segmentValue:     segment,
                 children:         make(map[string]*Node),
                 IsEndPoint:       idx == len(segments)-1,
                 handlers:         nil,
-                IsNamedParameter: strings.Contains(segment, ":"),
+                IsNamedParameter: isNamedParameter,
                 Name:             name,
             }
-            node = node.children[segment]
+            node = node.children[key]
         } else {
             node = child
         }
     }
+    node.IsEndPoint = true // Have to update
     return node
 }
 
@@ -78,21 +78,33 @@ func hasChild(node *Node, segment string) (*Node, bool) {
     }
 }
 
+type EndpointWithParams struct {
+    *Node
+    Params map[string]string
+}
+
 // Search the endpoint according to the route
-func (t *Trie) Lookup(url string) (*Node, error) {
+func (t *Trie) Lookup(url string) (*EndpointWithParams, error) {
     url = strings.TrimPrefix(url, "/")
-    url = strings.TrimSuffix(url,"/")
+    url = strings.TrimSuffix(url, "/")
     segments := strings.Split(url, "/")
     node := t.root
+    params := make(map[string]string) // Store the named parameters in the route
     for _, segment := range segments {
         if child, ok := hasChild(node, segment); !ok {
             return nil, fmt.Errorf("the route does not exist for %s", url)
         } else {
+            if child.IsNamedParameter { // store the parameter
+                params[child.Name] = segment
+            }
             node = child
         }
     }
     if node.IsEndPoint {
-        return node, nil
+        return &EndpointWithParams{
+            Node:   node,
+            Params: params,
+        }, nil
     } else {
         return nil, fmt.Errorf("the route is not an endpoint for %s", url)
     }
