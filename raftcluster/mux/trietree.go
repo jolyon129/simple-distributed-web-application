@@ -29,7 +29,7 @@ func NewTrie() *Trie {
         parent:     nil,
         children:   make(map[string]*Node),
         IsEndPoint: false,
-        handlers:   nil,
+        handlers:   make(map[string]http.HandlerFunc),
     }}
 }
 
@@ -54,7 +54,7 @@ func (t *Trie) Parse(url string) *Node {
                 parent:           node,
                 children:         make(map[string]*Node),
                 IsEndPoint:       idx == len(segments)-1,
-                handlers:         nil,
+                handlers:   make(map[string]http.HandlerFunc),
                 IsNamedParameter: isNamedParameter,
                 Name:             name,
             }

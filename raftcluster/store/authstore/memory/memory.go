@@ -139,8 +139,8 @@ func (pder *Provider) GetSnapshot() ([]byte, error) {
         m := make(map[string]interface{})
         for k, v := range sess.value { // convert map[interface]interface to map[string]interface
             m[k.(string)] = v
-            m["timeAccessed"] = sess.timeAccessed
         }
+        m["timeAccessed"] = sess.timeAccessed
         sessArr[i] = m
         i++
     }
@@ -150,7 +150,17 @@ func (pder *Provider) GetSnapshot() ([]byte, error) {
     return json.Marshal(tmp)
 }
 
-
+func (m *MemSessStore) MarshalJSON() ([]byte, error) {
+    value := make(map[string]interface{})
+    for k, v := range m.value { // convert map[interface]interface to map[string]interface
+        value[k.(string)] = v
+    }
+    return json.Marshal(map[string]interface{}{
+        "timeAccessed": m.timeAccessed,
+        "value":        value,
+        "sid":          m.sid,
+    })
+}
 
 func init() {
     pder.sessions = make(map[string]*list.Element, 0)
