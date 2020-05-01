@@ -1,0 +1,3 @@
+package mux
+
+const NAMED_PARAMETER = "NAMED_PARAMETER"
