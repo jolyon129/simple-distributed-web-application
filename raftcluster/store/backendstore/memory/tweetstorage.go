@@ -89,11 +89,15 @@ func (m *MemTweetStore) Read(ID uint, result chan *backendstore.TweetEntity, err
 
 // Get the snapshot of the tweetMap
 func (m *MemTweetStore) GetSnapshot() ([]byte, error) {
+    return m.MarshalJSON()
+}
+
+func (m *MemTweetStore) MarshalJSON() ([]byte, error) {
     m.Lock()
     defer m.Unlock()
     return json.Marshal(map[string]interface{}{
         "pkCounter": m.pkCounter,
-        "tweetMap": m.tweetMap,
+        "tweetMap":  m.tweetMap,
     })
 }
 

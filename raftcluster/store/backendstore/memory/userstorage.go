@@ -234,16 +234,18 @@ func (m *MemUserStore) StopFollowingDB(srcId uint, targetId uint, result chan bo
 
 // Get the snapshot of userMap and userSet
 func (m *MemUserStore) GetSnapshot() ([]byte, error) {
+    return m.MarshalJSON()
+}
+
+func (m *MemUserStore) MarshalJSON() ([]byte, error) {
     m.Lock()
     defer m.Unlock()
     return json.Marshal(map[string]interface{}{
-        "userMap": m.userMap,
+        "userMap":     m.userMap,
         "userNameSet": m.userNameSet,
-        "pkCounter": m.pkCounter,
+        "pkCounter":   m.pkCounter,
     })
 }
-
-
 
 // Copy a list of uint
 func copyUintList(dst *list.List, src *list.List) {

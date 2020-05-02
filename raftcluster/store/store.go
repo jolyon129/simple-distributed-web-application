@@ -19,6 +19,10 @@ type persistent struct {
 }
 
 func (s *store) getSnapshot() ([]byte, error) {
+    return s.MarshalJSON()
+}
+
+func (s *store) MarshalJSON() ([]byte, error) {
     s.mu.Lock()
     defer s.mu.Unlock()
     return json.Marshal(s.persistent)

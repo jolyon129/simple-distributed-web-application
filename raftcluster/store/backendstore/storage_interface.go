@@ -6,6 +6,8 @@ import (
     "time"
 )
 
+// The entity object is immutable!
+// It should always return a new one.
 type UserEntity struct {
     ID        uint // The DB will fill this field
     UserName  string
@@ -16,6 +18,7 @@ type UserEntity struct {
     json.Marshaler
 }
 
+// The entity object is immutable!
 type TweetEntity struct {
     ID          uint
     UserID      uint

@@ -41,6 +41,37 @@ var _ = Describe("Memory", func() {
                         `{"pkCounter":102,"userMap":{"101":{"Follower":[102],"Following":[102],"ID":101,"Password":"123","Tweets":[20003,20004],"UserName":"jolyon129"},"102":{"Follower":[101],"Following":[101],"ID":102,"Password":"123","Tweets":[],"UserName":"zhuolun"}},"userNameSet":{"jolyon129":true,"zhuolun":true}}`)))
             })
         })
+        Context("when concurrently", func() {
+            It("should be fine", func() {
+                usernameArr := []string{"jolyon1","jolyon2","jolyon3","jolyon14"}
+                for i := 0; i < 4; i++ {
+                    go func(i int) {
+                        resultC := make(chan uint, 10)
+                        errorC := make(chan error, 10)
+                        storageManager.UserStorage.Create(&UserEntity{
+                            UserName: usernameArr[i],
+                            Password: "123",
+                        }, resultC, errorC)
+                        userId1 := <-resultC
+                        storageManager.UserStorage.Create(&UserEntity{
+                            UserName: usernameArr[i]+"pair",
+                            Password: "123",
+                        }, resultC, errorC)
+                        userId2 := <-resultC
+                        resultC1 := make(chan bool, 10)
+                        storageManager.UserStorage.AddTweetToUserDB(userId1, 20003, resultC1, errorC)
+                        storageManager.UserStorage.AddTweetToUserDB(userId1, 20004, resultC1, errorC)
+                        storageManager.UserStorage.StartFollowingDB(userId1, userId2, resultC1, errorC)
+                        storageManager.UserStorage.StartFollowingDB(userId2, userId1, resultC1, errorC)
+                        j, err := storageManager.UserStorage.GetSnapshot()
+                        Expect(err).Should(BeNil())
+                        js := string(j)
+                        //println(js)
+                        Expect(js).ShouldNot(BeEmpty())
+                    }(i)
+                }
+            })
+        })
     })
     Describe("Get the snapshot of TweetStorage", func() {
         Context("when have some users info inside", func() {
@@ -48,12 +79,12 @@ var _ = Describe("Memory", func() {
                 resultC := make(chan uint, 10)
                 errorC := make(chan error, 10)
                 storageManager.TweetStorage.Create(&TweetEntity{
-                    UserID:      1001,
-                    Content:     "Test",
+                    UserID:  1001,
+                    Content: "Test",
                 }, resultC, errorC)
                 storageManager.TweetStorage.Create(&TweetEntity{
-                    UserID:      1001,
-                    Content:     "Test2",
+                    UserID:  1001,
+                    Content: "Test2",
                 }, resultC, errorC)
                 j, err := storageManager.TweetStorage.GetSnapshot()
                 Expect(err).Should(BeNil())

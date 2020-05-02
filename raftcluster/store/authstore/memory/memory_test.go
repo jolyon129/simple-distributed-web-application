@@ -19,7 +19,7 @@ var _ = Describe("Memory", func() {
         provider = p
     })
     Describe("Marshal session provider", func() {
-        PContext("When have a list of sessions", func() {
+        Context("When have a list of sessions", func() {
             It("should return a JSON list with map object inside", func() {
                 provider.SessionInit(fakeSessId)
                 provider.SessionInit(fakeSessId2)
