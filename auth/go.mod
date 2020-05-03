@@ -11,4 +11,5 @@ require (
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
 	github.com/prometheus/client_golang v1.5.1 // indirect
+	google.golang.org/grpc v1.29.1
 )

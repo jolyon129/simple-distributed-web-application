@@ -10,8 +10,6 @@ proctoc:
 	protoc -I commonpb commonpb/backend.proto --go_out=plugins=grpc:backend/pb
 	protoc -I commonpb commonpb/auth.proto --go_out=plugins=grpc:web/pb
 	protoc -I commonpb commonpb/auth.proto --go_out=plugins=grpc:auth/pb
-	protoc -I commonpb commonpb/raftcluster_auth.proto --go_out=plugins=grpc:raftcluster/pb
-	protoc -I commonpb commonpb/raftcluster_auth.proto --go_out=plugins=grpc:auth/pb
 
 
 vendor-web:
@@ -54,4 +52,7 @@ run-auth: vendor-auth
 
 
 test: vendor-auth vendor-backend vendor-web
-	go test -v --race ./...
+	go test -v --race ./auth/...
+	go test -v --race ./backend/...
+	go test -v --race ./raftcluster/store/...
+

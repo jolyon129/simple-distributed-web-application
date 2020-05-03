@@ -172,7 +172,7 @@ func (pder *Provider) MarshalJSON() ([]byte, error) {
 }
 
 func (m *MemSessStore) MarshalJSON() ([]byte, error) {
-    println("Going to lock memSess")
+    //println("Going to lock memSess")
     m.Lock()
     defer m.Unlock()
     value := make(map[string]interface{})

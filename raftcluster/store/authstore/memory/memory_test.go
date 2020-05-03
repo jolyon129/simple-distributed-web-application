@@ -54,7 +54,7 @@ var _ = Describe("Memory", func() {
                         sess1.Set("gender", "male")
                         j, err := provider.GetSnapshot()
                         js := string(j)
-                        println(js)
+                        //println(js)
                         Expect(js).Should(ContainSubstring(`"ins":"jolyon_z"`), ContainSubstring(`"id":3334`))
                         Expect(err).Should(BeNil())
                         wg.Done()

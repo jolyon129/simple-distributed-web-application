@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-// This file is borrowed from https://github.com/etcd-io/etcd/tree/v3.3.20/contrib/raftexample
+// This file is borrowed from https://github.com/etcd-io/etcd/tree/v3.3.20/contrib/raftcluster
 // I add some comments.
 
 package raft
