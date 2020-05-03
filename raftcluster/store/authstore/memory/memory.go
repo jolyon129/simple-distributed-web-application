@@ -145,13 +145,13 @@ func (pder *Provider) SessionUpdateNonSync(sid string) error {
 }
 
 // Get a snapshot of the data structure under the hood
-// Return a json of byte array, like marshall
+// Return a json of byte array
 func (pder *Provider) GetSnapshot() ([]byte, error) {
     return pder.MarshalJSON()
 }
 
 func (pder *Provider) MarshalJSON() ([]byte, error) {
-    println("Going to lock provider")
+    //println("Going to lock provider")
     pder.lock.Lock()
     defer pder.lock.Unlock()
     // to encode a Go map type it must be of the form map[string]T

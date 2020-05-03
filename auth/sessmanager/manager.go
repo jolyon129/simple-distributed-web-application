@@ -68,7 +68,7 @@ func (manager *Manager) SessionStart(ctx context.Context, sessId string) (string
                 result <- sess
                 return
             }
-        } else { // sessId not exist
+        } else { // sessId is not legal
             oldSess, err := manager.provider.SessionRead(sessId)
             if err != nil {
                 newSessId := manager.newSessionId()

@@ -26,7 +26,7 @@ import (
 func StartHttpAPI() {
     mux := mux.New()
     mux.Get("/hello", func(writer http.ResponseWriter, request *http.Request) {
-        writer.Write([]byte("HELLO!New MUX"))
+        writer.Write([]byte("Hello! This is a New MUX"))
     })
     mux.Get("/auth/session/:sid", controller.GetSession)
     mux.Post("/auth/session/:sid",controller.CreateSession)

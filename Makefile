@@ -10,6 +10,8 @@ proctoc:
 	protoc -I commonpb commonpb/backend.proto --go_out=plugins=grpc:backend/pb
 	protoc -I commonpb commonpb/auth.proto --go_out=plugins=grpc:web/pb
 	protoc -I commonpb commonpb/auth.proto --go_out=plugins=grpc:auth/pb
+	protoc -I commonpb commonpb/raftcluster_auth.proto --go_out=plugins=grpc:raftcluster/pb
+	protoc -I commonpb commonpb/raftcluster_auth.proto --go_out=plugins=grpc:auth/pb
 
 
 vendor-web:

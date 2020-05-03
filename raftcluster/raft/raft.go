@@ -15,17 +15,11 @@
 // This file is borrowed from https://github.com/etcd-io/etcd/tree/v3.3.20/contrib/raftexample
 // I add some comments.
 
-package raftcluster
+package raft
 
 import (
     "context"
     "fmt"
-    "log"
-    "net/http"
-    "net/url"
-    "os"
-    "strconv"
-    "time"
     "github.com/coreos/etcd/etcdserver/stats"
     "github.com/coreos/etcd/pkg/fileutil"
     "github.com/coreos/etcd/pkg/types"
@@ -35,6 +29,12 @@ import (
     "github.com/coreos/etcd/snap"
     "github.com/coreos/etcd/wal"
     "github.com/coreos/etcd/wal/walpb"
+    "log"
+    "net/http"
+    "net/url"
+    "os"
+    "strconv"
+    "time"
 )
 
 // A key-value stream backed by raft

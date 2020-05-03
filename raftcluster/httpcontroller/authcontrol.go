@@ -30,6 +30,7 @@ func GetSession(w http.ResponseWriter, r *http.Request) {
 
 func CreateSession(w http.ResponseWriter, r *http.Request) {
     sid := getParam(r, "sid")
+
     _, err := sessProvider.SessionInit(sid)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
