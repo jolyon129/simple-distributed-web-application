@@ -6,3 +6,4 @@ build/
 go.sum
 vendor/
 /cmd/test/
+raftcluster-persistent*
