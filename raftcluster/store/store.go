@@ -2,6 +2,7 @@ package store
 
 import (
     "bytes"
+    "context"
     "encoding/gob"
     "encoding/json"
     "github.com/coreos/etcd/snap"
@@ -16,11 +17,15 @@ var sessProvider authstorage.ProviderInterface
 
 func init() {
     sessProvider, _ = authstorage.GetProvider("memory")
+    // Register types that will be transferred as implementations of interface values
+    gob.Register(SessionParams{})
+    gob.Register(SessionProviderParams{})
 }
 
-type store struct {
-    mu       sync.RWMutex
-    proposeC chan<- string
+type DBStore struct {
+    mu               sync.RWMutex
+    proposeC         chan<- string
+    commandIdCounter uint64
     persistent
     snapshotter *snap.Snapshotter
 }
@@ -30,54 +35,96 @@ type persistent struct {
     SessionStore authmemory.MemSessStore
 }
 
-func (s *store) getSnapshot() ([]byte, error) {
+func (s *DBStore) GetSnapshot() ([]byte, error) {
     return s.MarshalJSON()
 }
 
-func (s *store) MarshalJSON() ([]byte, error) {
+func (s *DBStore) MarshalJSON() ([]byte, error) {
     s.mu.Lock()
     defer s.mu.Unlock()
     return json.Marshal(s)
 }
 
-type commandLog struct {
-    target string
-    method string
-    ID     uint64
-    params interface{}
+// CommandLog for serialize and deserialize
+type CommandLog struct {
+    TargetMethod string
+    ID           uint64
+    Params       interface{}
 }
 
 type SessionProviderParams struct {
-    sid string
+    Sid string
 }
 
 type SessionParams struct {
-    key   string
-    value string
+    Key   string
+    Value string
 }
 
-func NewStore(snapshotter *snap.Snapshotter, proposeC chan<- string, commitC <-chan *string, errorC <-chan error) {
-    s := &store{
-        proposeC:    proposeC,
-        snapshotter: snapshotter,
+func NewStore(snapshotter *snap.Snapshotter, proposeC chan<- string,
+        commitC <-chan *string, errorC <-chan error) *DBStore {
+    s := &DBStore{
+        proposeC:         proposeC,
+        snapshotter:      snapshotter,
+        commandIdCounter: 1000,
     }
     s.readCommits(commitC, errorC)
+    go s.readCommits(commitC, errorC)
+    return s
 }
 
-// Issue a propose with command and send to proposeC
-// The same proposeC will be consumed by the raft
-func (s *store) propose(command commandLog) {
+// Generate a new command ID for subscribe
+func (s *DBStore) getCommandID() uint64 {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    s.commandIdCounter++
+    return s.commandIdCounter
+}
+
+// Issue a propose to the raft cluster.
+// The propose with cmdLog will be sent to a proposeC.
+// The same proposeC will be consumed by the raft cluster.
+// This method return immediately without waiting for the raft cluster
+func (s *DBStore) propose(target string, params interface{}, id uint64) {
     var buf bytes.Buffer
+    command := CommandLog{
+        TargetMethod: target,
+        ID:           id,
+        Params:       params,
+    }
     if err := gob.NewEncoder(&buf).Encode(command); err != nil {
         log.Fatal(err)
     }
     s.proposeC <- buf.String()
 }
 
-func (s *store) readCommits(commitC <-chan *string, errorC <-chan error) {
+
+// Request a propose and wait till its committed and executed.
+// This method should be called by the HTTP API controllers.
+func (s *DBStore) RequestPropose(ctx context.Context, target string, params interface{}) (interface{},
+        error) {
+    cmdId := s.getCommandID()
+    ch := managerSingle.subscribe(cmdId)
+    resultC := ch.resultC
+    errC := ch.errC
+    defer close(resultC)  // Remember to close the channel
+    defer close(errC)    // Remember to close the channel
+    defer delete(managerSingle.proposeListener, cmdId)
+    s.propose(target, params, cmdId)
+    select {
+    case result := <-resultC: //Wait till this propose commit
+        return result, nil
+    case err := <-errC:
+        return nil, err
+    case <-ctx.Done():
+        return nil, ctx.Err()
+    }
+}
+
+func (s *DBStore) readCommits(commitC <-chan *string, errorC <-chan error) {
     // Once raft commit the log, now we can perform the operation in log
     for command := range commitC {
-        if command == nil {
+        if command == nil { // The first command should be nil sent by raft
             // done replaying log; new command incoming
             // OR signaled to load snapshot
             snapshot, err := s.snapshotter.Load()
@@ -93,25 +140,16 @@ func (s *store) readCommits(commitC <-chan *string, errorC <-chan error) {
             }
             continue
         }
-
-        s.notifyProposeEventManager()
-
-        //
-        //var dataKv kv
-        //dec := gob.NewDecoder(bytes.NewBufferString(*command))
-        //if err := dec.Decode(&dataKv); err != nil {
-        //    log.Fatalf("raftexample: could not decode message (%v)", err)
-        //}
-        //s.mu.Lock()
-        //s.kvStore[dataKv.Key] = dataKv.Val
-        //s.mu.Unlock()
+        // If the command is sent by clients
+        // execute the command to the DBStore
+        s.execute(command)
     }
     if err, ok := <-errorC; ok {
         log.Fatal(err)
     }
 }
 
-func (s *store) recoverFromSnapshot(snapshot []byte) error {
+func (s *DBStore) recoverFromSnapshot(snapshot []byte) error {
     var persistentStore persistent
     if err := json.Unmarshal(snapshot, &persistentStore); err != nil {
         return err
@@ -122,6 +160,19 @@ func (s *store) recoverFromSnapshot(snapshot []byte) error {
     return nil
 }
 
-func (s *store) notifyProposeEventManager()  {
-
+// Execute a command.
+func (s *DBStore) execute(command *string) {
+    var cmdLog CommandLog
+    dec := gob.NewDecoder(bytes.NewBufferString(*command))
+    if err := dec.Decode(&cmdLog); err != nil {
+        log.Fatalf("raftexample: could not decode message (%v)", err)
+    }
+    // How to Execute cmdLog?
+    // Naive way
+    switch cmdLog.TargetMethod {
+    case METHOD_SessionInit:
+        params, _ := cmdLog.Params.(SessionProviderParams)
+        sessIns, err := sessProvider.SessionInit(params.Sid)
+        managerSingle.notify(cmdLog.ID, sessIns, err) // Notify the corresponding listener to process
+    }
 }
