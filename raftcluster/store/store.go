@@ -68,7 +68,7 @@ func NewStore(snapshotter *snap.Snapshotter, proposeC chan<- string,
         snapshotter:      snapshotter,
         commandIdCounter: 1000,
     }
-    s.readCommits(commitC, errorC)
+    s.readCommits(commitC, errorC) // replay log into DBStore
     go s.readCommits(commitC, errorC)
     return s
 }
@@ -109,7 +109,7 @@ func (s *DBStore) RequestPropose(ctx context.Context, target string, params inte
     errC := ch.errC
     defer close(resultC)  // Remember to close the channel
     defer close(errC)    // Remember to close the channel
-    defer delete(managerSingle.proposeListener, cmdId)
+    defer managerSingle.unsubscribe(cmdId)
     s.propose(target, params, cmdId)
     select {
     case result := <-resultC: //Wait till this propose commit
@@ -140,7 +140,6 @@ func (s *DBStore) readCommits(commitC <-chan *string, errorC <-chan error) {
             }
             continue
         }
-        // If the command is sent by clients
         // execute the command to the DBStore
         s.execute(command)
     }

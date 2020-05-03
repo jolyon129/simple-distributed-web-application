@@ -22,23 +22,30 @@ type value struct {
 
 // Subscribe to a propose request.
 // Listeners can wait on the return result channel and error channel to be waked up.
-func (m *proposeEventManager) subscribe(proposeId uint64) *value {
+func (m *proposeEventManager) subscribe(commandID uint64) *value {
     resultC := make(chan interface{})
     errC := make(chan error)
-    m.proposeListener[proposeId] = &value{
+    m.proposeListener[commandID] = &value{
         resultC: resultC,
         errC:    errC,
     }
-    return m.proposeListener[proposeId]
+    return m.proposeListener[commandID]
 }
 
-// Notified the listeners and then remove it from map
-func (m *proposeEventManager) notify(proposeId uint64, result interface{}, error error) {
-    val := m.proposeListener[proposeId]
+// Notified the listeners if there is someone subscribe to this;
+// If not, ignore.
+func (m *proposeEventManager) notify(commandID uint64, result interface{}, error error) {
+    val, ok := m.proposeListener[commandID]
+    if !ok {
+        return
+    }
     if error != nil {
         val.errC <- error
     } else {
         val.resultC <- result
     }
-    delete(m.proposeListener, proposeId)
+}
+
+func (m *proposeEventManager) unsubscribe(commandID uint64) {
+    delete(m.proposeListener, commandID)
 }
