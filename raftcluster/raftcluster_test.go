@@ -35,14 +35,29 @@ var _ = Describe("Raftcluster", func() {
         Context("with session init request", func() {
             It("should return a new  session", func() {
                 params := store.SessionProviderParams{
-                    Sid: "fakesess12312" + string(rand.Int()),
+                    Sid: "fakesess12312" + string(rand.Intn(100000000)),
                 }
                 result, err := MemStore.RequestPropose(context.TODO(), store.METHOD_SessionInit,
                     params)
                 sess, _ := result.(authstorage.SessionStorageInterface)
                 Expect(err).Should(BeNil())
                 Expect(sess.SessionID()).Should(Equal(params.Sid))
-                //mStore.RequestPropose(context.TODO(), METHOD_SessionRead, params1)
+            })
+        })
+        Context("when multiple requests coming concurrently", func() {
+            It("should be fine", func() {
+                for i := 0; i < 5; i++ {
+                    go func(i int) {
+                        params := store.SessionProviderParams{
+                            Sid: "fakesess12312" + string(rand.Intn(100000)+i),
+                        }
+                        result, err := MemStore.RequestPropose(context.TODO(), store.METHOD_SessionInit,
+                            params)
+                        sess, _ := result.(authstorage.SessionStorageInterface)
+                        Expect(err).Should(BeNil())
+                        Expect(sess.SessionID()).Should(Equal(params.Sid))
+                    }(i)
+                }
             })
         })
     })
