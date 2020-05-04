@@ -5,35 +5,26 @@ import (
     "context"
     "encoding/gob"
     "encoding/json"
+    "fmt"
     "github.com/coreos/etcd/snap"
     "log"
-    "sync"
-    authstorage "zl2501-final-project/raftcluster/store/authstore"
-    authmemory "zl2501-final-project/raftcluster/store/authstore/memory"
-    bgmemory "zl2501-final-project/raftcluster/store/backendstore/memory"
+    "strings"
+    authstore "zl2501-final-project/raftcluster/store/authstore"
+    _ "zl2501-final-project/raftcluster/store/authstore/memory"
+    "zl2501-final-project/raftcluster/store/backendstore"
+    _ "zl2501-final-project/raftcluster/store/backendstore/memory"
 )
 
-var sessProvider authstorage.ProviderInterface
+var sessProvider authstore.ProviderInterface
+var bkStorageManager *backendstore.Manager
 
 func init() {
-    sessProvider, _ = authstorage.GetProvider("memory")
-    // Register types that will be transferred as implementations of interface values
-    gob.Register(SessionParams{})
-    gob.Register(SessionProviderParams{})
+    sessProvider, _ = authstore.GetProvider("memory")
+    bkStorageManager = backendstore.NewManager("memory")
 }
 
-type DBStore struct {
-    mu               sync.RWMutex
-    proposeC         chan<- string
-    commandIdCounter uint64
-    persistent
-    snapshotter *snap.Snapshotter
-}
-type persistent struct {
-    TweetStore   bgmemory.MemTweetStore
-    UserStore    bgmemory.MemUserStore
-    SessionStore authmemory.MemSessStore
-}
+//const ProviderName = "memory"
+//const CookieName = "newSessionId"
 
 func (s *DBStore) GetSnapshot() ([]byte, error) {
     return s.MarshalJSON()
@@ -43,22 +34,6 @@ func (s *DBStore) MarshalJSON() ([]byte, error) {
     s.mu.Lock()
     defer s.mu.Unlock()
     return json.Marshal(s)
-}
-
-// CommandLog for serialize and deserialize
-type CommandLog struct {
-    TargetMethod string
-    ID           uint64
-    Params       interface{}
-}
-
-type SessionProviderParams struct {
-    Sid string
-}
-
-type SessionParams struct {
-    Key   string
-    Value string
 }
 
 func NewStore(snapshotter *snap.Snapshotter, proposeC chan<- string,
@@ -98,21 +73,36 @@ func (s *DBStore) propose(target string, params interface{}, id uint64) {
     s.proposeC <- buf.String()
 }
 
-
 // Request a propose and wait till its committed and executed.
 // This method should be called by the HTTP API controllers.
-func (s *DBStore) RequestPropose(ctx context.Context, target string, params interface{}) (interface{},
+func (s *DBStore) RequestPropose(ctx context.Context, targetMethod string, params interface{}) (interface{},
         error) {
     cmdId := s.getCommandID()
     ch := managerSingle.subscribe(cmdId)
+    defer managerSingle.unsubscribe(cmdId)
     resultC := ch.resultC
     errC := ch.errC
-    defer close(resultC)  // Remember to close the channel
+    defer close(resultC) // Remember to close the channel
     defer close(errC)    // Remember to close the channel
-    defer managerSingle.unsubscribe(cmdId)
-    s.propose(target, params, cmdId)
+
+    go func() {
+        // If its a get function,
+        // no need to propose to raft
+        // execute immediately
+        if strings.Contains(targetMethod, "Get") || strings.Contains(targetMethod, "Read") {
+            log.Printf("%s is a GET command, no need to propose. Execute immediately", targetMethod)
+            s.execute(CommandLog{
+                TargetMethod: targetMethod,
+                ID:           cmdId,
+                Params:       params,
+            })
+        } else {
+            s.propose(targetMethod, params, cmdId)
+        }
+    }()
+
     select {
-    case result := <-resultC: //Wait till this propose commit
+    case result := <-resultC: //Wait till this propose executed
         return result, nil
     case err := <-errC:
         return nil, err
@@ -141,7 +131,8 @@ func (s *DBStore) readCommits(commitC <-chan *string, errorC <-chan error) {
             continue
         }
         // execute the command to the DBStore
-        s.execute(command)
+        cmdIns := deserialize(command)
+        s.execute(*cmdIns)
     }
     if err, ok := <-errorC; ok {
         log.Fatal(err)
@@ -159,19 +150,173 @@ func (s *DBStore) recoverFromSnapshot(snapshot []byte) error {
     return nil
 }
 
-// Execute a command.
-func (s *DBStore) execute(command *string) {
+func deserialize(command *string) *CommandLog {
     var cmdLog CommandLog
     dec := gob.NewDecoder(bytes.NewBufferString(*command))
     if err := dec.Decode(&cmdLog); err != nil {
         log.Fatalf("raftexample: could not decode message (%v)", err)
     }
+    return &cmdLog
+}
+
+// Execute a command.
+func (s *DBStore) execute(cmdLog CommandLog) {
     // How to Execute cmdLog?
     // Naive way
     switch cmdLog.TargetMethod {
     case METHOD_SessionInit:
         params, _ := cmdLog.Params.(SessionProviderParams)
         sessIns, err := sessProvider.SessionInit(params.Sid)
-        managerSingle.notify(cmdLog.ID, sessIns, err) // Notify the corresponding listener to process
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+        } else {
+            managerSingle.notify(cmdLog.ID, sessIns)
+        }
+    case METHOD_SessionRead:
+        params, _ := cmdLog.Params.(SessionProviderParams)
+        sessIns, err := sessProvider.SessionRead(params.Sid)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+        } else {
+            managerSingle.notify(cmdLog.ID, sessIns)
+        }
+    case METHOD_SessionDestroy:
+        params, _ := cmdLog.Params.(SessionProviderParams)
+        err := sessProvider.SessionDestroy(params.Sid)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+        } else {
+            managerSingle.notify(cmdLog.ID, true)
+        }
+    case METHOD_SessionGC:
+        sessProvider.SessionGC(MaxLifeTime)
+        managerSingle.notify(cmdLog.ID, true)
+    case METHOD_SessionGet:
+        params, _ := cmdLog.Params.(SessionParams)
+        sessIns, err := sessProvider.SessionRead(params.Sid)
+        value := sessIns.Get(params.Key)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+        } else {
+            managerSingle.notify(cmdLog.ID, value)
+        }
+    case METHOD_SessionSet:
+        params, _ := cmdLog.Params.(SessionParams)
+        sessIns, err := sessProvider.SessionRead(params.Sid)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        err1 := sessIns.Set(params.Key, params.Value)
+        if err1 != nil {
+            managerSingle.notifyError(cmdLog.ID, err1)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, true)
+    case METHOD_SessionDelete:
+        params, _ := cmdLog.Params.(SessionParams)
+        sessIns, err := sessProvider.SessionRead(params.Sid)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        err1 := sessIns.Delete(params.Key)
+        if err1 != nil {
+            managerSingle.notifyError(cmdLog.ID, err1)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, true)
+    case METHOD_UserCreate:
+        params, _ := cmdLog.Params.(UserCreateParams)
+        uID, err := CreateNewUser(context.Background(), &params.UserInfo)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, uID)
+    case METHOD_UserDelete:
+        managerSingle.notifyError(cmdLog.ID,
+            fmt.Errorf("this method %s has not been implemented", cmdLog.TargetMethod))
+    case METHOD_UserGet:
+        params, _ := cmdLog.Params.(UserIDParams)
+        userEnt, err := UserSelectById(context.Background(), params.Uid)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, userEnt)
+    case METHOD_UserUpdate:
+        fmt.Errorf("this method %s has not been implemented", cmdLog.TargetMethod)
+    case METHOD_UserFindAll:
+        userEnts, err := FindAllUsers(context.Background())
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, userEnts)
+    case METHOD_UserAddTweetToUserDB:
+        params, _ := cmdLog.Params.(UserAddTweetToUserParams)
+        ok, err := AddTweetToUser(context.Background(), params.uId, params.tId)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, ok)
+    case METHOD_UserCheckWhetherFollowingGetDB:
+        params, _ := cmdLog.Params.(UserCheckWhetherFollowingDBParams)
+        ret, err := CheckWhetherFollowing(context.Background(), params.srcId, params.targetId)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, ret)
+    case METHOD_UserStartFollowingDB:
+        params, _ := cmdLog.Params.(UserStartFollowingDBParams)
+        ok, err := StartFollowing(context.Background(), params.srcId, params.targetId)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, ok)
+    case METHOD_UserStopFollowingDB:
+        params, _ := cmdLog.Params.(UserStopFollowingDBParams)
+        ok, err := StopFollowing(context.Background(), params.srcId, params.targetId)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, ok)
+    case METHOD_TweetCreate:
+        params, _ := cmdLog.Params.(TweetInfo)
+        tId, err := SaveTweet(context.Background(), params)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, tId)
+    case METHOD_TweetGet:
+        params, _ := cmdLog.Params.(TweetReadParams)
+        tweet, err := TweetSelectById(context.Background(), params.tId)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, tweet)
+    case METHOD_TweetDelete:
+        params, _ := cmdLog.Params.(TweetDeleteParams)
+        ok, err := DeleteById(context.Background(), params.tId)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, ok)
+    case METHOD_TweetDeleteByCreatedTime:
+        params, _ := cmdLog.Params.(TweetDeleteByCreatedTimeParams)
+        ok, err := TweetDeleteByCreatedTime(context.Background(), params.timeStamp)
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, ok)
     }
 }

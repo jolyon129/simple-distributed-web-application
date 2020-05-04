@@ -17,21 +17,38 @@
 package raftcluster
 
 import (
+    "github.com/coreos/etcd/raft/raftpb"
     "log"
     "net/http"
+    "strconv"
     controller "zl2501-final-project/raftcluster/httpcontroller"
     "zl2501-final-project/raftcluster/mux"
+    "zl2501-final-project/raftcluster/store"
 )
 
-func StartHttpAPI() {
+func ServerHttpAPI(store *store.DBStore, port int, changeC chan raftpb.ConfChange,
+        errC <-chan error) {
+    controller.InitController(store, changeC, errC)
     mux := mux.New()
     mux.Get("/hello", func(writer http.ResponseWriter, request *http.Request) {
         writer.Write([]byte("Hello! This is a New MUX"))
     })
-    mux.Get("/auth/session/:sid", controller.GetSession)
-    mux.Post("/auth/session/:sid",controller.CreateSession)
+    mux.Get("/session/:sid", controller.ReadSession)
+    mux.Post("/session/:sid", controller.CreateSession)
+    mux.Post("/user", controller.UserCreate)
+    mux.Get("/user/:uid",controller.UserRead)
+    mux.Put("/user/:uid",controller.UserUpdate)
+    mux.Get("/user",controller.UserFindAll)
+    mux.Post("/user/tweet/:tid",controller.UserAddTweetToUserDB)
+    mux.Get("/user/:uid/following/:uid",controller.UserCheckWhetherFollowingDB)
+    mux.Post("/user/:uid/following/:uid",controller.UserStartFollowingDB)
+    mux.Delete("/user/:uid/following/:uid",controller.UserStopFollowingDB)
+    mux.Post("/tweet",controller.TweetCreate)
+    mux.Get("/tweet/:tid",controller.TweetRead)
+    mux.Delete("tweet/:tid",controller.TweetDelete)
+
     log.Printf("Raft HTTP Server is going to start at: http://localhost:%v", HTTP_PORT)
-    log.Fatal(http.ListenAndServe(":"+HTTP_PORT, mux))
+    log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), mux))
 }
 
 // A middleware to log all requests
@@ -50,4 +67,3 @@ func MiddlewareAdapt(h http.Handler, middleware ...func(http.Handler) http.Handl
     }
     return h
 }
-

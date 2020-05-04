@@ -21,7 +21,10 @@ vendor-backend:
 vendor-auth:
 	cd ./auth && go mod vendor
 
-vendor-all: vendor-backend vendor-auth vendor-web
+vendor-raftcluster:
+	cd ./raftcluster && go mod vendor
+
+vendor-all: vendor-backend vendor-auth vendor-web vendor-raftcluster
 
 run-web: vendor-web
 	go run ./cmd/web/web.go
@@ -51,7 +54,7 @@ run-auth: vendor-auth
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/auth/auth.go
 
 
-test: vendor-auth vendor-backend vendor-web
+test: vendor-all
 	go test -v --race ./auth/...
 	go test -v --race ./backend/...
 	go test -v --race ./raftcluster/store/...

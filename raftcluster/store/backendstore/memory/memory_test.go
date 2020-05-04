@@ -35,7 +35,6 @@ var _ = Describe("Memory", func() {
                 j, err := storageManager.UserStorage.GetSnapshot()
                 Expect(err).Should(BeNil())
                 js := string(j)
-                //println(js)
                 Expect(js).ShouldNot(BeEmpty())
                 Expect(j).Should(MatchJSON([]byte(
                         `{"pkCounter":102,"userMap":{"101":{"Follower":[102],"Following":[102],"ID":101,"Password":"123","Tweets":[20003,20004],"UserName":"jolyon129"},"102":{"Follower":[101],"Following":[101],"ID":102,"Password":"123","Tweets":[],"UserName":"zhuolun"}},"userNameSet":{"jolyon129":true,"zhuolun":true}}`)))

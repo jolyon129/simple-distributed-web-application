@@ -34,16 +34,21 @@ func (m *proposeEventManager) subscribe(commandID uint64) *value {
 
 // Notified the listeners if there is someone subscribe to this;
 // If not, ignore.
-func (m *proposeEventManager) notify(commandID uint64, result interface{}, error error) {
+func (m *proposeEventManager) notify(commandID uint64, result interface{}) {
     val, ok := m.proposeListener[commandID]
     if !ok {
         return
     }
-    if error != nil {
-        val.errC <- error
-    } else {
-        val.resultC <- result
+    val.resultC <- result
+}
+
+// If there is an error, pass error to the error channel and notify the listener
+func (m *proposeEventManager) notifyError(cmdID uint64, err error) {
+    val, ok := m.proposeListener[cmdID]
+    if !ok {
+        return
     }
+    val.errC <- err
 }
 
 func (m *proposeEventManager) unsubscribe(commandID uint64) {

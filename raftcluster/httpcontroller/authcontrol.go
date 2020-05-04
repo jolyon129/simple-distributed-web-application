@@ -1,37 +1,39 @@
 package httpcontroller
 
 import (
+    "context"
     "encoding/json"
     "net/http"
     "zl2501-final-project/raftcluster/mux"
-    authstorage "zl2501-final-project/raftcluster/store/authstore"
+    . "zl2501-final-project/raftcluster/store"
     "zl2501-final-project/raftcluster/store/authstore/memory"
     _ "zl2501-final-project/raftcluster/store/authstore/memory"
 )
 
-var sessProvider authstorage.ProviderInterface
-
-func init() {
-    sessProvider, _ = authstorage.GetProvider("memory")
+func newTimeoutCtx() context.Context {
+    ctx, _ := context.WithTimeout(context.Background(), ContextTimeoutDuration)
+    return ctx
 }
-func GetSession(w http.ResponseWriter, r *http.Request) {
-    sid := getParam(r, "sid")
-    sess, err := sessProvider.SessionRead(sid)
+func ReadSession(w http.ResponseWriter, r *http.Request) {
+    sid := getRouteParam(r, "sid")
+    res, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionRead,
+        SessionProviderParams{sid})
+    //sess, err := sessProvider.SessionRead(sid)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
     }
     // The return should not be cached
     w.Header().Set("Cache-Control", "no-cache")
     w.WriteHeader(http.StatusCreated)
-    sessIns := sess.(*memory.MemSessStore)
+    sessIns := res.(*memory.MemSessStore)
     ret, _ := json.Marshal(sessIns)
     w.Write(ret)
 }
-
 func CreateSession(w http.ResponseWriter, r *http.Request) {
-    sid := getParam(r, "sid")
-
-    _, err := sessProvider.SessionInit(sid)
+    sid := getRouteParam(r, "sid")
+    _, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionInit,
+        SessionProviderParams{sid})
+    //_, err := sessProvider.SessionInit(sid)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
     }
@@ -39,7 +41,7 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
 }
 
 // Params return the router params
-func getParams(r *http.Request) map[string]string {
+func getRouteParams(r *http.Request) map[string]string {
     v := r.Context().Value(mux.ROUTE_PARAMS_KEY)
     if v == nil {
         return map[string]string{}
@@ -51,8 +53,8 @@ func getParams(r *http.Request) map[string]string {
 }
 
 // Param return the router param based on the key
-func getParam(r *http.Request, key string) string {
-    p := getParams(r)
+func getRouteParam(r *http.Request, key string) string {
+    p := getRouteParams(r)
     if v, ok := p[key]; ok {
         return v
     }

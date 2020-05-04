@@ -12,6 +12,8 @@ type ProviderInterface interface {
 	// If not existed, return (nil, error)
 	SessionRead(sid string) (SessionStorageInterface, error)
 	SessionDestroy(sid string) error
+	// Check the list in Session Store and delete the expired sessions.
+	// This method only execute once when being called
 	SessionGC(maxLifeTime int64)
 	GetSnapshot()([]byte,error)
 }
