@@ -30,31 +30,31 @@ func init() {
 }
 
 type UserCheckWhetherFollowingDBParams struct {
-    srcId    uint
-    targetId uint
+    SrcId    uint
+    TargetId uint
 }
 type UserStartFollowingDBParams struct {
-    srcId    uint
-    targetId uint
+    SrcId    uint
+    TargetId uint
 }
 type UserStopFollowingDBParams struct {
-    srcId    uint
-    targetId uint
+    SrcId    uint
+    TargetId uint
 }
 
 type TweetReadParams struct {
-    tId uint
+    TId uint
 }
 type TweetDeleteParams struct {
-    tId uint
+    TId uint
 }
 type TweetDeleteByCreatedTimeParams struct{
-    timeStamp time.Time
+    TimeStamp time.Time
 }
 
 type UserAddTweetToUserParams struct {
-    uId uint
-    tId uint
+    UId uint
+    TId uint
 }
 
 type DBStore struct {

@@ -256,7 +256,7 @@ func (s *DBStore) execute(cmdLog CommandLog) {
         managerSingle.notify(cmdLog.ID, userEnts)
     case METHOD_UserAddTweetToUserDB:
         params, _ := cmdLog.Params.(UserAddTweetToUserParams)
-        ok, err := AddTweetToUser(context.Background(), params.uId, params.tId)
+        ok, err := AddTweetToUser(context.Background(), params.UId, params.TId)
         if err != nil {
             managerSingle.notifyError(cmdLog.ID, err)
             return
@@ -264,7 +264,7 @@ func (s *DBStore) execute(cmdLog CommandLog) {
         managerSingle.notify(cmdLog.ID, ok)
     case METHOD_UserCheckWhetherFollowingGetDB:
         params, _ := cmdLog.Params.(UserCheckWhetherFollowingDBParams)
-        ret, err := CheckWhetherFollowing(context.Background(), params.srcId, params.targetId)
+        ret, err := CheckWhetherFollowing(context.Background(), params.SrcId, params.TargetId)
         if err != nil {
             managerSingle.notifyError(cmdLog.ID, err)
             return
@@ -272,7 +272,7 @@ func (s *DBStore) execute(cmdLog CommandLog) {
         managerSingle.notify(cmdLog.ID, ret)
     case METHOD_UserStartFollowingDB:
         params, _ := cmdLog.Params.(UserStartFollowingDBParams)
-        ok, err := StartFollowing(context.Background(), params.srcId, params.targetId)
+        ok, err := StartFollowing(context.Background(), params.SrcId, params.TargetId)
         if err != nil {
             managerSingle.notifyError(cmdLog.ID, err)
             return
@@ -280,7 +280,7 @@ func (s *DBStore) execute(cmdLog CommandLog) {
         managerSingle.notify(cmdLog.ID, ok)
     case METHOD_UserStopFollowingDB:
         params, _ := cmdLog.Params.(UserStopFollowingDBParams)
-        ok, err := StopFollowing(context.Background(), params.srcId, params.targetId)
+        ok, err := StopFollowing(context.Background(), params.SrcId, params.TargetId)
         if err != nil {
             managerSingle.notifyError(cmdLog.ID, err)
             return
@@ -296,27 +296,36 @@ func (s *DBStore) execute(cmdLog CommandLog) {
         managerSingle.notify(cmdLog.ID, tId)
     case METHOD_TweetGet:
         params, _ := cmdLog.Params.(TweetReadParams)
-        tweet, err := TweetSelectById(context.Background(), params.tId)
+        tweet, err := TweetSelectById(context.Background(), params.TId)
         if err != nil {
             managerSingle.notifyError(cmdLog.ID, err)
             return
         }
         managerSingle.notify(cmdLog.ID, tweet)
+    case METHOD_TweetGetAll:
+        tweets, err := TweetGetAllTweets(context.Background())
+        if err != nil {
+            managerSingle.notifyError(cmdLog.ID, err)
+            return
+        }
+        managerSingle.notify(cmdLog.ID, tweets)
     case METHOD_TweetDelete:
-        params, _ := cmdLog.Params.(TweetDeleteParams)
-        ok, err := DeleteById(context.Background(), params.tId)
-        if err != nil {
-            managerSingle.notifyError(cmdLog.ID, err)
-            return
-        }
-        managerSingle.notify(cmdLog.ID, ok)
+        fmt.Errorf("this method %s has not been implemented", cmdLog.TargetMethod)
+        //params, _ := cmdLog.Params.(TweetDeleteParams)
+        //ok, err := DeleteById(context.Background(), params.tId)
+        //if err != nil {
+        //    managerSingle.notifyError(cmdLog.ID, err)
+        //    return
+        //}
+        //managerSingle.notify(cmdLog.ID, ok)
     case METHOD_TweetDeleteByCreatedTime:
-        params, _ := cmdLog.Params.(TweetDeleteByCreatedTimeParams)
-        ok, err := TweetDeleteByCreatedTime(context.Background(), params.timeStamp)
-        if err != nil {
-            managerSingle.notifyError(cmdLog.ID, err)
-            return
-        }
-        managerSingle.notify(cmdLog.ID, ok)
+        fmt.Errorf("this method %s has not been implemented", cmdLog.TargetMethod)
+        //params, _ := cmdLog.Params.(TweetDeleteByCreatedTimeParams)
+        //ok, err := TweetDeleteByCreatedTime(context.Background(), params.timeStamp)
+        //if err != nil {
+        //    managerSingle.notifyError(cmdLog.ID, err)
+        //    return
+        //}
+        //managerSingle.notify(cmdLog.ID, ok)
     }
 }

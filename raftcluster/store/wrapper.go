@@ -112,6 +112,23 @@ func FindAllUsers(ctx context.Context) ([]*beStorage.UserEntity, error) {
     }
 }
 
+
+func TweetGetAllTweets(ctx context.Context) ([]*beStorage.TweetEntity, error) {
+    result := make(chan []*beStorage.TweetEntity)
+    errorChan := make(chan error)
+    go func() {
+        bkStorageManager.TweetStorage.GetAll(result, errorChan)
+    }()
+    select {
+    case users := <-result:
+        return users, nil
+    case err := <-errorChan:
+        return nil, err
+    case <-ctx.Done():
+        return nil, ctx.Err()
+    }
+}
+
 // Check whether the user srcId follows the user targetId.
 // Take O(#following) time
 func CheckWhetherFollowing(ctx context.Context, srcId uint, targetId uint) (bool,
