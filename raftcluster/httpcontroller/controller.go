@@ -2,11 +2,9 @@ package httpcontroller
 
 import (
     "github.com/coreos/etcd/raft/raftpb"
-    "time"
     "zl2501-final-project/raftcluster/store"
 )
 
-const ContextTimeoutDuration = 5 * time.Second
 
 var raftStore *store.DBStore
 var confChangeC chan raftpb.ConfChange

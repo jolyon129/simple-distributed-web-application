@@ -20,13 +20,22 @@ func ReadSession(w http.ResponseWriter, r *http.Request) {
         SessionProviderParams{sid})
     //sess, err := sessProvider.SessionRead(sid)
     if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+        w.WriteHeader(http.StatusInternalServerError)
+        ret, _ := json.Marshal(requestRetType{
+            "result": nil,
+            "error":  err,
+        })
+        w.Write(ret)
+        return
     }
     // The return should not be cached
     w.Header().Set("Cache-Control", "no-cache")
     w.WriteHeader(http.StatusCreated)
     sessIns := res.(*memory.MemSessStore)
-    ret, _ := json.Marshal(sessIns)
+    ret, _ := json.Marshal(requestRetType{
+        "result": sessIns,
+        "error":  err,
+    })
     w.Write(ret)
 }
 func CreateSession(w http.ResponseWriter, r *http.Request) {
@@ -35,9 +44,92 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
         SessionProviderParams{sid})
     //_, err := sessProvider.SessionInit(sid)
     if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+        w.WriteHeader(http.StatusInternalServerError)
+        ret, _ := json.Marshal(requestRetType{
+            "result": nil,
+            "error":  err,
+        })
+        w.Write(ret)
+        return
     }
-    w.WriteHeader(http.StatusNoContent)
+    ret, _ := json.Marshal(requestRetType{
+        "result": sid,
+        "error":  err,
+    })
+    w.WriteHeader(http.StatusOK)
+    w.Write(ret)
+}
+
+func SessionGetValue(w http.ResponseWriter, r *http.Request) {
+    sid := getRouteParam(r, "sid")
+    key := getRouteParam(r, "key")
+    res, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionGet,
+        SessionParams{Sid: sid, Key: key, Value: ""})
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        ret, _ := json.Marshal(requestRetType{
+            "result": nil,
+            "error":  err,
+        })
+        w.Write(ret)
+        return
+    }
+    // The return should not be cached
+    w.Header().Set("Cache-Control", "no-cache")
+    w.WriteHeader(http.StatusOK)
+    ret, _ := json.Marshal(requestRetType{
+        "result": res,
+        "error":  err,
+    })
+    w.Write(ret)
+}
+func SessionPutKeyValue(w http.ResponseWriter, r *http.Request) {
+    sid := getRouteParam(r, "sid")
+    key := getRouteParam(r, "key")
+    r.ParseForm()
+    value := r.Form["value"][0]
+    res, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionSet,
+        SessionParams{Sid: sid, Key: key, Value: value})
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        ret, _ := json.Marshal(requestRetType{
+            "result": nil,
+            "error":  err,
+        })
+        w.Write(ret)
+        return
+    }
+    // The return should not be cached
+    w.Header().Set("Cache-Control", "no-cache")
+    w.WriteHeader(http.StatusOK)
+    ret, _ := json.Marshal(requestRetType{
+        "result": res,
+        "error":  err,
+    })
+    w.Write(ret)
+}
+func SessionDeleteKey(w http.ResponseWriter, r *http.Request) {
+    sid := getRouteParam(r, "sid")
+    key := getRouteParam(r, "key")
+    res, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionDelete,
+        SessionParams{Sid: sid, Key: key, Value: ""})
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        ret, _ := json.Marshal(requestRetType{
+            "result": nil,
+            "error":  err,
+        })
+        w.Write(ret)
+        return
+    }
+    // The return should not be cached
+    w.Header().Set("Cache-Control", "no-cache")
+    w.WriteHeader(http.StatusOK)
+    ret, _ := json.Marshal(requestRetType{
+        "result": res,
+        "error":  err,
+    })
+    w.Write(ret)
 }
 
 // Params return the router params

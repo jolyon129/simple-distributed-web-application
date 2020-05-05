@@ -8,7 +8,6 @@ import (
     "context"
     "time"
     beStorage "zl2501-final-project/raftcluster/store/backendstore"
-    "zl2501-final-project/web/constant"
 )
 
 // Create a new user and return user id
@@ -35,6 +34,8 @@ func CreateNewUser(ctx context.Context, u *UserInfo) (uint, error) {
         return 0, ctx.Err()
     }
 }
+
+const ContextTimeoutDuration = 5 * time.Second
 
 //func UserSelectByName(ctx context.Context, name string) (*beStorage.UserEntity,
 //        error) {
@@ -111,7 +112,6 @@ func FindAllUsers(ctx context.Context) ([]*beStorage.UserEntity, error) {
         return nil, ctx.Err()
     }
 }
-
 
 func TweetGetAllTweets(ctx context.Context) ([]*beStorage.TweetEntity, error) {
     result := make(chan []*beStorage.TweetEntity)
@@ -207,7 +207,7 @@ func SaveTweet(ctx context.Context, p TweetInfo) (uint, error) {
     case err := <-errorChan:
         return 0, err
     case <-ctx.Done():
-        ctx1, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
+        ctx1, _ := context.WithTimeout(context.Background(), ContextTimeoutDuration)
         TweetDeleteByCreatedTime(ctx1,
             newTweet.CreatedTime) // try to delete teh already created tweet.
         return 0, ctx.Err()

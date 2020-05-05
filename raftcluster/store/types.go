@@ -57,6 +57,7 @@ type UserAddTweetToUserParams struct {
     TId uint
 }
 
+// A memory store backed by raft cluster
 type DBStore struct {
     mu               sync.RWMutex
     proposeC         chan<- string
@@ -82,7 +83,7 @@ type SessionProviderParams struct {
 }
 
 type SessionParams struct {
-    SessionProviderParams
+    Sid string
     Key   string
     Value string
 }

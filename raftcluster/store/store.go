@@ -1,3 +1,4 @@
+// Store implement a finite state machine to store persistent data
 package store
 
 import (
