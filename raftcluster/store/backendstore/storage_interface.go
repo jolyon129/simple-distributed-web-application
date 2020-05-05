@@ -87,6 +87,7 @@ type TweetStorageInterface interface {
     Delete(ID uint, result chan bool, errorChan chan error)
     DeleteByCreatedTime(timeStamp time.Time, result chan bool, errorChan chan error)
     GetSnapshot() ([]byte, error)
+    GetAll(result chan []*TweetEntity, errorChan chan error)
 }
 
 var drivers = make(map[string]*Manager)

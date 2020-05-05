@@ -23,6 +23,25 @@ func (m *MemTweetStore) getNewPK() uint {
     return m.pkCounter
 }
 
+func (m *MemTweetStore) GetAll(result chan []*backendstore.TweetEntity, errorChan chan error) {
+    m.Lock()
+    defer m.Unlock()
+    var ret []*backendstore.TweetEntity
+    ret = make([]*backendstore.TweetEntity, len(m.tweetMap))
+    var i = 0
+    for ID, _ := range m.tweetMap {
+        eInDB := m.tweetMap[ID]
+        ret[i] = &backendstore.TweetEntity{ // Immutable! Return new copy!
+            ID:          eInDB.ID,
+            UserID:      eInDB.UserID,
+            Content:     eInDB.Content,
+            CreatedTime: eInDB.CreatedTime,
+        }
+        i++
+    }
+    result <- ret
+}
+
 func (m *MemTweetStore) DeleteByCreatedTime(timeStamp time.Time, result chan bool, errorChan chan error) {
     m.Lock()
     defer m.Unlock()
