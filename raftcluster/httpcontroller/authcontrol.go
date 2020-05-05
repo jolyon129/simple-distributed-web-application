@@ -20,10 +20,10 @@ func ReadSession(w http.ResponseWriter, r *http.Request) {
         SessionProviderParams{sid})
     //sess, err := sessProvider.SessionRead(sid)
     if err != nil {
-        w.WriteHeader(http.StatusInternalServerError)
+        w.WriteHeader(http.StatusBadRequest)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -34,7 +34,7 @@ func ReadSession(w http.ResponseWriter, r *http.Request) {
     sessIns := res.(*memory.MemSessStore)
     ret, _ := json.Marshal(requestRetType{
         "result": sessIns,
-        "error":  err,
+        "error":  nil,
     })
     w.Write(ret)
 }
@@ -42,21 +42,57 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
     sid := getRouteParam(r, "sid")
     _, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionInit,
         SessionProviderParams{sid})
-    //_, err := sessProvider.SessionInit(sid)
     if err != nil {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
     }
     ret, _ := json.Marshal(requestRetType{
         "result": sid,
-        "error":  err,
+        "error": nil,
     })
     w.WriteHeader(http.StatusOK)
+    w.Write(ret)
+}
+func SessionGC(w http.ResponseWriter, r *http.Request) {
+    _, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionGC, nil)
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        ret, _ := json.Marshal(requestRetType{
+            "result": nil,
+            "error":  err.Error(),
+        })
+        w.Write(ret)
+        return
+    }
+    w.WriteHeader(http.StatusNoContent)
+}
+func DestroySession(w http.ResponseWriter, r *http.Request) {
+    sid := getRouteParam(r, "sid")
+    res, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionDestroy,
+        SessionProviderParams{sid})
+    //sess, err := sessProvider.SessionRead(sid)
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        ret, _ := json.Marshal(requestRetType{
+            "result": nil,
+            "error":  err.Error(),
+        })
+        w.Write(ret)
+        return
+    }
+    // The return should not be cached
+    w.Header().Set("Cache-Control", "no-cache")
+    w.WriteHeader(http.StatusCreated)
+    sessIns := res.(*memory.MemSessStore)
+    ret, _ := json.Marshal(requestRetType{
+        "result": sessIns,
+        "error":  nil,
+    })
     w.Write(ret)
 }
 
@@ -69,7 +105,7 @@ func SessionGetValue(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -79,7 +115,7 @@ func SessionGetValue(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     ret, _ := json.Marshal(requestRetType{
         "result": res,
-        "error":  err,
+        "error":  nil,
     })
     w.Write(ret)
 }
@@ -94,7 +130,7 @@ func SessionPutKeyValue(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -104,7 +140,7 @@ func SessionPutKeyValue(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     ret, _ := json.Marshal(requestRetType{
         "result": res,
-        "error":  err,
+        "error":  nil,
     })
     w.Write(ret)
 }
@@ -117,7 +153,7 @@ func SessionDeleteKey(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -127,7 +163,7 @@ func SessionDeleteKey(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     ret, _ := json.Marshal(requestRetType{
         "result": res,
-        "error":  err,
+        "error":  nil,
     })
     w.Write(ret)
 }

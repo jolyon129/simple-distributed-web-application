@@ -20,7 +20,9 @@ import (
     "github.com/coreos/etcd/raft/raftpb"
     "log"
     "net/http"
+    "os"
     "strconv"
+    "time"
     controller "zl2501-final-project/raftcluster/httpcontroller"
     "zl2501-final-project/raftcluster/mux"
     "zl2501-final-project/raftcluster/store"
@@ -35,6 +37,9 @@ func ServerHttpAPI(store *store.DBStore, port int, changeC chan raftpb.ConfChang
     })
     mux.Get("/session/:sid", controller.ReadSession)
     mux.Post("/session/:sid", controller.CreateSession)
+    mux.Delete("/session/:sid",controller.DestroySession)
+    mux.Post("/sessiongc",controller.SessionGC)
+
     mux.Get("/session/:sid/:key",controller.SessionGetValue)
     mux.Put("/session/:sid/:key",controller.SessionPutKeyValue)
     mux.Delete("/session/:sid/:key",controller.SessionDeleteKey)
@@ -56,14 +61,14 @@ func ServerHttpAPI(store *store.DBStore, port int, changeC chan raftpb.ConfChang
 }
 
 // A middleware to log all requests
-//func LogRequests(handlerToWrap http.Handler) http.Handler {
-//    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//        logger := log.New(os.Stdout, "LogRequests:", log.Ltime|log.Lshortfile)
-//        start := time.Now()
-//        handlerToWrap.ServeHTTP(w, r)
-//        logger.Printf("Request:%s %s, Time: %v", r.Method, r.URL.Path, time.Since(start))
-//    })
-//}
+func LogRequests(handlerToWrap http.Handler) http.Handler {
+   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+       logger := log.New(os.Stdout, "LogRequests:", log.Ltime|log.Lshortfile)
+       start := time.Now()
+       handlerToWrap.ServeHTTP(w, r)
+       logger.Printf("Request:%s %s, Time: %v", r.Method, r.URL.Path, time.Since(start))
+   })
+}
 
 func MiddlewareAdapt(h http.Handler, middleware ...func(http.Handler) http.Handler) http.Handler {
     for _, mw := range middleware {

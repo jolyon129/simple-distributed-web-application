@@ -7,7 +7,9 @@ import (
     . "github.com/onsi/gomega"
     "math/rand"
     "net/http"
+    "net/url"
     "strconv"
+    "strings"
     "sync"
     "zl2501-final-project/raftcluster/store"
     authstorage "zl2501-final-project/raftcluster/store/authstore"
@@ -80,7 +82,7 @@ var _ = Describe("Raftcluster", func() {
         })
     })
     Describe("Test http API", func() {
-        Context("session init", func() {
+        PContext("session init", func() {
             It("return sessid and success", func() {
                 sid := "fakesessid12321" + strconv.Itoa(rand.Int())
                 resp, err := http.PostForm("http://127.0.0.1:9001/session/"+sid, nil)
@@ -91,7 +93,7 @@ var _ = Describe("Raftcluster", func() {
                 Expect(result["result"]).Should(Equal(sid))
             })
         })
-        Context("change request URL", func() {
+        PContext("change request URL", func() {
             It("change url", func() {
                 sid := "fakesessid12321" + strconv.Itoa(rand.Int())
                 r, _ := http.NewRequest("POST", "/session/"+sid, nil)
@@ -103,6 +105,24 @@ var _ = Describe("Raftcluster", func() {
                 var result map[string]interface{}
                 json.NewDecoder(resp.Body).Decode(&result)
                 Expect(result["result"]).Should(Equal(sid))
+            })
+        })
+        Context("custom put request with data", func() {
+            It("should be fine", func() {
+                sid := "fakesessid12321" + strconv.Itoa(rand.Int())
+                data := url.Values{}
+                data.Set("value", "jolyon129")
+                r, _ := http.NewRequest("PUT", "/session/"+sid+"/name",
+                    strings.NewReader(data.Encode()))
+                newReq, _ := http.NewRequest(r.Method, "http://127.0.0.1:9001"+r.URL.Path, r.Body)
+                newReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+                resp, err := http.DefaultClient.Do(newReq)
+                //resp, err := http.PostForm("http://127.0.0.1:9001/session/"+sid, nil)
+                Expect(err).Should(BeNil())
+                defer resp.Body.Close()
+                var result map[string]interface{}
+                json.NewDecoder(resp.Body).Decode(&result)
+                Expect(result["result"]).Should(BeTrue())
             })
         })
     })
