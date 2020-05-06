@@ -22,7 +22,6 @@ import (
     "net/http"
     "os"
     "strconv"
-    "time"
     controller "zl2501-final-project/raftcluster/httpcontroller"
     "zl2501-final-project/raftcluster/mux"
     "zl2501-final-project/raftcluster/store"
@@ -48,25 +47,25 @@ func ServerHttpAPI(store *store.DBStore, port int, changeC chan raftpb.ConfChang
     //mux.Put("/user/:uid",controller.UserUpdate)
     mux.Get("/user",controller.UserFindAll)
     mux.Post("/user/:uid/tweet/:tid",controller.UserAddTweetToUserDB)
-    mux.Get("/user/:srcuid/following/:targetuid",controller.UserCheckWhetherFollowingDB)
-    mux.Post("/user/:srcuid/following/:targetuid",controller.UserStartFollowingDB)
-    mux.Delete("/user/:srcuid/following/:targetuid",controller.UserStopFollowingDB)
+    mux.Get("/user/:uid/following/:targetuid",controller.UserCheckWhetherFollowingDB)
+    mux.Post("/user/:uid/following/:targetuid",controller.UserStartFollowingDB)
+    mux.Delete("/user/:uid/following/:targetuid",controller.UserStopFollowingDB)
     mux.Post("/tweet",controller.TweetCreate)
     mux.Get("/tweet",controller.TweetGetAll)
     mux.Get("/tweet/:tid",controller.TweetRead)
     //mux.Delete("tweet/:tid",controller.TweetDelete)
 
     log.Printf("Raft HTTP Server is going to start at: http://localhost:%v", HTTP_PORT)
-    log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), mux))
+    log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), LogRequests(mux)))
 }
 
 // A middleware to log all requests
 func LogRequests(handlerToWrap http.Handler) http.Handler {
    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
        logger := log.New(os.Stdout, "LogRequests:", log.Ltime|log.Lshortfile)
-       start := time.Now()
+       //start := time.Now()
+       logger.Printf("Request:%s %s", r.Method, r.URL.Path)
        handlerToWrap.ServeHTTP(w, r)
-       logger.Printf("Request:%s %s, Time: %v", r.Method, r.URL.Path, time.Since(start))
    })
 }
 

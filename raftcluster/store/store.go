@@ -39,6 +39,7 @@ func (s *DBStore) MarshalJSON() ([]byte, error) {
 
 func NewStore(snapshotter *snap.Snapshotter, proposeC chan<- string,
         commitC <-chan *string, errorC <-chan error) *DBStore {
+    //TODO: assign backendmanager and sessprovider to DBstore for snapshotter
     s := &DBStore{
         proposeC:         proposeC,
         snapshotter:      snapshotter,
@@ -141,13 +142,13 @@ func (s *DBStore) readCommits(commitC <-chan *string, errorC <-chan error) {
 }
 
 func (s *DBStore) recoverFromSnapshot(snapshot []byte) error {
-    var persistentStore persistent
-    if err := json.Unmarshal(snapshot, &persistentStore); err != nil {
-        return err
-    }
-    s.mu.Lock()
-    s.persistent = persistentStore
-    s.mu.Unlock()
+    //var persistentStore persistent
+    //if err := json.Unmarshal(snapshot, &persistentStore); err != nil {
+    //    return err
+    //}
+    //s.mu.Lock()
+    //s.persistent = persistentStore
+    //s.mu.Unlock()
     return nil
 }
 

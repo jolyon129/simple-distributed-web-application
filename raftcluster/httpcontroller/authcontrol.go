@@ -61,12 +61,12 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
 func SessionGC(w http.ResponseWriter, r *http.Request) {
     _, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionGC, nil)
     if err != nil {
-        w.WriteHeader(http.StatusInternalServerError)
-        ret, _ := json.Marshal(requestRetType{
-            "result": nil,
-            "error":  err.Error(),
-        })
-        w.Write(ret)
+        //w.WriteHeader(http.StatusInternalServerError)
+        //ret, _ := json.Marshal(requestRetType{
+        //    "result": nil,
+        //    "error":  err.Error(),
+        //})
+        //w.Write(ret)
         return
     }
     w.WriteHeader(http.StatusNoContent)

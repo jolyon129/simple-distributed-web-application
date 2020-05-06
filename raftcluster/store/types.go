@@ -6,7 +6,7 @@ import (
     "sync"
     "time"
     authmemory "zl2501-final-project/raftcluster/store/authstore/memory"
-    bgmemory "zl2501-final-project/raftcluster/store/backendstore/memory"
+    beStorage "zl2501-final-project/raftcluster/store/backendstore"
 )
 
 const MaxLifeTime = 7200
@@ -62,14 +62,11 @@ type DBStore struct {
     mu               sync.RWMutex
     proposeC         chan<- string
     commandIdCounter uint64
-    persistent
+    BeManager beStorage.Manager
+    SessProvider authmemory.Provider
     snapshotter *snap.Snapshotter
 }
-type persistent struct {
-    TweetStore   bgmemory.MemTweetStore
-    UserStore    bgmemory.MemUserStore
-    SessionStore authmemory.MemSessStore
-}
+
 
 // CommandLog for serialize and deserialize
 type CommandLog struct {

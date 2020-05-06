@@ -30,13 +30,13 @@ func UserCreate(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ = json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
     } else {
         w.WriteHeader(http.StatusCreated)
         ret, _ = json.Marshal(requestRetType{
             "result": uid,
-            "error":  err,
+            "error":  nil,
         })
     }
     w.Write(ret)
@@ -55,14 +55,17 @@ func UserRead(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
     }
     w.WriteHeader(http.StatusOK)
     user := res.(*backendstore.UserEntity)
-    ret, _ := json.Marshal(user)
+    ret, _ := json.Marshal(requestRetType{
+        "error": nil,
+        "result":user,
+    })
     w.Write(ret)
 }
 
@@ -75,7 +78,7 @@ func UserFindAll(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -103,7 +106,7 @@ func UserAddTweetToUserDB(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -118,7 +121,7 @@ func UserAddTweetToUserDB(w http.ResponseWriter, r *http.Request) {
 }
 func UserCheckWhetherFollowingDB(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
-    srcId := getRouteParam(r, "srcuid")
+    srcId := getRouteParam(r, "uid")
     tarId := getRouteParam(r, "targetuid")
     res, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_UserCheckWhetherFollowingGetDB,
         UserCheckWhetherFollowingDBParams{
@@ -130,7 +133,7 @@ func UserCheckWhetherFollowingDB(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -138,16 +141,16 @@ func UserCheckWhetherFollowingDB(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     ret, _ := json.Marshal(requestRetType{
         "result": res,
-        "error":  err,
+        "error":  nil,
     })
     w.Write(ret)
 }
 func UserStartFollowingDB(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
-    srcId := getRouteParam(r, "srcuid")
+    srcId := getRouteParam(r, "uid")
     tarId := getRouteParam(r, "targetuid")
     res, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_UserStartFollowingDB,
-        UserCheckWhetherFollowingDBParams{
+        UserStartFollowingDBParams{
             SrcId:    convertStrToUint(srcId),
             TargetId: convertStrToUint(tarId),
         })
@@ -156,7 +159,7 @@ func UserStartFollowingDB(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -164,16 +167,16 @@ func UserStartFollowingDB(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     ret, _ := json.Marshal(requestRetType{
         "result": res,
-        "error":  err,
+        "error":  nil,
     })
     w.Write(ret)
 }
 func UserStopFollowingDB(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
-    srcId := getRouteParam(r, "srcuid")
+    srcId := getRouteParam(r, "uid")
     tarId := getRouteParam(r, "targetuid")
     res, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_UserStopFollowingDB,
-        UserCheckWhetherFollowingDBParams{
+        UserStopFollowingDBParams{
             SrcId:    convertStrToUint(srcId),
             TargetId: convertStrToUint(tarId),
         })
@@ -182,7 +185,7 @@ func UserStopFollowingDB(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -190,7 +193,7 @@ func UserStopFollowingDB(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     ret, _ := json.Marshal(requestRetType{
         "result": res,
-        "error":  err,
+        "error":  nil,
     })
     w.Write(ret)
 
@@ -208,7 +211,7 @@ func TweetCreate(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -232,7 +235,7 @@ func TweetRead(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -243,7 +246,7 @@ func TweetRead(w http.ResponseWriter, r *http.Request) {
     tweet := res.(*backendstore.TweetEntity)
     ret, _ := json.Marshal(requestRetType{
         "result": tweet,
-        "error":  err,
+        "error":  nil,
     })
     w.Write(ret)
 }
@@ -255,7 +258,7 @@ func TweetGetAll(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusInternalServerError)
         ret, _ := json.Marshal(requestRetType{
             "result": nil,
-            "error":  err,
+            "error":  err.Error(),
         })
         w.Write(ret)
         return
@@ -265,7 +268,7 @@ func TweetGetAll(w http.ResponseWriter, r *http.Request) {
     tweet := res.([]*backendstore.TweetEntity)
     ret, _ := json.Marshal(requestRetType{
         "result": tweet,
-        "error":  err,
+        "error":  nil,
     })
     w.Write(ret)
 }
