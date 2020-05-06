@@ -4,7 +4,7 @@
 
 I choose `etcd` from `CoreOS`  as the raft implementation. 
 
-Each raft node will expose a RESTful API for DB storage. The `backend` and `auth` service have a new `raftclient` DB engine  which is the abstract DB implementation of the storage for `userstore`,`tweetstore` and `sessionProvider`. Under the hood, the `raftclient` will send requests to raft cluster to get the data. `raftclient` along with `memory` are two different DB engine and can be switched easily by a engine register mechanism(`backend` does not fully support engine register mechanism). 
+Each raft node will expose a RESTful API for DB storage. The `backend` and `auth` service have a new `raftclient` DB engine  which is the abstract DB implementation of the storage for `userstore`,`tweetstore` and `sessionProvider`. Under the hood, the `raftclient` will send requests to raft cluster to get the data. `raftclient` along with `memory` are two different DB engines and can be switched easily by a engine register mechanism(`backend` does not fully support engine register mechanism). 
 
 The `raftclient` is undere the folder `/model/sorage/raftclient` in `backend` and `auth` service. 
 
