@@ -1,5 +1,53 @@
 [![Build Status](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project.svg?token=LyWHGctXVCcEk9v6z4HG&branch=master)](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project)
 
+# Stage 3 Explanation
+
+I choose `etcd` from `CoreOS`  as the raft implementation. 
+
+Each raft node will expose a RESTful API for DB storage. The `backend` and `auth` service have a new `raftclient` DB engine  which is the abstract DB implementation of the storage for `userstore`,`tweetstore` and `sessionProvider`. Under the hood, the `raftclient` will send requests to raft cluster to get the data. `raftclient` along with `memory` are two different DB engine and can be switched easily by a engine register mechanism(`backend` does not fully support engine register mechanism). 
+
+The `raftclient` is undere the folder `/model/sorage/raftclient` in `backend` and `auth` service. 
+
+In this application, we can have up to 3 cluster nodes. They will expose follwoing API address: 
+```go 
+    ADDR1 = "http://127.0.0.1:9004"
+    ADDR2 = "http://127.0.0.1:9005"
+    ADDR3 = "http://127.0.0.1:9006"
+```
+
+I document the detailed DB API in the `Postman`, you can check it out through this url: https://documenter.getpostman.com/view/1347930/SzmcbKNh?version=latest
+
+Ideally, all the above addresses will give the same result of DB as they are consistent through raft protocols.
+
+The `raftclient` DB engine, or the wrapper, will try theese API addresses one by one with timeout cancelation till one of them success. And the recently successed one will always be ranked first to try. This gives `backend` and `auth` the `Fault Tolerance` we want.
+
+I also implement a customized trie-tree-based `mux` for the httpserver in `raftcluster`. So that I can easily register RESTful routers. Really having a good time coding on this. 
+
+
+## Commands
+
+Separately call `make run-raft` `make run-auth`, `make run-backend` and `make run-web` in four terminal sessions
+. Then go to `localhost:9000` to enter into the application. (Note: `make run-raft` will only start one raft node and a API server at `localost:9004`. I will demostrate the useage of 3 raft nodes in the final presentation.)
+
+Make Targets:
+* `make run-auth`: Start a raft node and expose http server of DB engine at `localhost:9004`
+* `make run-auth`: Start the auth server at `localhost:9002`
+* `make run-backend`: Start the backend server at `localhost:9001` 
+* `make run-web`: Start the web server at `localhost:9000`
+* `make test`: Run ginkgo test
+* `make build`: Build into `/build` directory
+* `make proctoc`: Generate gRPC stubs and distribute into each service directories
+
+
+## Logic
+
+The logic is same as the stage one. Still, there is some default data.
+
+You can login by using the following usernames or register a new  one.
+* User: jolyon129, Password: 123
+* User: zl2501, Password: 123
+
+
 # Stage 2 Explanation
 
 I split the application into three services: web, backend and auth.
