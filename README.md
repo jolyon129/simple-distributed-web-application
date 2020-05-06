@@ -49,6 +49,61 @@ You can login by using the following usernames or register a new  one.
 * User: jolyon129, Password: 123
 * User: zl2501, Password: 123
 
+## Structure
+
+I only post the structure of the new `raftcluster` service folder here. The rest are basically the same as the stage two. Except the new `raftclient` DB enigne folder under `/backend` and `/auth` service.
+
+```
+.
+├── const.go
+├── go.mod
+├── go.sum
+├── httpapi.go              --- Start a the http API server 
+├── httpcontroller          --- Controllers
+│   ├── authcontrol.go
+│   ├── backendcontrol.go
+│   └── controller.go
+├── main.go                 --- Entrypoint
+├── mux                     --- Implment a trie-tree based customized mux for regsitering REST API routers
+│   ├── const.go
+│   ├── mux.go
+│   ├── mux_suite_test.go
+│   ├── mux_test.go
+│   └── trietree.go
+├── raft                    --- Implement the raft protocol 
+│   ├── raft.go
+│   └── stoppablelistener.go
+├── raftcluster_suite_test.go
+├── raftcluster_test.go     --- Test cases for raftcluster
+└── store                   --- The actual memory storage. 
+    ├── authstore
+    │   ├── memory
+    │   │   ├── memory.go
+    │   │   ├── memory_suite_test.go
+    │   │   └── memory_test.go
+    │   ├── provider_interface.go
+    │   └── session_interface.go
+    ├── backendstore
+    │   ├── memory
+    │   │   ├── memory.go
+    │   │   ├── memory_suite_test.go
+    │   │   ├── memory_test.go
+    │   │   ├── tweetstorage.go
+    │   │   └── userstorage.go
+    │   ├── storage_interface.go
+    │   └── store_test.go
+    ├── const.go
+    ├── store.go
+    ├── store_suite_test.go
+    ├── subscribe.go            --- Observer pattern for non-optimistic DB operations
+    ├── types.go
+    └── wrapper.go
+
+8 directories, 35 files
+
+```
+
+
 
 # Stage 2 Explanation
 
