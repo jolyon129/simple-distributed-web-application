@@ -2,11 +2,13 @@
 
 # Stage 3 Explanation
 
-I choose `etcd` from `CoreOS`  as the raft implementation. 
+I choose `etcd` from `CoreOS`  as the raft implementation. A new service named `raftcluster` is added to the project.
 
-Each raft node will expose a RESTful API for DB storage. The `backend` and `auth` service have a new `raftclient` DB engine  which is the abstract DB implementation of the storage for `userstore`,`tweetstore` and `sessionProvider`. Under the hood, the `raftclient` will send requests to raft cluster to get the data. `raftclient` along with `memory` are two different DB engines and can be switched easily by a engine register mechanism(`backend` does not fully support engine register mechanism). 
+The actual storage in `backend` and `auth` is moved into the `raftcluster`.  The `raftcluster` will initiate a raft node instance as well as a http server for `auth` and `backend`, so that `auth` and `bakcend` can preform DB operations over this http server.
 
-The `raftclient` is undere the folder `/model/sorage/raftclient` in `backend` and `auth` service. 
+The http server in raft cluster will expose a RESTful API for DB storage. The `backend` and `auth` service have a new `raftclient` DB engine which is a abstract DB implementation of the storage for `userstore`,`tweetstore` and `sessionProvider`. Under the hood, the `raftclient` will send requests to a raft cluster to get the DB data. `raftclient` along with `memory` are two different DB engines and can be switched easily by a engine register mechanism(`backend` does not fully support engine register mechanism). 
+
+The `raftclient` is under the folder `/model/storage/raftclient` in `backend` and `auth` service. 
 
 In this application, we can have up to 3 cluster nodes. They will expose follwoing API address: 
 ```go 
@@ -15,9 +17,9 @@ In this application, we can have up to 3 cluster nodes. They will expose follwoi
     ADDR3 = "http://127.0.0.1:9006"
 ```
 
-I document the detailed DB API in the `Postman`, you can check it out through this url: https://documenter.getpostman.com/view/1347930/SzmcbKNh?version=latest
+I document the detailed DB APIs in the `Postman`, you can check it out through this url: https://documenter.getpostman.com/view/1347930/SzmcbKNh?version=latest
 
-Ideally, all the above addresses will give the same result of DB as they are consistent through raft protocols.
+Ideally, all the above addresses will give the same result of DB operations as they are consistent through raft protocols.
 
 The `raftclient` DB engine, or the wrapper, will try theese API addresses one by one with timeout cancelation till one of them success. And the recently successed one will always be ranked first to try. This gives `backend` and `auth` the `Fault Tolerance` we want.
 
@@ -27,7 +29,7 @@ I also implement a customized trie-tree-based `mux` for the httpserver in `raftc
 ## Commands
 
 Separately call `make run-raft` `make run-auth`, `make run-backend` and `make run-web` in four terminal sessions
-. Then go to `localhost:9000` to enter into the application. (Note: `make run-raft` will only start one raft node and a API server at `localost:9004`. I will demostrate the useage of 3 raft nodes in the final presentation.)
+. Then go to `localhost:9000` to enter into the application. `make run-raft` need be called first!(Note: `make run-raft` will only start one raft node and a API server at `localost:9004`. I will demostrate the useage of 3 raft nodes in the final presentation.)
 
 Make Targets:
 * `make run-auth`: Start a raft node and expose http server of DB engine at `localhost:9004`
