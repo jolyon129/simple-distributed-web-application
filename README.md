@@ -4,7 +4,7 @@
 
 I choose `etcd` from `CoreOS`  as the raft implementation. A new service named `raftcluster` is added to the project.
 
-The actual storage in `backend` and `auth` is moved into the `raftcluster`.  The `raftcluster` will initiate a raft node instance as well as a http server for `auth` and `backend`, so that `auth` and `bakcend` can preform DB operations over this http server.
+The actual storage in `backend` and `auth` is moved into the `raftcluster`.  The `raftcluster` will initiate a raft node instance as well as a http server, so that `auth` and `bakcend` can preform DB operations over this http server.
 
 The http server in raft cluster will expose a RESTful API for DB storage. The `backend` and `auth` service have a new `raftclient` DB engine which is a abstract DB implementation of the storage for `userstore`,`tweetstore` and `sessionProvider`. Under the hood, the `raftclient` will send requests to a raft cluster to get the DB data. `raftclient` along with `memory` are two different DB engines and can be switched easily by a engine register mechanism(`backend` does not fully support engine register mechanism). 
 
