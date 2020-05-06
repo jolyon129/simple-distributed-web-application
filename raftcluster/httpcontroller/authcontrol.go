@@ -53,7 +53,7 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
     }
     ret, _ := json.Marshal(requestRetType{
         "result": sid,
-        "error": nil,
+        "error":  nil,
     })
     w.WriteHeader(http.StatusOK)
     w.Write(ret)
@@ -73,7 +73,7 @@ func SessionGC(w http.ResponseWriter, r *http.Request) {
 }
 func DestroySession(w http.ResponseWriter, r *http.Request) {
     sid := getRouteParam(r, "sid")
-    res, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionDestroy,
+    _, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_SessionDestroy,
         SessionProviderParams{sid})
     //sess, err := sessProvider.SessionRead(sid)
     if err != nil {
@@ -88,9 +88,8 @@ func DestroySession(w http.ResponseWriter, r *http.Request) {
     // The return should not be cached
     w.Header().Set("Cache-Control", "no-cache")
     w.WriteHeader(http.StatusCreated)
-    sessIns := res.(*memory.MemSessStore)
     ret, _ := json.Marshal(requestRetType{
-        "result": sessIns,
+        "result": true,
         "error":  nil,
     })
     w.Write(ret)

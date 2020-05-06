@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"container/list"
 	"time"
 )
 
@@ -9,10 +8,20 @@ type UserEntity struct {
 	ID        uint // The DB will fill this field
 	UserName  string
 	Password  string
-	Follower  *list.List
-	Following *list.List
-	Tweets    *list.List // The oldest comes first
+	Follower  []uint64
+	Following []uint64
+	Tweets    []uint64 // The oldest comes first
 }
+
+// For raftclient implementation
+//type UserEntity struct {
+//	ID        uint // The DB will fill this field
+//	UserName  string
+//	Password  string
+//	Follower  []uint64
+//	Following []uint64
+//	Tweets    []uint64 // The oldest comes first
+//}
 
 type TweetEntity struct {
 	ID          uint

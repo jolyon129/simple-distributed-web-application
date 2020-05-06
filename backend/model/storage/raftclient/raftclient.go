@@ -129,6 +129,8 @@ type UserReadRetType struct {
     Result storage.UserEntity
 }
 
+
+
 func (r RaftUserStorage) Read(ID uint, resultC chan *storage.UserEntity, errorChan chan error) {
     req, _ := http.NewRequest("GET", "/user/"+strconv.Itoa(int(ID)), nil)
     resp, err := doRequestWithRetry(req)
@@ -142,6 +144,7 @@ func (r RaftUserStorage) Read(ID uint, resultC chan *storage.UserEntity, errorCh
     if result.Error != "" {
         errorChan <- errors.New(result.Error)
     }
+
     resultC <- &result.Result
 }
 

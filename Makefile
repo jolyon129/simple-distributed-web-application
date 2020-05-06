@@ -54,8 +54,10 @@ run-auth: vendor-auth
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/auth/auth.go
 
 
+run-raft: vendor-raftcluster
+	go run ./cmd/raftcluster/raftcluster.go
+
 test: vendor-all
-	go test -v --race ./auth/...
-	go test -v --race ./backend/...
-	go test -v --race ./raftcluster/store/...
+	ls
+
 

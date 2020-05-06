@@ -161,7 +161,7 @@ func (manager *Manager) GC() {
     manager.mu.Lock()
     manager.provider.SessionGC(manager.maxlifetime)
     manager.mu.Unlock()
-    time.AfterFunc(time.Duration(manager.maxlifetime), func() { manager.GC() })
+    time.AfterFunc(30*time.Second, func() { manager.GC() })
 }
 
 // Set Key and Value to a Session

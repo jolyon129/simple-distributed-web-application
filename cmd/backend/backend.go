@@ -3,6 +3,7 @@ package main
 import (
     "context"
     "fmt"
+    "math/rand"
     "time"
     "zl2501-final-project/backend"
     "zl2501-final-project/backend/model"
@@ -19,6 +20,7 @@ func addDefaultData() {
     bgctx := context.Background()
     userRepo := model.GetUserRepo()
     hash, _ := backend.EncodePassword("123")
+    rand.Seed(time.Now().UnixNano())
     uId, _ := userRepo.CreateNewUser(bgctx, &repository.UserInfo{
         UserName: "zl2501",
         Password: hash,
