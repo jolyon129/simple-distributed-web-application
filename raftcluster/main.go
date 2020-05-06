@@ -11,7 +11,7 @@ import (
 func StartRaftCluster() {
     cluster := flag.String("cluster", "http://127.0.0.1:9011", "comma separated cluster peers")
     id := flag.Int("id", 1, "node ID")
-    httpAPIPort := flag.Int("port", 9001, "key-value server port")
+    httpAPIPort := flag.Int("port", 9004, "key-value server port")
     join := flag.Bool("join", false, "join an existing cluster")
     flag.Parse()
 

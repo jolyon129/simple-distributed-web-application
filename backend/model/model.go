@@ -4,10 +4,10 @@ import (
 	"sync"
 	"zl2501-final-project/backend/model/repository"
 	"zl2501-final-project/backend/model/storage"
-	_ "zl2501-final-project/backend/model/storage/memory"
+	_ "zl2501-final-project/backend/model/storage/raftclient"
 )
 
-var storageManager = storage.NewManager("memory")
+var storageManager = storage.NewManager("raft")
 var userRepo *repository.UserRepo
 var tweetRepo *repository.TweetRepo
 var muForUser sync.Mutex

@@ -6,6 +6,7 @@ import (
     . "github.com/onsi/ginkgo"
     . "github.com/onsi/gomega"
     "log"
+    "math/rand"
     "strconv"
     "sync"
     "time"
@@ -20,39 +21,141 @@ var puId uint
 var puId2 uint
 var usersForTestFollowing []uint
 var _ = BeforeSuite(func() {
-    log.SetPrefix("Ginkgo: ")
-    log.SetFlags(log.Ltime | log.Lshortfile)
+    //log.SetPrefix("Ginkgo: ")
+    //log.SetFlags(log.Ltime | log.Lshortfile)
     userRepo = model.GetUserRepo()
     tweetRepo = model.GetTweetRepo()
-    //    result := make(chan uint)
-    //    errorChan := make(chan error)
-    timeout := 3000 * time.Millisecond
-    ctx, cancel := context.WithTimeout(context.Background(), timeout)
-    defer cancel()
-    puId, _ = userRepo.CreateNewUser(ctx, &UserInfo{
-        UserName: "jolyon129",
-        Password: "123",
-    })
-
-    //    log.Print("puId1:", puId)
-    puId2, _ = userRepo.CreateNewUser(ctx, &UserInfo{
-        UserName: "jolyon2",
-        Password: "123",
-    })
-    //    log.Print("puId2:", puId2)
-    srcUser, _ := userRepo.SelectById(ctx, puId)
-    usersForTestFollowing = make([]uint, 10)
-    for i := 0; i < 10; i++ {
-        id, _ := userRepo.CreateNewUser(ctx, &UserInfo{
-            UserName: "userForTestFollowing" + strconv.Itoa(i),
-            Password: "123",
-        })
-        userRepo.StartFollowing(ctx, srcUser.ID, id)
-        usersForTestFollowing[i] = id
-    }
-    log.Print("Ready to Test")
+    ////    result := make(chan uint)
+    ////    errorChan := make(chan error)
+    //timeout := 3000 * time.Millisecond
+    //ctx, cancel := context.WithTimeout(context.Background(), timeout)
+    //defer cancel()
+    //puId, _ = userRepo.CreateNewUser(ctx, &UserInfo{
+    //    UserName: "jolyon129",
+    //    Password: "123",
+    //})
+    //
+    ////    log.Print("puId1:", puId)
+    //puId2, _ = userRepo.CreateNewUser(ctx, &UserInfo{
+    //    UserName: "jolyon2",
+    //    Password: "123",
+    //})
+    ////    log.Print("puId2:", puId2)
+    //srcUser, _ := userRepo.SelectById(ctx, puId)
+    //usersForTestFollowing = make([]uint, 10)
+    //for i := 0; i < 10; i++ {
+    //    id, _ := userRepo.CreateNewUser(ctx, &UserInfo{
+    //        UserName: "userForTestFollowing" + strconv.Itoa(i),
+    //        Password: "123",
+    //    })
+    //    userRepo.StartFollowing(ctx, srcUser.ID, id)
+    //    usersForTestFollowing[i] = id
+    //}
+    //log.Print("Ready to Test")
 })
-var _ = Describe("User Repository", func() {
+
+var _ = Describe("Raft User Repository", func() {
+    PDescribe("Create New User in single thread", func() {
+        Context("with a non-existed username", func() {
+            It("should return a new User ID", func() {
+                //timeout := 3000 * time.Millisecond
+                ctx := context.Background()
+                rand.Seed(time.Now().UnixNano())
+                name := "Zhuolun Li" + strconv.Itoa(rand.Intn(2000))
+                uId, err := userRepo.CreateNewUser(ctx, &UserInfo{
+                    UserName: name,
+                    Password: "123",
+                })
+                _, _ = fmt.Fprintln(GinkgoWriter, "User ID: ", uId)
+                Expect(err).Should(BeNil())
+                Expect(uId).Should(Not(BeZero()))
+                //                userE, _ := userRepo.storage.Read(uId)
+                userE, _ := userRepo.SelectById(ctx, uId)
+                Expect(userE.UserName).Should(Equal(name))
+            })
+        })
+    })
+    PDescribe("Find All userse", func() {
+        It("should return all", func() {
+            u, err := userRepo.FindAllUsers(context.Background())
+            Expect(err).Should(BeNil())
+            Expect(u).Should(BeZero())
+        })
+    })
+    Describe("Following", func() {
+        It("start followg", func() {
+            ctx := context.Background()
+            puId = 101
+            puId2 = 102
+            userRepo.StartFollowing(ctx, puId, puId2)
+            u, err := userRepo.CheckWhetherFollowing(ctx, puId, puId2)
+            Expect(err).Should(BeNil())
+            Expect(u).Should(BeTrue())
+            userRepo.StopFollowing(ctx, puId, puId2)
+            u1, _ := userRepo.CheckWhetherFollowing(ctx, puId, puId2)
+            Expect(u1).ShouldNot(BeTrue())
+        })
+    })
+    Describe("Add Tweet To User", func() {
+        It("Add", func() {
+            ctx := context.Background()
+            puId = 101
+            u, err := userRepo.AddTweetToUser(ctx, puId, uint(1001))
+            Expect(err).Should(BeNil())
+            Expect(u).Should(BeTrue())
+        })
+    })
+})
+
+var _ = PDescribe("Raft Tweet Repository", func() {
+    Describe("Create new post/Tweet", func() {
+        Context("When tweet one message", func() {
+            It("should succeed", func() {
+                ctx := context.Background()
+                pid, err := tweetRepo.SaveTweet(ctx, TweetInfo{
+                    UserID:  puId,
+                    Content: "Test",
+                })
+                if err != nil {
+                    Fail(err.Error())
+                }
+                Expect(pid).To(Not(BeZero()))
+                //pE, _ := tweetRepo.storage.Read(pid)
+                pE, _ := tweetRepo.SelectById(ctx, pid)
+                Expect(pE.UserID).To(Equal(puId))
+            })
+        })
+        PContext("When post 20 tweets concurrently", func() {
+            It("should store 20 tweets correctly", func() {
+                ctx := context.Background()
+                var wg sync.WaitGroup
+                wg.Add(20)
+                postIds := make([]uint, 20)
+                for i := 0; i < 20; i++ {
+                    go func(i int) {
+                        defer wg.Done()
+                        pid, err := tweetRepo.SaveTweet(ctx, TweetInfo{
+                            UserID:  puId,
+                            Content: "TestConcurrency" + strconv.Itoa(i),
+                        })
+                        Expect(err).To(BeNil())
+                        Expect(pid).To(Not(BeZero()))
+                        postIds[i] = pid
+                    }(i)
+                }
+                wg.Wait()
+                for i := 0; i < 20; i++ {
+                    //pE, err := tweetRepo.storage.Read(postIds[i])
+                    pE, err := tweetRepo.SelectById(ctx, postIds[i])
+                    Expect(err).Should(BeNil())
+                    Expect(pE.Content).Should(Equal("TestConcurrency" + strconv.Itoa(i)))
+                }
+            })
+        })
+    })
+})
+
+var _ = PDescribe("User Repository", func() {
     timeout := 5 * time.Second
     Describe("Create New User in single thread", func() {
         Context("with a non-existed username", func() {
@@ -508,7 +611,8 @@ var _ = Describe("User Repository", func() {
     })
 
 })
-var _ = Describe("Tweet Repository", func() {
+var _ = PDescribe("Tweet Repository", func() {
+
     timeout := 5 * time.Second
     Describe("Create new post/Tweet", func() {
         Context("with a timeout context", func() {

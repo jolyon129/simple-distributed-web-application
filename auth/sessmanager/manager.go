@@ -10,7 +10,7 @@ import (
     "sync"
     "time"
     "zl2501-final-project/auth/storage"
-    _ "zl2501-final-project/auth/storage/memory" // Use memory implementation of session
+    _ "zl2501-final-project/auth/storage/raftclient" // Use raft wrapper implementation of session
 )
 
 // This is a singleton and used across the application.
@@ -27,13 +27,14 @@ type Manager struct {
 // Get the singleton of manager
 func GetManagerSingleton(provideName string) (*Manager, error) {
     if GlobalSessionManager == nil {
-        provider, ok := storage.GetProvider("memory")
+        provider, ok := storage.GetProvider("raft")
         if !ok {
             return nil, fmt.Errorf("session: unknown provide %q (forgotten import?)", provideName)
         }
         GlobalSessionManager = &Manager{provider: provider, cookieName: CookieName, maxlifetime: MaxLifeTime}
         // Spawn another thread for garbage collection
         go GlobalSessionManager.GC()
+        GlobalSessionManager.provider.SessionGC(GlobalSessionManager.maxlifetime)
         return GlobalSessionManager, nil
     } else {
         return GlobalSessionManager, nil
@@ -53,8 +54,10 @@ func (manager *Manager) newSessionId() string {
 // If not exist, create a new newSessionId and return.
 // If exist and the newSessionId is valid, reuse the same session and return the same one.
 func (manager *Manager) SessionStart(ctx context.Context, sessId string) (string, error) {
-    result := make(chan storage.SessionStorageInterface, 1)
-    errorChan := make(chan error, 1)
+    result := make(chan storage.SessionStorageInterface)
+    errorChan := make(chan error)
+    defer close(result)
+    defer close(errorChan)
     manager.mu.Lock()
     defer manager.mu.Unlock()
     go func() {
@@ -103,8 +106,10 @@ func (manager *Manager) SessionStart(ctx context.Context, sessId string) (string
 
 // Check whether the session has expired
 func (manager *Manager) SessionAuth(ctx context.Context, sessId string) (bool, error) {
-    errorChan := make(chan error, 1)
-    resultChan := make(chan bool, 1)
+    errorChan := make(chan error)
+    resultChan := make(chan bool)
+    defer close(resultChan)
+    defer close(errorChan)
     go func() {
         if _, err := manager.provider.SessionRead(sessId); err != nil {
             errorChan <- err
@@ -127,8 +132,10 @@ func (manager *Manager) SessionAuth(ctx context.Context, sessId string) (bool, e
 
 // Manually terminate the session and ask clients to overwrite the corresponding cookie
 func (manager *Manager) SessionDestroy(ctx context.Context, sessId string) (bool, error) {
-    errorChan := make(chan error, 1)
-    result := make(chan bool, 1)
+    errorChan := make(chan error)
+    result := make(chan bool)
+    defer close(result)
+    defer close(errorChan)
     go func() {
         err := manager.provider.SessionDestroy(sessId)
         if err != nil {
@@ -160,8 +167,10 @@ func (manager *Manager) GC() {
 // Set Key and Value to a Session
 func (manager *Manager) SetValue(ctx context.Context, sessId string, key,
         value interface{}) (bool, error) {
-    result := make(chan bool, 1)
-    errorChan := make(chan error, 1)
+    result := make(chan bool)
+    errorChan := make(chan error)
+    defer close(result)
+    defer close(errorChan)
     go func() {
         session, err := manager.provider.SessionRead(sessId)
         if err != nil {
@@ -188,8 +197,10 @@ func (manager *Manager) SetValue(ctx context.Context, sessId string, key,
 // Delete Key and Value from a Session
 func (manager *Manager) DeleteValue(ctx context.Context, sessId string, key interface{}) (bool,
         error) {
-    result := make(chan bool, 1)
-    errorChan := make(chan error, 1)
+    result := make(chan bool)
+    errorChan := make(chan error)
+    defer close(result)
+    defer close(errorChan)
     go func() {
         sess, err := manager.provider.SessionRead(sessId)
         if err != nil {
@@ -215,8 +226,10 @@ func (manager *Manager) DeleteValue(ctx context.Context, sessId string, key inte
 
 //  Get Value from a Session with the Key
 func (manager *Manager) GetValue(ctx context.Context, sessId string, key interface{}) (interface{}, error) {
-    result := make(chan interface{}, 1)
-    errorChan := make(chan error, 1)
+    result := make(chan interface{})
+    errorChan := make(chan error)
+    defer close(result)
+    defer close(errorChan)
     go func() {
         session, err := manager.provider.SessionRead(sessId)
         if err != nil {
