@@ -58,6 +58,9 @@ run-raft: vendor-raftcluster
 	go run ./cmd/raftcluster/raftcluster.go
 
 test: vendor-all
-	ls
+	go run ./cmd/raftcluster/raftcluster.go
+	go test -v --race ./auth/...
+	go test -v --race ./backend/...
+	#go test -v --race ./raftcluster/store/...
 
 
