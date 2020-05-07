@@ -1,5 +1,110 @@
 [![Build Status](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project.svg?token=LyWHGctXVCcEk9v6z4HG&branch=master)](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project)
 
+# Stage 3 Explanation
+
+I choose `etcd` from `CoreOS`  as the raft implementation. A new service named `raftcluster` is added to the project.
+
+The actual storage in `backend` and `auth` is moved into the `raftcluster`.  The `raftcluster` will initiate a raft node instance as well as a http server, so that `auth` and `bakcend` can preform DB operations over this http server.
+
+The http server in raft cluster will expose a RESTful API for DB storage. The `backend` and `auth` service have a new `raftclient` DB engine which is a abstract DB implementation of the storage for `userstore`,`tweetstore` and `sessionProvider`. Under the hood, the `raftclient` will send requests to a raft cluster to get the DB data. `raftclient` along with `memory` are two different DB engines and can be switched easily by a engine register mechanism(`backend` does not fully support engine register mechanism). 
+
+The `raftclient` is under the folder `/model/storage/raftclient` in `backend` and `auth` service. 
+
+In this application, we can have up to 3 cluster nodes. They will expose follwoing API address: 
+```go 
+    ADDR1 = "http://127.0.0.1:9004"
+    ADDR2 = "http://127.0.0.1:9005"
+    ADDR3 = "http://127.0.0.1:9006"
+```
+
+I document the detailed DB APIs in the `Postman`, you can check it out through this url: https://documenter.getpostman.com/view/1347930/SzmcbKNh?version=latest
+
+Ideally, all the above addresses will give the same result of DB operations as they are consistent through raft protocols.
+
+The `raftclient` DB engine, or the wrapper, will try theese API addresses one by one with timeout cancelation till one of them success. And the recently successed one will always be ranked first to try. This gives `backend` and `auth` the `Fault Tolerance` we want.
+
+I also implement a customized trie-tree-based `mux` for the httpserver in `raftcluster`. So that I can easily register RESTful routers. Really having a good time coding on this. 
+
+
+## Commands
+
+Separately call `make run-raft` `make run-auth`, `make run-backend` and `make run-web` in four terminal sessions
+. Then go to `localhost:9000` to enter into the application. `make run-raft` need be called first!(Note: `make run-raft` will only start one raft node and a API server at `localost:9004`. I will demostrate the useage of 3 raft nodes in the final presentation.)
+
+Make Targets:
+* `make run-auth`: Start a raft node and expose http server of DB engine at `localhost:9004`
+* `make run-auth`: Start the auth server at `localhost:9002`
+* `make run-backend`: Start the backend server at `localhost:9001` 
+* `make run-web`: Start the web server at `localhost:9000`
+* `make test`: Run ginkgo test
+* `make build`: Build into `/build` directory
+* `make proctoc`: Generate gRPC stubs and distribute into each service directories
+
+
+## Logic
+
+The logic is same as the stage one. Still, there is some default data.
+
+You can login by using the following usernames or register a new  one.
+* User: jolyon129, Password: 123
+* User: zl2501, Password: 123
+
+## Structure
+
+I only post the structure of the new `raftcluster` service folder here. The rest are basically the same as the stage two. Except the new `raftclient` DB enigne folder under `/backend` and `/auth` service.
+
+```
+.
+├── const.go
+├── go.mod
+├── go.sum
+├── httpapi.go              --- Start a the http API server 
+├── httpcontroller          --- Controllers
+│   ├── authcontrol.go
+│   ├── backendcontrol.go
+│   └── controller.go
+├── main.go                 --- Entrypoint
+├── mux                     --- Implment a trie-tree based customized mux for regsitering REST API routers
+│   ├── const.go
+│   ├── mux.go
+│   ├── mux_suite_test.go
+│   ├── mux_test.go
+│   └── trietree.go
+├── raft                    --- Implement the raft protocol 
+│   ├── raft.go
+│   └── stoppablelistener.go
+├── raftcluster_suite_test.go
+├── raftcluster_test.go     --- Test cases for raftcluster
+└── store                   --- The actual memory storage. 
+    ├── authstore
+    │   ├── memory
+    │   │   ├── memory.go
+    │   │   ├── memory_suite_test.go
+    │   │   └── memory_test.go
+    │   ├── provider_interface.go
+    │   └── session_interface.go
+    ├── backendstore
+    │   ├── memory
+    │   │   ├── memory.go
+    │   │   ├── memory_suite_test.go
+    │   │   ├── memory_test.go
+    │   │   ├── tweetstorage.go
+    │   │   └── userstorage.go
+    │   ├── storage_interface.go
+    │   └── store_test.go
+    ├── const.go
+    ├── store.go
+    ├── store_suite_test.go
+    ├── subscribe.go            --- Observer pattern for non-optimistic DB operations
+    ├── types.go
+    └── wrapper.go
+
+8 directories, 35 files
+
+```
+
+
+
 # Stage 2 Explanation
 
 I split the application into three services: web, backend and auth.
