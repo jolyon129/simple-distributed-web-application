@@ -8,3 +8,4 @@ vendor/
 /cmd/test/
 raftcluster-persistent*
 bfg-1.13.0.jar
+demo/

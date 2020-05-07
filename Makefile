@@ -33,6 +33,12 @@ build-web: vendor-web
 	mkdir -p ./build
 	$(GOBUILD) -o ./build/ ./cmd/web/web.go
 
+
+build-raft:
+	mkdir -p ./build
+	$(GOBUILD) -o ./build/ ./cmd/raftcluster/raftcluster.go
+
+
 build-auth: vendor-auth
 	mkdir -p ./build
 	$(GOBUILD) -o ./build/ ./cmd/auth/auth.go
@@ -45,6 +51,7 @@ build: vendor-all
 	make build-web
 	make build-auth
 	make build-backend
+	make build-raft
 
 run-backend: vendor-backend
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/backend/backend.go
@@ -63,4 +70,5 @@ test: vendor-all
 	go test -v --race ./backend/...
 	#go test -v --race ./raftcluster/store/...
 
-
+install-raft:
+	go install ./cmd/raftcluster/raftcluster.go

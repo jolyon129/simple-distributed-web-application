@@ -56,11 +56,18 @@ func (r RaftTweetStorage) Create(tweet *storage.TweetEntity, resultC chan uint,
     form.Set("content", tweet.Content)
     req, _ := http.NewRequest("POST", "/tweet/", strings.NewReader(form.Encode()))
     resp, err := doRequestWithRetry(req)
+    if resp == nil {
+        if err != nil {
+            errorChan <- err
+        }
+        return 0
+    }
+    defer resp.Body.Close()
+
     if err != nil {
         errorChan <- err
         return 0
     }
-    defer resp.Body.Close()
     body, _ := ioutil.ReadAll(resp.Body)
     var result CreateRetType
     json.Unmarshal(body, &result)
@@ -80,10 +87,18 @@ type TweetReadRetType struct {
 func (r RaftTweetStorage) Read(ID uint, resultC chan *storage.TweetEntity, errorChan chan error) {
     req, _ := http.NewRequest("GET", "/tweet/"+strconv.Itoa(int(ID)), nil)
     resp, err := doRequestWithRetry(req)
+    if resp == nil {
+        if err != nil {
+            errorChan <- err
+        }
+        return
+    }
+    defer resp.Body.Close()
+
     if err != nil {
         errorChan <- err
     }
-    defer resp.Body.Close()
+
     body, _ := ioutil.ReadAll(resp.Body)
     var result TweetReadRetType
     json.Unmarshal(body, &result)
@@ -107,10 +122,17 @@ func (r RaftUserStorage) Create(user *storage.UserEntity, resultC chan uint, err
     form.Set("password", user.Password)
     req, _ := http.NewRequest("POST", "/user", strings.NewReader(form.Encode()))
     resp, err := doRequestWithRetry(req)
+    if resp == nil {
+        if err != nil {
+            errorChan <- err
+        }
+        return
+    }
+    defer resp.Body.Close()
+
     if err != nil {
         errorChan <- err
     }
-    defer resp.Body.Close()
     body, _ := ioutil.ReadAll(resp.Body)
     var result CreateRetType
     json.Unmarshal(body, &result)
@@ -129,15 +151,21 @@ type UserReadRetType struct {
     Result storage.UserEntity
 }
 
-
-
 func (r RaftUserStorage) Read(ID uint, resultC chan *storage.UserEntity, errorChan chan error) {
     req, _ := http.NewRequest("GET", "/user/"+strconv.Itoa(int(ID)), nil)
     resp, err := doRequestWithRetry(req)
+
+    if resp == nil {
+        if err != nil {
+            errorChan <- err
+        }
+        return
+    }
+    defer resp.Body.Close()
+
     if err != nil {
         errorChan <- err
     }
-    defer resp.Body.Close()
     body, _ := ioutil.ReadAll(resp.Body)
     var result UserReadRetType
     json.Unmarshal(body, &result)
@@ -161,10 +189,16 @@ type UserFindAllRetType struct {
 func (r RaftUserStorage) FindAll(resultC chan []*storage.UserEntity, errorChan chan error) {
     req, _ := http.NewRequest("GET", "/user", nil)
     resp, err := doRequestWithRetry(req)
+    if resp == nil { // If response is null
+        if err != nil {
+            errorChan <- err
+        }
+        return
+    }
+    defer resp.Body.Close()
     if err != nil {
         errorChan <- err
     }
-    defer resp.Body.Close()
     body, _ := ioutil.ReadAll(resp.Body)
     var result UserFindAllRetType
     json.Unmarshal(body, &result)
@@ -184,10 +218,17 @@ func (r RaftUserStorage) AddTweetToUserDB(uId uint, pId uint, resultC chan bool,
     req, _ := http.NewRequest("POST", "/user/"+strconv.Itoa(int(uId))+"/tweet/"+strconv.Itoa(int(
         pId)), nil)
     resp, err := doRequestWithRetry(req)
+    if resp == nil {
+        if err != nil {
+            errorChan <- err
+        }
+        return
+    }
+    defer resp.Body.Close()
+
     if err != nil {
         errorChan <- err
     }
-    defer resp.Body.Close()
     body, _ := ioutil.ReadAll(resp.Body)
     var result BoolRetType
     json.Unmarshal(body, &result)
@@ -202,10 +243,17 @@ func (r RaftUserStorage) CheckWhetherFollowingDB(srcId uint, targetId uint,
     req, _ := http.NewRequest("GET", "/user/"+strconv.Itoa(int(srcId))+"/following/"+strconv.Itoa(
         int(targetId)), nil)
     resp, err := doRequestWithRetry(req)
+    if resp == nil {
+        if err != nil {
+            errChan <- err
+        }
+        return
+    }
+    defer resp.Body.Close()
+
     if err != nil {
         errChan <- err
     }
-    defer resp.Body.Close()
     body, _ := ioutil.ReadAll(resp.Body)
     var result BoolRetType
     json.Unmarshal(body, &result)
@@ -221,10 +269,17 @@ func (r RaftUserStorage) StartFollowingDB(srcId uint, targetID uint,
         int(
             targetID)), nil)
     resp, err := doRequestWithRetry(req)
+    if resp == nil {
+        if err != nil {
+            errorChan <- err
+        }
+        return
+    }
+    defer resp.Body.Close()
+
     if err != nil {
         errorChan <- err
     }
-    defer resp.Body.Close()
     body, _ := ioutil.ReadAll(resp.Body)
     var result BoolRetType
     json.Unmarshal(body, &result)
@@ -239,10 +294,17 @@ func (r RaftUserStorage) StopFollowingDB(srcId uint, targetID uint, resultC chan
     req, _ := http.NewRequest("DELETE", "/user/"+strconv.Itoa(int(srcId))+"/following/"+strconv.Itoa(
         int(targetID)), nil)
     resp, err := doRequestWithRetry(req)
+    if resp == nil {
+        if err != nil {
+            errorChan <- err
+        }
+        return
+    }
+    defer resp.Body.Close()
+
     if err != nil {
         errorChan <- err
     }
-    defer resp.Body.Close()
     body, _ := ioutil.ReadAll(resp.Body)
     var result BoolRetType
     json.Unmarshal(body, &result)

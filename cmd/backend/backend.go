@@ -2,6 +2,7 @@ package main
 
 import (
     "context"
+    "flag"
     "fmt"
     "math/rand"
     "time"
@@ -12,11 +13,16 @@ import (
 
 func main() {
     fmt.Println("This is the backend service")
-    addDefaultData()
+    addData := flag.Bool("AddData", false, "add default data")
+    flag.Parse()
+    addDefaultData(*addData)
     backend.StartService()
 }
 
-func addDefaultData() {
+func addDefaultData(addData bool) {
+    if !addData {
+        return
+    }
     bgctx := context.Background()
     userRepo := model.GetUserRepo()
     hash, _ := backend.EncodePassword("123")

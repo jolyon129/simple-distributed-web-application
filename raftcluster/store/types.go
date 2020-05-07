@@ -5,7 +5,7 @@ import (
     "github.com/coreos/etcd/snap"
     "sync"
     "time"
-    authmemory "zl2501-final-project/raftcluster/store/authstore/memory"
+    "zl2501-final-project/raftcluster/store/authstore"
     beStorage "zl2501-final-project/raftcluster/store/backendstore"
 )
 
@@ -62,8 +62,8 @@ type DBStore struct {
     mu               sync.RWMutex
     proposeC         chan<- string
     commandIdCounter uint64
-    BeManager beStorage.Manager
-    SessProvider authmemory.Provider
+    BeManager *beStorage.Manager
+    SessProvider authstorage.ProviderInterface
     snapshotter *snap.Snapshotter
 }
 

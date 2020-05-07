@@ -39,11 +39,12 @@ func (s *DBStore) MarshalJSON() ([]byte, error) {
 
 func NewStore(snapshotter *snap.Snapshotter, proposeC chan<- string,
         commitC <-chan *string, errorC <-chan error) *DBStore {
-    //TODO: assign backendmanager and sessprovider to DBstore for snapshotter
     s := &DBStore{
         proposeC:         proposeC,
         snapshotter:      snapshotter,
         commandIdCounter: 1000,
+        BeManager: bkStorageManager,
+        SessProvider: sessProvider,
     }
     s.readCommits(commitC, errorC) // replay log into DBStore
     go s.readCommits(commitC, errorC)
