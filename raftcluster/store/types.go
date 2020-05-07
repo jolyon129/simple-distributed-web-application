@@ -9,7 +9,7 @@ import (
     beStorage "zl2501-final-project/raftcluster/store/backendstore"
 )
 
-const MaxLifeTime = 7200
+const MaxLifeTime = 1800 // Session is alive for 30 minutes
 
 func init() {
     // Register types that will be transferred as implementations of interface values

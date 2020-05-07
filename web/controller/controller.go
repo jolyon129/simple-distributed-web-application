@@ -48,7 +48,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) error {
             UserPwd:  password,
         })
         if error != nil {
-            http.Redirect(w, r, "/signup", 302)
+            //http.Redirect(w, r, "/signup", 302)
             return appError{
                 Err:     error,
                 Message: error.Error(),
@@ -100,9 +100,9 @@ func GoIndex(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-func LogOut(w http.ResponseWriter, r *http.Request) {
-    SessionDestroy(w, r)
+func LogOut(w http.ResponseWriter, r *http.Request) error {
     http.Redirect(w, r, "/index", 302)
+    return SessionDestroy(w, r)
 }
 
 func LogIn(w http.ResponseWriter, r *http.Request) error {
@@ -115,9 +115,9 @@ func LogIn(w http.ResponseWriter, r *http.Request) error {
         userName := r.Form["username"][0]
         password := r.Form["password"][0]
         if len(userName) == 0 || len(password) == 0 {
-            log.Println("Illegal user name or password")
-            http.Redirect(w, r, "/login", 302)
-            return nil
+            return errors.New("Illegal user name or password")
+            //http.Redirect(w, r, "/login", 302)
+            //return nil
         }
         log.Println("username:", r.Form["username"][0])
         log.Println("password:", r.Form["password"][0])
@@ -127,16 +127,11 @@ func LogIn(w http.ResponseWriter, r *http.Request) error {
             Name: userName,
         })
         if SelectByNameErr != nil { // User not existed
-            log.Printf(SelectByNameErr.Error())
-            http.Redirect(w, r, "/login", 302)
-            return appError{
-                Err:     SelectByNameErr,
-                Message: SelectByNameErr.Error(),
-                Code:    400,
-            }
+            return SelectByNameErr
+            //http.Redirect(w, r, "/login", 302)
         }
         if e := ComparePassword(res.User.Password, password); e != nil { // Wrong Password
-            http.Redirect(w, r, "/login", 302)
+            //http.Redirect(w, r, "/login", 302)
             return appError{
                 Err:     e,
                 Message: "Wrong password.",
@@ -177,7 +172,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) error {
     return nil
 }
 
-func Tweet(w http.ResponseWriter, r *http.Request) {
+func Tweet(w http.ResponseWriter, r *http.Request) error {
     if r.Method == "GET" {
         t, _ := template.ParseFiles(constant.RelativePathForTemplate + "tweet.html")
         w.Header().Set("Content-Type", "text/html")
@@ -188,7 +183,7 @@ func Tweet(w http.ResponseWriter, r *http.Request) {
         log.Println(content)
         myUid, err0 := GetMyUserId(r)
         if err0 != nil {
-            log.Print(err0)
+            return err0
         }
         ctx2, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
         _, err := BackendClientIns.UserAddTweet(ctx2, &UserAddTweetRequest{
@@ -197,9 +192,11 @@ func Tweet(w http.ResponseWriter, r *http.Request) {
         })
         if err != nil {
             log.Print(err)
+            return err
         }
         http.Redirect(w, r, "/home", 302)
     }
+    return nil
 }
 
 type user struct {
@@ -213,16 +210,16 @@ type viewUserView struct {
 
 // View all users in the system.
 // So that the user can follow others
-func ViewUsers(w http.ResponseWriter, r *http.Request) {
+func ViewUsers(w http.ResponseWriter, r *http.Request) error {
     if r.Method == "GET" {
         myUid, err0 := GetMyUserId(r)
         if err0 != nil {
-            log.Print(err0)
+            return err0
         }
         ctx1, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
         response, err := BackendClientIns.FindAllUsers(ctx1, &FindAllUsersRequest{})
         if err != nil {
-            log.Print(err)
+            return err
         }
         allUsers := response.Users
         newUserList := make([]user, 0)
@@ -248,9 +245,10 @@ func ViewUsers(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("Content-Type", "text/html")
         t.Execute(w, view)
     }
+    return  nil
 }
 
-func Follow(w http.ResponseWriter, r *http.Request) {
+func Follow(w http.ResponseWriter, r *http.Request) error{
     param := r.URL.Query()
     val, ok := param[constant.UserId]
     if !ok { // If no `userId` in url
@@ -258,7 +256,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
     } else {
         targetUid, err := strconv.ParseUint(val[0], 10, 64)
         if err != nil {
-            log.Println("Wrong user id!")
+            return errors.New("Wrong user id")
         }
         myUid, _ := GetMyUserId(r)
         ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
@@ -269,9 +267,10 @@ func Follow(w http.ResponseWriter, r *http.Request) {
         })
         http.Redirect(w, r, "/users", 302)
     }
+    return nil
 }
 
-func Unfollow(w http.ResponseWriter, r *http.Request) {
+func Unfollow(w http.ResponseWriter, r *http.Request) error {
     param := r.URL.Query()
     val, ok := param[constant.UserId]
     if !ok { // If no `userId` in url
@@ -280,7 +279,7 @@ func Unfollow(w http.ResponseWriter, r *http.Request) {
     } else {
         targetUid, err := strconv.ParseUint(val[0], 10, 64)
         if err != nil {
-            log.Println("Wrong user id!")
+            errors.New("Wrong user id!")
         }
         myUid, _ := GetMyUserId(r)
         ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
@@ -291,6 +290,7 @@ func Unfollow(w http.ResponseWriter, r *http.Request) {
         })
         http.Redirect(w, r, "/users", 302)
     }
+    return nil
 }
 
 type userView struct {
@@ -298,19 +298,16 @@ type userView struct {
     MyTweets []tweet
 }
 
-func User(w http.ResponseWriter, r *http.Request) {
+func User(w http.ResponseWriter, r *http.Request) error {
     if r.Method == "GET" {
         userNameStr := path.Base(html.UnescapeString(r.URL.Path))
         ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
         res, _ := BackendClientIns.UserSelectByName(ctx, &UserSelectByNameRequest{
             Name: userNameStr,
         })
-        //uE := model.GetUserRepo().SelectByName(userNameStr)
         userE := res.User
         if userE == nil {
-            log.Println("Illegal User Name")
-            http.Redirect(w, r, "/users", 302)
-            return
+            return errors.New("Illegal User Name")
         }
         // Iterate in reverse order because the latest one is stored in the tail in DB
         tweets := make([]tweet, 0)
@@ -332,4 +329,5 @@ func User(w http.ResponseWriter, r *http.Request) {
             MyTweets: tweets,
         })
     }
+    return nil
 }

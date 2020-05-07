@@ -12,7 +12,6 @@ import (
     . "zl2501-final-project/web/pb"
 )
 
-
 func ComparePassword(p1 string, p2 string) error {
     return bcrypt.CompareHashAndPassword([]byte(p1), []byte(p2))
 }
@@ -49,7 +48,7 @@ func SessionStart(w http.ResponseWriter, r *http.Request) (string, error) {
 }
 
 // Initialize a new session regardless of the cookie
-func SessionInit(w http.ResponseWriter, r *http.Request) (string,error){
+func SessionInit(w http.ResponseWriter, r *http.Request) (string, error) {
     ctx1, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
     response, err := AuthClientIns.SessionStart(ctx1, &SessionGeneralRequest{
         SessionId: "", // set a new session
@@ -108,7 +107,7 @@ func CheckAuthRequest(r *http.Request) bool {
 }
 
 // Manually terminate the session and overwrite the corresponding cookie into empty
-func SessionDestroy(w http.ResponseWriter, r *http.Request) {
+func SessionDestroy(w http.ResponseWriter, r *http.Request) error {
     ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
     cookie, err := r.Cookie(constant.SessCookieName)
     if err != nil || cookie.Value == "" {
@@ -119,11 +118,13 @@ func SessionDestroy(w http.ResponseWriter, r *http.Request) {
             SessionId: sid,
         })
         if err != nil {
-            log.Printf(err.Error()) //TODO: error Handler
-        }
-        if response.Ok {
-            log.Printf("Request:%s %s is complete.", r.Method,
-                r.URL.Path)
+            log.Printf(err.Error())
+            return err
+        } else {
+            if response != nil && response.Ok {
+                log.Printf("Request:%s %s is complete.", r.Method,
+                    r.URL.Path)
+            }
         }
     }
     expiration := time.Now()
@@ -131,5 +132,5 @@ func SessionDestroy(w http.ResponseWriter, r *http.Request) {
     cookie1 := http.Cookie{Name: constant.SessCookieName, Path: "/", HttpOnly: true,
         Expires: expiration, MaxAge: -1}
     http.SetCookie(w, &cookie1)
-
+    return nil
 }

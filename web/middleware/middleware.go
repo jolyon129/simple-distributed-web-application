@@ -2,6 +2,7 @@ package middleware
 
 import (
     "context"
+    "html/template"
     "log"
     "net/http"
     "net/url"
@@ -13,7 +14,6 @@ import (
 
 func init() {
 }
-
 
 type logRequestsMiddleware struct {
     handler http.Handler
@@ -35,10 +35,25 @@ func LogRequests(handlerToWrap http.Handler) *logRequestsMiddleware {
     }
 }
 
+// This middleware helps consume the returned error from custom handler!
+type AppHandler func(http.ResponseWriter, *http.Request) error
+
+type errorView struct {
+    Message string
+}
+
+func (fn AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    if err := fn(w, r); err != nil {
+        //http.Error(w, err.Error(), 500)
+        t, _ := template.ParseFiles(constant.RelativePathForTemplate + "error.html")
+        t.Execute(w, errorView{Message: err.Error()})
+    }
+}
+
 // This is a middleware handler used to check weather this request is authenticated.
 // If not, redirect to the index.
 func CheckAuth(handlerToWrap http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    return AppHandler(func(w http.ResponseWriter, r *http.Request) error {
         ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
         cookie, err := r.Cookie(constant.SessCookieName)
         if err != nil || cookie.Value == "" {
@@ -51,8 +66,8 @@ func CheckAuth(handlerToWrap http.Handler) http.Handler {
             })
             if err != nil {
                 log.Printf(err.Error())
-                http.Redirect(w, r, "/", 302) // Go the index
-                return
+                //http.Redirect(w, r, "/", 302) // Go the index
+                return err
             }
             if response.Ok {
                 log.Printf("Request:%s %s is authenticated. SessId: %s", r.Method,
@@ -60,6 +75,7 @@ func CheckAuth(handlerToWrap http.Handler) http.Handler {
                 handlerToWrap.ServeHTTP(w, r)
             }
         }
+        return nil
     })
 }
 

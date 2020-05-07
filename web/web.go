@@ -19,13 +19,8 @@ func init() {
 }
 
 // This middleware helps consume the returned error from custom handler!
-type appHandler func(http.ResponseWriter, *http.Request) error
 
-func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    if err := fn(w, r); err != nil {
-        http.Error(w, err.Error(), 500)
-    }
-}
+
 
 func StartService() {
     authConn := pb.CreateAuthServiceConnection()
@@ -36,20 +31,20 @@ func StartService() {
     mux.Handle("/", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex),
         SetHeader)) // set router
     mux.Handle("/index", MiddlewareAdapt(http.HandlerFunc(controller.GoIndex), SetHeader))
-    mux.Handle("/login", MiddlewareAdapt(appHandler(controller.LogIn), SetHeader))
-    mux.Handle("/signup", MiddlewareAdapt(appHandler(controller.SignUp), SetHeader))
-    mux.Handle("/home", MiddlewareAdapt(appHandler(controller.Home), CheckAuth,
+    mux.Handle("/login", MiddlewareAdapt(AppHandler(controller.LogIn), SetHeader))
+    mux.Handle("/signup", MiddlewareAdapt(AppHandler(controller.SignUp), SetHeader))
+    mux.Handle("/home", MiddlewareAdapt(AppHandler(controller.Home), CheckAuth,
         SetHeader))
-    mux.Handle("/logout", MiddlewareAdapt(http.HandlerFunc(controller.LogOut), SetHeader))
-    mux.Handle("/tweet", MiddlewareAdapt(http.HandlerFunc(controller.Tweet),
+    mux.Handle("/logout", MiddlewareAdapt(AppHandler(controller.LogOut), SetHeader))
+    mux.Handle("/tweet", MiddlewareAdapt(AppHandler(controller.Tweet),
         CheckAuth, SetHeader))
-    mux.Handle("/users", MiddlewareAdapt(http.HandlerFunc(controller.ViewUsers),
+    mux.Handle("/users", MiddlewareAdapt(AppHandler(controller.ViewUsers),
         CheckAuth, SetHeader))
-    mux.Handle("/user/", MiddlewareAdapt(http.HandlerFunc(controller.User), CheckAuth,
+    mux.Handle("/user/", MiddlewareAdapt(AppHandler(controller.User), CheckAuth,
         SetHeader))
-    mux.Handle("/follow", MiddlewareAdapt(http.HandlerFunc(controller.Follow),
+    mux.Handle("/follow", MiddlewareAdapt(AppHandler(controller.Follow),
         CheckAuth, SetHeader))
-    mux.Handle("/unfollow", MiddlewareAdapt(http.HandlerFunc(controller.Unfollow),
+    mux.Handle("/unfollow", MiddlewareAdapt(AppHandler(controller.Unfollow),
         CheckAuth, SetHeader))
     log.Println("Server is going to start at: http://localhost:" + constant.Port)
     log.Fatal(http.ListenAndServe(":"+constant.Port, LogRequests(mux)))
@@ -65,4 +60,3 @@ func MiddlewareAdapt(h http.Handler, middleware ...func(http.Handler) http.Handl
     }
     return h
 }
-
