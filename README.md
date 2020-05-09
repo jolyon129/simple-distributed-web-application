@@ -29,7 +29,7 @@ I also implement a customized trie-tree-based `mux` for the httpserver in `raftc
 ## Commands
 
 Separately call `make run-raft` `make run-auth`, `make run-backend` and `make run-web` in four terminal sessions
-. Then go to `localhost:9000` to enter into the application. `make run-raft` need be called first!(Note: `make run-raft` will only start one raft node and a API server at `localost:9004`. I will demostrate the useage of 3 raft nodes in the final presentation.)
+. Then go to `localhost:9000` to enter into the application. `make run-raft` needs to be called first!(Note: `make run-raft` will only start one raft node and a API server at `localost:9004`. I will demostrate the useage of 3 raft nodes in the final presentation.)
 
 Make Targets:
 * `make run-raft`: Start a raft node and expose http server of DB engine at `localhost:9004`
@@ -47,7 +47,7 @@ raftcluster --id 1 --cluster http://127.0.0.1:12379,http://127.0.0.1:22379,http:
 raftcluster --id 2 --cluster http://127.0.0.1:12379,http://127.0.0.1:22379,http://127.0.0.1:32379 --port 9005
 raftcluster --id 3 --cluster http://127.0.0.1:12379,http://127.0.0.1:22379,http://127.0.0.1:32379 --port 9006
 ```
-
+And then execute  `make run-auth`, `make run-backend` and `make run-web`. Then go to `localhost:9000` to enter into the application.
 
 ## Logic
 
