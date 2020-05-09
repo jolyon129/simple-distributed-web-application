@@ -32,13 +32,21 @@ Separately call `make run-raft` `make run-auth`, `make run-backend` and `make ru
 . Then go to `localhost:9000` to enter into the application. `make run-raft` need be called first!(Note: `make run-raft` will only start one raft node and a API server at `localost:9004`. I will demostrate the useage of 3 raft nodes in the final presentation.)
 
 Make Targets:
-* `make run-auth`: Start a raft node and expose http server of DB engine at `localhost:9004`
+* `make run-raft`: Start a raft node and expose http server of DB engine at `localhost:9004`
 * `make run-auth`: Start the auth server at `localhost:9002`
 * `make run-backend`: Start the backend server at `localhost:9001` 
 * `make run-web`: Start the web server at `localhost:9000`
 * `make test`: Run ginkgo test
 * `make build`: Build into `/build` directory
 * `make proctoc`: Generate gRPC stubs and distribute into each service directories
+
+To start three raft nodes:
+run `make install-raft` and then execute the following commands:
+```go
+raftcluster --id 1 --cluster http://127.0.0.1:12379,http://127.0.0.1:22379,http://127.0.0.1:32379 --port 9004
+raftcluster --id 2 --cluster http://127.0.0.1:12379,http://127.0.0.1:22379,http://127.0.0.1:32379 --port 9005
+raftcluster --id 3 --cluster http://127.0.0.1:12379,http://127.0.0.1:22379,http://127.0.0.1:32379 --port 9006
+```
 
 
 ## Logic
