@@ -58,7 +58,7 @@ func CheckAuth(handlerToWrap http.Handler) http.Handler {
         cookie, err := r.Cookie(constant.SessCookieName)
         if err != nil || cookie.Value == "" {
             log.Printf("Request:%s %s is not authenticated. Redirect to index.", r.Method, r.URL.Path)
-            http.Redirect(w, r, "/", 302) // Go the index
+            http.Redirect(w, r, "/", 307) // Go the index
         } else {
             sid, _ := url.QueryUnescape(cookie.Value)
             response, err := pb.AuthClientIns.SessionAuth(ctx, &pb.SessionGeneralRequest{
@@ -66,7 +66,7 @@ func CheckAuth(handlerToWrap http.Handler) http.Handler {
             })
             if err != nil {
                 log.Printf(err.Error())
-                //http.Redirect(w, r, "/", 302) // Go the index
+                //http.Redirect(w, r, "/", 307) // Go the index
                 return err
             }
             if response.Ok {

@@ -33,7 +33,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) error {
         userName := r.Form["username"][0]
         password := r.Form["password"][0]
         if len(userName) == 0 || len(password) == 0 {
-            http.Redirect(w, r, "/signup", 302)
+            http.Redirect(w, r, "/signup", 307)
             return appError{
                 Err:     errors.New("illegal user name or password"),
                 Message: "Illegal user name or password",
@@ -48,7 +48,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) error {
             UserPwd:  password,
         })
         if error != nil {
-            //http.Redirect(w, r, "/signup", 302)
+            //http.Redirect(w, r, "/signup", 307)
             return appError{
                 Err:     error,
                 Message: error.Error(),
@@ -93,7 +93,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) error {
 func GoIndex(w http.ResponseWriter, r *http.Request) {
     if CheckAuthRequest(r) {
         w.Header().Set("cache-control", "no-store") // Avoid the safari remember the redirect
-        http.Redirect(w, r, "/home", 302)
+        http.Redirect(w, r, "/home", 307)
     } else {
         t, _ := template.ParseFiles(constant.RelativePathForTemplate + "index.html")
         t.Execute(w, nil)
@@ -101,7 +101,7 @@ func GoIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func LogOut(w http.ResponseWriter, r *http.Request) error {
-    http.Redirect(w, r, "/index", 302)
+    http.Redirect(w, r, "/index", 307)
     return SessionDestroy(w, r)
 }
 
@@ -116,7 +116,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) error {
         password := r.Form["password"][0]
         if len(userName) == 0 || len(password) == 0 {
             return errors.New("Illegal user name or password")
-            //http.Redirect(w, r, "/login", 302)
+            //http.Redirect(w, r, "/login", 307)
             //return nil
         }
         log.Println("username:", r.Form["username"][0])
@@ -128,10 +128,10 @@ func LogIn(w http.ResponseWriter, r *http.Request) error {
         })
         if SelectByNameErr != nil { // User not existed
             return SelectByNameErr
-            //http.Redirect(w, r, "/login", 302)
+            //http.Redirect(w, r, "/login", 307)
         }
         if e := ComparePassword(res.User.Password, password); e != nil { // Wrong Password
-            //http.Redirect(w, r, "/login", 302)
+            //http.Redirect(w, r, "/login", 307)
             return appError{
                 Err:     e,
                 Message: "Wrong password.",
@@ -194,7 +194,7 @@ func Tweet(w http.ResponseWriter, r *http.Request) error {
             log.Print(err)
             return err
         }
-        http.Redirect(w, r, "/home", 302)
+        http.Redirect(w, r, "/home", 307)
     }
     return nil
 }
@@ -265,7 +265,7 @@ func Follow(w http.ResponseWriter, r *http.Request) error{
             SourceUserId: myUid,
             TargetUserId: targetUid,
         })
-        http.Redirect(w, r, "/users", 302)
+        http.Redirect(w, r, "/users", 307)
     }
     return nil
 }
@@ -275,7 +275,7 @@ func Unfollow(w http.ResponseWriter, r *http.Request) error {
     val, ok := param[constant.UserId]
     if !ok { // If no `userId` in url
         log.Println("No user id to unfollow!")
-        http.Redirect(w, r, "/users", 302)
+        http.Redirect(w, r, "/users", 307)
     } else {
         targetUid, err := strconv.ParseUint(val[0], 10, 64)
         if err != nil {
@@ -288,7 +288,7 @@ func Unfollow(w http.ResponseWriter, r *http.Request) error {
             SourceUserId: myUid,
             TargetUserId: targetUid,
         })
-        http.Redirect(w, r, "/users", 302)
+        http.Redirect(w, r, "/users", 307)
     }
     return nil
 }
