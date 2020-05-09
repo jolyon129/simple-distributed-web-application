@@ -2,6 +2,7 @@ package middleware
 
 import (
     "context"
+    "errors"
     "html/template"
     "log"
     "net/http"
@@ -82,9 +83,14 @@ func CheckAuth(handlerToWrap http.Handler) http.Handler {
 // This is a middleware to
 // add Some Header to response
 func SetHeader(handlerToWrap http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    return AppHandler(func(w http.ResponseWriter, r *http.Request) error {
+        if w == nil {
+            handlerToWrap.ServeHTTP(w, r)
+            return errors.New("something went wrong")
+        }
         w.Header().Set("Content-Type", "text/html")
         w.Header().Set("cache-control", "no-store")
         handlerToWrap.ServeHTTP(w, r)
+        return nil
     })
 }

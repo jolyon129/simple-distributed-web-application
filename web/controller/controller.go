@@ -194,7 +194,7 @@ func Tweet(w http.ResponseWriter, r *http.Request) error {
             log.Print(err)
             return err
         }
-        http.Redirect(w, r, "/home", 307)
+        http.Redirect(w, r, "/home", 302)
     }
     return nil
 }

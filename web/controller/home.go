@@ -29,10 +29,10 @@ type homeView struct {
     Feed     []tweet
 }
 
-func Home(w http.ResponseWriter, r *http.Request) error{
+func Home(w http.ResponseWriter, r *http.Request) error {
     if r.Method == "GET" {
         userId, err1 := GetMyUserId(r)
-        if err1!=nil{
+        if err1 != nil {
             return appError{
                 Err:     err1,
                 Message: err1.Error(),
@@ -40,9 +40,12 @@ func Home(w http.ResponseWriter, r *http.Request) error{
             }
         }
         ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
-        res, _ := BackendClientIns.UserSelectById(ctx, &SelectByIdRequest{
+        res, err2 := BackendClientIns.UserSelectById(ctx, &SelectByIdRequest{
             Id: userId,
         })
+        if err2 != nil {
+            return err2
+        }
 
         t, _ := template.ParseFiles(constant.RelativePathForTemplate + "home.html")
         w.Header().Set("Content-Type", "text/html")
@@ -147,8 +150,11 @@ func mergeSortedTweets(l1 []uint64, l2 []uint64) []uint64 {
 
 func getTweetById(id uint64) *TweetSelectByIdResponse {
     ctx, _ := context.WithTimeout(context.Background(), constant.ContextTimeoutDuration)
-    res1, _ := BackendClientIns.TweetSelectById(ctx, &SelectByIdRequest{
+    res1, err := BackendClientIns.TweetSelectById(ctx, &SelectByIdRequest{
         Id: id,
     })
+    if err!=nil{
+        return nil
+    }
     return res1
 }

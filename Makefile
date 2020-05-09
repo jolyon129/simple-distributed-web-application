@@ -70,5 +70,5 @@ test: vendor-all
 	go test -v --race ./backend/...
 	#go test -v --race ./raftcluster/store/...
 
-install-raft:
+install-raft: vendor-raftcluster
 	go install ./cmd/raftcluster/raftcluster.go
