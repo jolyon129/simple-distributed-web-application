@@ -195,9 +195,13 @@ func SaveTweet(ctx context.Context, p TweetInfo) (uint, error) {
     defer close(result)
     defer close(errorChan)
     newTweet := &beStorage.TweetEntity{
-        UserID:      p.UserID,
-        Content:     p.Content,
-        CreatedTime: time.Time{}}
+        UserID:  p.UserID,
+        Content: p.Content}
+    if p.CreatedTime.IsZero() {
+        newTweet.CreatedTime = time.Now()
+    } else {
+        newTweet.CreatedTime = p.CreatedTime
+    }
     go func() {
         bkStorageManager.TweetStorage.Create(newTweet, result, errorChan)
     }()

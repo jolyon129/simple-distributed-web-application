@@ -1,5 +1,11 @@
 [![Build Status](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project.svg?token=LyWHGctXVCcEk9v6z4HG&branch=master)](https://travis-ci.com/Distributed-Systems-CSGY9223/zl2501-final-project)
 
+# Presentation
+
+[Google Slide](https://docs.google.com/presentation/d/1qsJgz8PY_Uv5RL5V38f-bikhsT1bt1PUV_hwpNheCgc/edit?usp=sharing)
+
+![Image description](/architecture-diagram.png)
+
 # Stage 3 Explanation
 
 I choose `etcd` from `CoreOS`  as the raft implementation. A new service named `raftcluster` is added to the project.

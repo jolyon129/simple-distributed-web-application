@@ -102,4 +102,5 @@ type UserInfo struct {
 type TweetInfo struct {
     UserID  uint
     Content string
+    CreatedTime time.Time
 }

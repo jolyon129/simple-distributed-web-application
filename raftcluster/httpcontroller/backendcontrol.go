@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "net/http"
     "strconv"
+    "time"
     . "zl2501-final-project/raftcluster/store"
     "zl2501-final-project/raftcluster/store/backendstore"
 )
@@ -206,6 +207,7 @@ func TweetCreate(w http.ResponseWriter, r *http.Request) {
     tid, err := raftStore.RequestPropose(newTimeoutCtx(), METHOD_TweetCreate, TweetInfo{
         UserID:  convertStrToUint(uId),
         Content: content,
+        CreatedTime: time.Now(),
     })
     if err != nil {
         w.WriteHeader(http.StatusInternalServerError)

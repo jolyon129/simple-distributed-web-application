@@ -65,7 +65,7 @@ func (m *MemTweetStore) Create(tweet *backendstore.TweetEntity, result chan uint
         ID:          pk,
         UserID:      tweet.UserID,
         Content:     tweet.Content,
-        CreatedTime: time.Now(),
+        CreatedTime: tweet.CreatedTime,
     }
     m.tweetMap[newTweet.ID] = &newTweet
     //	return pk, nil

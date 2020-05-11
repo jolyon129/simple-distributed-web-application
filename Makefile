@@ -56,6 +56,8 @@ build: vendor-all
 run-backend: vendor-backend
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/backend/backend.go
 
+run-backend-init-data: vendor-backend
+	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/backend/backend.go --data true
 
 run-auth: vendor-auth
 	GRPC_GO_LOG_VERBOSITY_LEVEL=99 GRPC_GO_LOG_SEVERITY_LEVEL=info go run ./cmd/auth/auth.go

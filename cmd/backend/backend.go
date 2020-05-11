@@ -13,7 +13,7 @@ import (
 
 func main() {
     fmt.Println("This is the backend service")
-    addData := flag.Bool("AddData", false, "add default data")
+    addData := flag.Bool("data", false, "add default data")
     flag.Parse()
     addDefaultData(*addData)
     backend.StartService()
