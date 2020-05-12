@@ -55,7 +55,7 @@ func ServerHttpAPI(store *store.DBStore, port int, changeC chan raftpb.ConfChang
     mux.Get("/tweet/:tid",controller.TweetRead)
     //mux.Delete("tweet/:tid",controller.TweetDelete)
 
-    log.Printf("Raft HTTP Server is going to start at: http://localhost:%v", HTTP_PORT)
+    log.Printf("Raft HTTP Server is going to start at: http://localhost:%v", port)
     log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), LogRequests(mux)))
 }
 
